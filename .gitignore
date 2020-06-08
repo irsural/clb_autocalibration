@@ -1,0 +1,14 @@
+*.xml
+*.iml
+*.pyc
+*.db
+*.spec
+*.ini
+icons_rc.py
+/build
+/dist
+/venv
+/venv3.5
+/Lib
+/Scripts
+/resources/py
