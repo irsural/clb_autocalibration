@@ -27,4 +27,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    input("Error. Press enter to continue...")
+    # input("Error. Press enter to continue...")

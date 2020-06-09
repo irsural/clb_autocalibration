@@ -11,6 +11,8 @@ from tstlan_dialog import TstlanDialog
 from qt_utils import QTextEditLogger
 import calibrator_constants as clb
 import constants as cfg
+from ftdi_dll import FtdiControl
+import ftdi_dll
 import clb_dll
 import utils
 
@@ -51,6 +53,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.set_up_logger()
 
+            self.ftdi_driver = ftdi_dll.set_up_driver("./ftdi_dll.dll")
+            self.ftdi = ftdi_dll.FtdiControl(self.ftdi_driver)
+            self.set_up_ftdi_pins()
+
             self.clb_driver = clb_dll.set_up_driver(clb_dll.debug_dll_path)
 
             modbus_registers_count = 700
@@ -73,6 +79,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.source_mode_widget.ui.open_tstlan_button.clicked.connect(self.open_tstlan)
 
+            self.ui.pa6_button.clicked.connect(self.pa6_button_clicked)
+            self.ui.bc0_button.clicked.connect(self.bc0_button_clicked)
+            self.ui.reinit_button.clicked.connect(self.reinit_button_clicked)
+
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
             self.tick_timer.start(10)
@@ -84,8 +94,8 @@ class MainWindow(QtWidgets.QMainWindow):
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
         logging.getLogger().addHandler(log)
-        # logging.getLogger().setLevel(logging.DEBUG)
-        logging.getLogger().setLevel(logging.INFO)
+        logging.getLogger().setLevel(logging.DEBUG)
+        # logging.getLogger().setLevel(logging.INFO)
         # logging.getLogger().setLevel(logging.WARN)
 
     def set_up_source_mode_widget(self) -> SourceModeWidget:
@@ -124,6 +134,21 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_state = current_state
             self.calibrator.state = current_state
             self.usb_status_changed.emit(self.clb_state)
+
+    def pa6_button_clicked(self, a_state):
+        result = self.ftdi.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
+        logging.debug(f"result = {result}")
+        gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
+        logging.debug(f"gpio_state = {gpio_state}")
+
+    def bc0_button_clicked(self, a_state):
+        result = self.ftdi.write_gpio(FtdiControl.Channel.B, FtdiControl.Bus.C, FtdiControl.Pin._0, a_state)
+        logging.debug(f"result = {result}")
+        gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.B, FtdiControl.Bus.C, FtdiControl.Pin._0)
+        logging.debug(f"gpio_state = {gpio_state}")
+
+    def reinit_button_clicked(self, _):
+        self.ftdi.reinit()
 
     def open_tstlan(self):
         try:
