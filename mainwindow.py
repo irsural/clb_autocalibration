@@ -2,19 +2,18 @@ import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from settings_ini_parser import Settings, BadIniException
+from irspy.settings_ini_parser import Settings, BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
-from network_variables import NetworkVariables
+from irspy.clb.network_variables import NetworkVariables
 from settings_dialog import SettingsDialog
 from tstlan_dialog import TstlanDialog
-from qt_utils import QTextEditLogger
-import calibrator_constants as clb
-import constants as cfg
-from ftdi_dll import FtdiControl
-import ftdi_dll
-import clb_dll
-import utils
+from irspy.qt.qt_utils import QTextEditLogger
+import irspy.clb.calibrator_constants as clb
+from irspy.dlls.ftdi_dll import FtdiControl
+import irspy.dlls.ftdi_dll as ftdi_dll
+import irspy.clb.clb_dll as clb_dll
+import irspy.utils as utils
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -30,16 +29,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
         try:
             self.settings = Settings("./settings.ini", [
-                Settings.VariableInfo(a_name="fixed_step_list", a_section="PARAMETERS", a_type=Settings.ValueType.LIST_FLOAT, a_default=[0.0001,0.01,0.1,1,10,20,100]),
-                Settings.VariableInfo(a_name="checkbox_states", a_section="PARAMETERS", a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="fixed_step_idx", a_section="PARAMETERS", a_type=Settings.ValueType.INT),
-                Settings.VariableInfo(a_name="rough_step", a_section="PARAMETERS", a_type=Settings.ValueType.FLOAT, a_default=0.5),
-                Settings.VariableInfo(a_name="common_step", a_section="PARAMETERS", a_type=Settings.ValueType.FLOAT, a_default=0.05),
-                Settings.VariableInfo(a_name="exact_step", a_section="PARAMETERS", a_type=Settings.ValueType.FLOAT, a_default=0.002),
-                Settings.VariableInfo(a_name="tstlan_update_time", a_section="PARAMETERS", a_type=Settings.ValueType.FLOAT, a_default=0.2),
-                Settings.VariableInfo(a_name="tstlan_show_marks", a_section="PARAMETERS", a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="tstlan_marks", a_section="PARAMETERS", a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="tstlan_graphs", a_section="PARAMETERS", a_type=Settings.ValueType.LIST_INT),
+                Settings.VariableInfo(a_name="fixed_step_list", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.LIST_FLOAT, a_default=[0.0001,0.01,0.1,1,10,20,100]),
+                Settings.VariableInfo(a_name="checkbox_states", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.LIST_INT),
+                Settings.VariableInfo(a_name="fixed_step_idx", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT),
+                Settings.VariableInfo(a_name="rough_step", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.FLOAT, a_default=0.5),
+                Settings.VariableInfo(a_name="common_step", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.FLOAT, a_default=0.05),
+                Settings.VariableInfo(a_name="exact_step", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.FLOAT, a_default=0.002),
+                Settings.VariableInfo(a_name="tstlan_update_time", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.FLOAT, a_default=0.2),
+                Settings.VariableInfo(a_name="tstlan_show_marks", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="tstlan_marks", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.LIST_INT),
+                Settings.VariableInfo(a_name="tstlan_graphs", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.LIST_INT),
             ])
 
             ini_ok = True
@@ -48,16 +57,18 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
-            self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-            self.ui.splitter.restoreState(self.settings.get_last_geometry(self.ui.splitter.__class__.__name__ + "1"))
+            self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
+            self.ui.splitter.restoreState(self.settings.get_last_geometry(self.ui.splitter.objectName()))
+            self.ui.splitter_2.restoreState(self.settings.get_last_geometry(self.ui.splitter_2.objectName()))
+            self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
+                self.ui.measures_table.objectName()))
 
             self.set_up_logger()
 
-            self.ftdi_driver = ftdi_dll.set_up_driver("./ftdi_dll.dll")
+            self.ftdi_driver = ftdi_dll.set_up_driver("../irspy/dlls/ftdi_dll.dll")
             self.ftdi = ftdi_dll.FtdiControl(self.ftdi_driver)
-            self.set_up_ftdi_pins()
 
-            self.clb_driver = clb_dll.set_up_driver(clb_dll.debug_dll_path)
+            self.clb_driver = clb_dll.set_up_driver("../irspy/clb/clb_driver_dll.dll")
 
             modbus_registers_count = 700
             self.usb_driver = clb_dll.UsbDrv(self.clb_driver, modbus_registers_count * 2)
@@ -65,7 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
 
-            self.netvars = NetworkVariables(cfg.CLB_CONFIG_PATH, self.calibrator)
+            self.netvars = NetworkVariables(f"../irspy/clb/{clb.CLB_CONFIG_NAME}", self.calibrator)
 
             self.clb_signal_off_timer = QtCore.QTimer()
             # noinspection PyTypeChecker
@@ -74,14 +85,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
 
-            self.source_mode_widget = self.set_up_source_mode_widget()
             self.show()
 
-            self.source_mode_widget.ui.open_tstlan_button.clicked.connect(self.open_tstlan)
-
-            self.ui.pa6_button.clicked.connect(self.pa6_button_clicked)
-            self.ui.bc0_button.clicked.connect(self.bc0_button_clicked)
-            self.ui.reinit_button.clicked.connect(self.reinit_button_clicked)
+            self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
+            self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -107,13 +114,12 @@ class MainWindow(QtWidgets.QMainWindow):
         return source_mode_widget
 
     def tick(self):
-        self.usb_tick()
-
-    def usb_tick(self):
         self.usb_driver.tick()
 
         if self.usb_driver.is_dev_list_changed():
-            self.clb_list_changed.emit(self.usb_driver.get_dev_list())
+            self.ui.clb_list_combobox.clear()
+            for clb_name in self.usb_driver.get_dev_list():
+                self.ui.clb_list_combobox.addItem(clb_name)
 
         if self.usb_driver.is_status_changed():
             self.usb_state = self.usb_driver.get_status()
@@ -135,17 +141,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.calibrator.state = current_state
             self.usb_status_changed.emit(self.clb_state)
 
+    def connect_to_clb(self, a_clb_name):
+        self.calibrator.connect(a_clb_name)
+
     def pa6_button_clicked(self, a_state):
         result = self.ftdi.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
-        logging.debug(f"result = {result}")
         gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
-        logging.debug(f"gpio_state = {gpio_state}")
-
-    def bc0_button_clicked(self, a_state):
-        result = self.ftdi.write_gpio(FtdiControl.Channel.B, FtdiControl.Bus.C, FtdiControl.Pin._0, a_state)
-        logging.debug(f"result = {result}")
-        gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.B, FtdiControl.Bus.C, FtdiControl.Pin._0)
-        logging.debug(f"gpio_state = {gpio_state}")
 
     def reinit_button_clicked(self, _):
         self.ftdi.reinit()
@@ -170,6 +171,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
             a_event.ignore()
         else:
-            self.settings.save_geometry(self.ui.splitter.__class__.__name__ + "1", self.ui.splitter.saveState())
-            self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+            self.settings.save_geometry(self.ui.splitter.objectName(), self.ui.splitter.saveState())
+            self.settings.save_geometry(self.ui.splitter_2.objectName(), self.ui.splitter_2.saveState())
+            self.settings.save_geometry(self.ui.measures_table.objectName(),
+                                        self.ui.measures_table.horizontalHeader().saveState())
+            self.settings.save_geometry(self.objectName(), self.saveGeometry())
             a_event.accept()

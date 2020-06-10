@@ -5,12 +5,12 @@ from PyQt5.QtCore import pyqtSignal, QTimer
 
 
 from ui.py.source_mode_form import Ui_Form as SourceModeForm
-from network_variables import NetworkVariables
-import calibrator_constants as clb
-from settings_ini_parser import Settings
-import qt_utils
-import clb_dll
-import utils
+from irspy.clb.network_variables import NetworkVariables
+import irspy.clb.calibrator_constants as clb
+from irspy.settings_ini_parser import Settings
+import irspy.qt.qt_utils as qt_utils
+import irspy.clb.clb_dll as clb_dll
+import irspy.utils as utils
 
 
 class SourceModeWidget(QtWidgets.QWidget):

@@ -4,9 +4,9 @@ import logging
 from PyQt5 import QtGui, QtWidgets
 import pyqtgraph
 
-from ui.py.tstslan_graphs_dialog import Ui_Dialog as GraphForm
-from settings_ini_parser import Settings
-import utils
+from ui.py.tstslan_graphs_dialog import Ui_tstlan_graphs_dialog as GraphForm
+from irspy.settings_ini_parser import Settings
+import irspy.utils as utils
 
 
 class TstlanGraphDialog(QtWidgets.QDialog):

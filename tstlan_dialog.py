@@ -6,12 +6,12 @@ import time
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from ui.py.tstlan_dialog import Ui_Dialog as TstlanForm
+from ui.py.tstlan_dialog import Ui_tstlan_dialog as TstlanForm
 from tstlan_graph_dialog import TstlanGraphDialog
-from settings_ini_parser import Settings
-from clb_dll import ClbDrv
-import network_variables as nv
-import utils
+from irspy.settings_ini_parser import Settings
+from irspy.clb.clb_dll import ClbDrv
+import irspy.clb.network_variables as nv
+import irspy.utils as utils
 
 
 class TstlanDialog(QtWidgets.QDialog):
@@ -35,7 +35,7 @@ class TstlanDialog(QtWidgets.QDialog):
         self.calibrator = a_calibrator
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
 
         self.variables_to_graph: Dict[str, nv.BufferedVariable] = {}
         self.graphs_data: Dict[str, Tuple[List[float], List[float]]] = {}
@@ -47,7 +47,7 @@ class TstlanDialog(QtWidgets.QDialog):
         self.fill_variables_table()
 
         self.ui.variables_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
-            self.ui.variables_table.__class__.__name__))
+            self.ui.variables_table.objectName()))
         self.ui.variables_table.resizeRowsToContents()
 
         self.ui.show_marked_checkbox.setChecked(self.settings.tstlan_show_marks)
@@ -245,9 +245,9 @@ class TstlanDialog(QtWidgets.QDialog):
         self.settings.tstlan_update_time = a_value
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.ui.variables_table.__class__.__name__,
+        self.settings.save_geometry(self.ui.variables_table.objectName(),
                                     self.ui.variables_table.horizontalHeader().saveState())
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_geometry(self.objectName(), self.saveGeometry())
 
         mark_states = [0] * self.ui.variables_table.rowCount()
         graph_states = [0] * self.ui.variables_table.rowCount()

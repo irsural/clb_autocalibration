@@ -3,12 +3,12 @@ import logging
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 
-from custom_widgets.EditListDialog import EditedListWithUnits
-from ui.py.settings_form import Ui_Dialog as SettingsForm
-from settings_ini_parser import Settings
-import calibrator_constants as clb
+from irspy.qt.custom_widgets.EditListDialog import EditedListWithUnits
+from ui.py.settings_form import Ui_settings_dialog as SettingsForm
+from irspy.settings_ini_parser import Settings
+import irspy.clb.calibrator_constants as clb
 
-import utils
+import irspy.utils as utils
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -25,7 +25,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
 
         self.ui.save_and_exit_button.clicked.connect(self.save_and_exit)
         self.ui.save_button.clicked.connect(self.save)
@@ -70,5 +70,5 @@ class SettingsDialog(QtWidgets.QDialog):
             self.close()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_geometry(self.objectName(), self.saveGeometry())
         a_event.accept()
