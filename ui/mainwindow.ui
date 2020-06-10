@@ -80,8 +80,17 @@
          </item>
          <item>
           <widget class="QTableWidget" name="measures_table">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
            <attribute name="horizontalHeaderStretchLastSection">
             <bool>true</bool>
+           </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
            </attribute>
            <column>
             <property name="text">
@@ -90,7 +99,7 @@
            </column>
            <column>
             <property name="text">
-             <string>Настройки</string>
+             <string>Парам.</string>
             </property>
            </column>
            <column>
@@ -102,6 +111,13 @@
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QPushButton" name="enable_all_button">
+             <property name="text">
+              <string>Вкл./Выкл все</string>
+             </property>
+            </widget>
+           </item>
            <item>
             <widget class="QPushButton" name="add_measure_button">
              <property name="text">
@@ -168,6 +184,8 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="save_action"/>
+   <addaction name="separator"/>
    <addaction name="open_tstlan_action"/>
   </widget>
   <action name="change_fixed_range_action">
@@ -192,6 +210,21 @@
    </property>
    <property name="text">
     <string>tstlan</string>
+   </property>
+   <property name="shortcut">
+    <string>T</string>
+   </property>
+  </action>
+  <action name="save_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

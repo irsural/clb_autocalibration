@@ -8,18 +8,24 @@ from source_mode_window import SourceModeWidget
 from irspy.clb.network_variables import NetworkVariables
 from settings_dialog import SettingsDialog
 from tstlan_dialog import TstlanDialog
-from irspy.qt.qt_utils import QTextEditLogger
+from irspy.qt import qt_utils
 import irspy.clb.calibrator_constants as clb
 from irspy.dlls.ftdi_dll import FtdiControl
 import irspy.dlls.ftdi_dll as ftdi_dll
 import irspy.clb.clb_dll as clb_dll
 import irspy.utils as utils
+from enum import IntEnum
 
 
 class MainWindow(QtWidgets.QMainWindow):
     clb_list_changed = QtCore.pyqtSignal([list])
     usb_status_changed = QtCore.pyqtSignal(clb.State)
     signal_enable_changed = QtCore.pyqtSignal(bool)
+
+    class MeasureColumn(IntEnum):
+        NAME = 0
+        SETTINGS = 1
+        ENABLE = 2
 
     def __init__(self):
         super().__init__()
@@ -83,12 +89,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
 
-            self.ui.enter_settings_action.triggered.connect(self.open_settings)
-
             self.show()
 
+            self.configuration_changed = False
+
+            self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
+            self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+            self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -97,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.close()
 
     def set_up_logger(self):
-        log = QTextEditLogger(self, self.ui.log_text_edit)
+        log = qt_utils.QTextEditLogger(self, self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
         logging.getLogger().addHandler(log)
@@ -144,12 +153,20 @@ class MainWindow(QtWidgets.QMainWindow):
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
 
-    def pa6_button_clicked(self, a_state):
-        result = self.ftdi.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
-        gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
+    @utils.exception_decorator
+    def add_measure_button_clicked(self, _):
+        selected_row = qt_utils.get_selected_row(self.ui.measures_table)
+        row_index = selected_row if selected_row is not None else self.ui.measures_table.rowCount()
+        self.ui.measures_table.insertRow(row_index)
+        self.ui.measures_table.setItem(row_index, MainWindow.MeasureColumn.NAME,
+                                       QtWidgets.QTableWidgetItem("Новое измерение"))
 
-    def reinit_button_clicked(self, _):
-        self.ftdi.reinit()
+        button = QtWidgets.QToolButton()
+        self.ui.measures_table.setCellWidget(row_index, MainWindow.MeasureColumn.SETTINGS, qt_utils.wrap_in_layout(button))
+        cb = QtWidgets.QCheckBox()
+        self.ui.measures_table.setCellWidget(row_index, MainWindow.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
+
+        self.configuration_changed = True
 
     def open_tstlan(self):
         try:
@@ -165,15 +182,52 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             logging.debug(utils.exception_handler(err))
 
+    def save_configuration(self) -> bool:
+        self.configuration_changed = False
+        return True
+
     def closeEvent(self, a_event: QtGui.QCloseEvent):
-        if self.calibrator.signal_enable:
-            self.calibrator.signal_enable = False
-            self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
-            a_event.ignore()
+        if self.configuration_changed:
+            msgbox = QtWidgets.QMessageBox()
+            msgbox.setWindowTitle("Предупреждение")
+            msgbox.setText("Текущая конфигурация не сохранена. Выберите действие")
+            save_button = msgbox.addButton("Сохранить и выйти", QtWidgets.QMessageBox.YesRole)
+            no_save_button = msgbox.addButton("Выйти без сохранения", QtWidgets.QMessageBox.AcceptRole)
+            cancel_button = msgbox.addButton("Отмена", QtWidgets.QMessageBox.AcceptRole)
+            msgbox.exec()
+
+            if msgbox.clickedButton() == save_button:
+                if self.save_configuration():
+                    self.configuration_changed = False
+                    a_event.ignore()
+                    self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "Ошибка", "Не удалось сохранить конфигурацию")
+                    a_event.ignore()
+
+            elif msgbox.clickedButton() == no_save_button:
+                self.configuration_changed = False
+                a_event.ignore()
+                self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
+            else:
+                a_event.ignore()
+
         else:
-            self.settings.save_geometry(self.ui.splitter.objectName(), self.ui.splitter.saveState())
-            self.settings.save_geometry(self.ui.splitter_2.objectName(), self.ui.splitter_2.saveState())
-            self.settings.save_geometry(self.ui.measures_table.objectName(),
-                                        self.ui.measures_table.horizontalHeader().saveState())
-            self.settings.save_geometry(self.objectName(), self.saveGeometry())
-            a_event.accept()
+            if self.calibrator.signal_enable:
+                self.calibrator.signal_enable = False
+                self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
+                a_event.ignore()
+            else:
+                self.settings.save_geometry(self.ui.splitter.objectName(), self.ui.splitter.saveState())
+                self.settings.save_geometry(self.ui.splitter_2.objectName(), self.ui.splitter_2.saveState())
+                self.settings.save_geometry(self.ui.measures_table.objectName(),
+                                            self.ui.measures_table.horizontalHeader().saveState())
+                self.settings.save_geometry(self.objectName(), self.saveGeometry())
+                a_event.accept()
+
+    def pa6_button_clicked(self, a_state):
+        result = self.ftdi.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
+        gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
+
+    def reinit_button_clicked(self, _):
+        self.ftdi.reinit()

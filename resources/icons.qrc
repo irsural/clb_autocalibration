@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/save.png</file>
     <file>icons/tstlan.png</file>
     <file>gif/loader2.gif</file>
     <file>gif/loader.gif</file>
