@@ -2,5 +2,4 @@ PyQt5~=5.15.0
 PyQt5-sip~=12.8.0
 PyQt5-stubs~=5.14.2.2
 PyQt5Designer~=5.14.1
-pyqtgraph~=0.10.0
-pyftdi~=0.51.2
+pyqtgraph~=0.11.0

@@ -90,12 +90,12 @@
            </column>
            <column>
             <property name="text">
-             <string>Вкл.</string>
+             <string>Настройки</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Настройки</string>
+             <string>Вкл.</string>
             </property>
            </column>
           </widget>
