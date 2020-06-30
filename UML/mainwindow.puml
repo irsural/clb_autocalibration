@@ -9,6 +9,7 @@ QAbstractTableModel <|-- MeasuresDataModel
 MainWindow "1" *-- "1" MeasuresManager
 MeasuresDataModel "0..*" -right--* "1" MeasuresManager: Содержит
 MeasuresDataModel "1" *-- "1..*" CellData
+MeasuresDataModel "1" *-- "1..*" MeasureParameters
 
 MeasuresManager "1" o-- "1" QTableWidget
 MeasuresManager "1" o-- "1" QTableView
@@ -33,6 +34,7 @@ class MainWindow {
 class MeasuresManager {
 -QTableView& measures_data_view
 -QTableWidget& measures_list_table
+-Dict[str, MeasureParameters] measures_parameters
 -Dict[str, MeasureDataModel] measure_data_models
 -str edited_name
 +MeasuresManager(QTableWidget a_meas_list, QTableView a_meas_data)
@@ -50,6 +52,7 @@ class MeasuresManager {
 +set_edited_name(str a_name): pyqtSlot
 +update_measure_name(str a_new_name): pyqtSlot
 +set_data_save_state(str a_name, bool a_state): pyqtSlot
++get_next_locked_cell(int a_current_row, int a_current_column)
 }
 
 class MeasuresDataModel {
@@ -60,9 +63,23 @@ class MeasuresDataModel {
 +add_row(int a_row)
 +remove_row(int a_row)
 +lock_cell(int a_row, int a_column, bool a_lock)
++bool is_cell_locked(int a_row, int a_column)
 +set_compared_cell(int a_row, int a_column)
 +set_name(str a_name)
 +data_state_changed(str a_name, bool a_state): pyqtSignal
++double get_cell_amplitude(int a_row, int a_column)
++double get_cell_frequency(int a_row, int a_column)
++MeasureParameters get_measure_parameters()
+
++bool flash_all_data()
++bool flash_diapason_of_cell(int a_row, int a_column)
++stop_flashing()
+}
+
+class MeasureParameters {
+-signal_type
+-flash_after_finishing
+-flash_table
 }
 
 class CellData {
