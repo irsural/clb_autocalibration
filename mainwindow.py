@@ -162,7 +162,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                        QtWidgets.QTableWidgetItem("Новое измерение"))
 
         button = QtWidgets.QToolButton()
+        button.setText("...")
         self.ui.measures_table.setCellWidget(row_index, MainWindow.MeasureColumn.SETTINGS, qt_utils.wrap_in_layout(button))
+        
         cb = QtWidgets.QCheckBox()
         self.ui.measures_table.setCellWidget(row_index, MainWindow.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
 
