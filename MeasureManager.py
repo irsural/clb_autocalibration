@@ -6,8 +6,12 @@ import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from MeasureDataModel import MeasureDataModel
+from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
+from irspy import utils
+
+from edit_measure_parameters_dialog import EditMeasureParametersDialog
+from MeasureDataModel import MeasureDataModel
 
 
 class MeasureManager(QtCore.QObject):
@@ -16,9 +20,11 @@ class MeasureManager(QtCore.QObject):
         SETTINGS = 1
         ENABLE = 2
 
-    def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView, a_parent=None):
+    def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
+                 a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
+        self.settings = a_settings
         self.measures_table = a_measures_table
         self.data_view = a_data_view
         self.data_view.verticalHeader().setHidden(True)
@@ -67,7 +73,7 @@ class MeasureManager(QtCore.QObject):
 
     def add_measure(self):
         selected_row = qt_utils.get_selected_row(self.measures_table)
-        row_index = selected_row if selected_row is not None else self.measures_table.rowCount()
+        row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
         new_name = self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
         self.measures[new_name] = MeasureDataModel()
@@ -80,6 +86,7 @@ class MeasureManager(QtCore.QObject):
         button.setText("...")
         self.measures_table.setCellWidget(row_index, MeasureManager.MeasureColumn.SETTINGS,
                                           qt_utils.wrap_in_layout(button))
+        button.clicked.connect(self.edit_measure_parameters_button_clicked)
 
         cb = QtWidgets.QCheckBox()
         self.measures_table.setCellWidget(row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
@@ -102,8 +109,10 @@ class MeasureManager(QtCore.QObject):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
             if selection:
-                row_position = max(selection, key=lambda idx: idx.row())
-                self.current_data_model.add_row(row_position.row())
+                row = max(selection, key=lambda idx: idx.row()).row()
+            else:
+                row = self.current_data_model.rowCount()
+            self.current_data_model.add_row(row)
 
     def remove_row_from_current_measure(self):
         if self.current_data_model is not None:
@@ -116,8 +125,10 @@ class MeasureManager(QtCore.QObject):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
             if selection:
-                col_position = max(selection, key=lambda idx: idx.column())
-                self.current_data_model.add_column(col_position.column())
+                column = max(selection, key=lambda idx: idx.column()).column()
+            else:
+                column = self.current_data_model.columnCount()
+            self.current_data_model.add_column(column)
 
     def remove_column_from_current_measure(self):
         if self.current_data_model is not None:
@@ -141,6 +152,23 @@ class MeasureManager(QtCore.QObject):
                     measure_item.setBackground(QtCore.Qt.white)
                 else:
                     measure_item.setBackground(QtCore.Qt.yellow)
+
+    @utils.exception_decorator
+    def edit_measure_parameters_button_clicked(self, _):
+        button: QtWidgets.QPushButton = self.sender()
+        for row in range(self.measures_table.rowCount()):
+            cell_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.SETTINGS)
+            row_button = qt_utils.unwrap_from_layout(cell_widget)
+            if button == row_button:
+                measure_name = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
+                measure_data_model = self.measures[measure_name]
+                # measure_parameters = measure_data_model.get_parameters()
+                edit_parameters_dialog = EditMeasureParametersDialog(self.settings)
+                edit_parameters_dialog.exec()
+                return
+
+        assert False, "Не найдена строка таблицы с виджетом-отправителем сигнала"
+
 
     def save(self):
         for measure in self.measures.keys():

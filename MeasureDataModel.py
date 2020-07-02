@@ -76,12 +76,6 @@ class MeasureDataModel(QAbstractTableModel):
         except ValueError:
             return False
 
-    def removeSelected(self, a_row_indexes: list):
-        # Работает только для последовательного выделения
-        self.beginRemoveRows(QModelIndex(), a_row_indexes[0], a_row_indexes[-1])
-        # del self.__cells[a_row_indexes[0]:a_row_indexes[-1] + 1]
-        self.endRemoveRows()
-
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():

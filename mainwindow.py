@@ -88,7 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.configuration_changed = False
 
-            self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self)
+            self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
 
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
