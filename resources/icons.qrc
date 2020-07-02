@@ -1,5 +1,18 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/memory.png</file>
+    <file>icons/open.png</file>
+    <file>icons/stop.png</file>
+    <file>icons/unlock.png</file>
+    <file>icons/add_col.png</file>
+    <file>icons/add_row.png</file>
+    <file>icons/correction.png</file>
+    <file>icons/graph.png</file>
+    <file>icons/lock.png</file>
+    <file>icons/next.png</file>
+    <file>icons/remove_col.png</file>
+    <file>icons/remove_row.png</file>
+    <file>icons/save_as.png</file>
     <file>icons/save.png</file>
     <file>icons/tstlan.png</file>
     <file>gif/loader2.gif</file>

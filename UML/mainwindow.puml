@@ -34,7 +34,6 @@ class MainWindow {
 class MeasuresManager {
 -QTableView& measures_data_view
 -QTableWidget& measures_list_table
--Dict[str, MeasureParameters] measures_parameters
 -Dict[str, MeasureDataModel] measure_data_models
 -str edited_name
 +MeasuresManager(QTableWidget a_meas_list, QTableView a_meas_data)

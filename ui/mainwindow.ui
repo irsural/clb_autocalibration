@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>510</height>
+    <width>1104</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="font">
@@ -70,9 +70,50 @@
             </widget>
            </item>
            <item>
+            <widget class="QComboBox" name="comboBox"/>
+           </item>
+           <item>
             <widget class="QPushButton" name="agilent_settings_button">
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
-              <string>Настройки Agilent</string>
+              <string>...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QPushButton" name="add_measure_button">
+             <property name="text">
+              <string>Добавить</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="delete_measure_button">
+             <property name="text">
+              <string>Удалить</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="rename_measure_button">
+             <property name="text">
+              <string>Переимен.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="enable_all_button">
+             <property name="text">
+              <string>Вкл./Выкл все</string>
              </property>
             </widget>
            </item>
@@ -80,6 +121,9 @@
          </item>
          <item>
           <widget class="QTableWidget" name="measures_table">
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
            </property>
@@ -109,34 +153,350 @@
            </column>
           </widget>
          </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Таблица измерения</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QPushButton" name="enable_all_button">
+            <widget class="QPushButton" name="pushButton_2">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
              <property name="text">
-              <string>Вкл./Выкл все</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="add_measure_button">
+            <widget class="QPushButton" name="pushButton_7">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
              <property name="text">
-              <string>Добавить</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="delete_measure_button">
-             <property name="text">
-              <string>Удалить</string>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_6">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/play.png</normaloff>:/icons/icons/play.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_9">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/next.png</normaloff>:/icons/icons/next.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_8">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="add_row_button">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/add_row.png</normaloff>:/icons/icons/add_row.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="remove_row_button">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/remove_row.png</normaloff>:/icons/icons/remove_row.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="add_column_button">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/add_col.png</normaloff>:/icons/icons/add_col.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="remove_column_button">
+             <property name="minimumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/remove_col.png</normaloff>:/icons/icons/remove_col.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_2">
+             <item>
+              <property name="text">
+               <string>Измерено</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>СКО</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Ошибка</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Доверительный интервал</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
          </item>
+         <item>
+          <widget class="QTableView" name="measure_data_view">
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
-       <widget class="QStackedWidget" name="stackedWidget"/>
       </widget>
       <widget class="QPlainTextEdit" name="log_text_edit">
        <property name="sizePolicy">
@@ -155,7 +515,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>715</width>
+     <width>1104</width>
      <height>21</height>
     </rect>
    </property>
@@ -184,9 +544,24 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="open_action"/>
    <addaction name="save_action"/>
+   <addaction name="save_as_action"/>
+   <addaction name="separator"/>
+   <addaction name="start_all_action"/>
+   <addaction name="continue_all_action"/>
+   <addaction name="stop_all_action"/>
+   <addaction name="separator"/>
+   <addaction name="correction_action"/>
+   <addaction name="flash_all_action"/>
+   <addaction name="verify_action"/>
    <addaction name="separator"/>
    <addaction name="open_tstlan_action"/>
+   <addaction name="graphs_action"/>
+   <addaction name="separator"/>
+   <addaction name="lock_action"/>
+   <addaction name="unlock_action"/>
+   <addaction name="show_equal_action"/>
   </widget>
   <action name="change_fixed_range_action">
    <property name="text">
@@ -204,6 +579,9 @@
    </property>
   </action>
   <action name="open_tstlan_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/tstlan.png</normaloff>:/icons/icons/tstlan.png</iconset>
@@ -225,6 +603,120 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="open_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/open.png</normaloff>:/icons/icons/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>open_action</string>
+   </property>
+  </action>
+  <action name="save_as_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/save_as.png</normaloff>:/icons/icons/save_as.png</iconset>
+   </property>
+   <property name="text">
+    <string>save_as_action</string>
+   </property>
+  </action>
+  <action name="start_all_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/play.png</normaloff>:/icons/icons/play.png</iconset>
+   </property>
+   <property name="text">
+    <string>start_all_action</string>
+   </property>
+  </action>
+  <action name="continue_all_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/next.png</normaloff>:/icons/icons/next.png</iconset>
+   </property>
+   <property name="text">
+    <string>continue_all_action</string>
+   </property>
+  </action>
+  <action name="stop_all_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>stop_all_action</string>
+   </property>
+  </action>
+  <action name="correction_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/correction.png</normaloff>:/icons/icons/correction.png</iconset>
+   </property>
+   <property name="text">
+    <string>correction_action</string>
+   </property>
+  </action>
+  <action name="flash_all_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/memory.png</normaloff>:/icons/icons/memory.png</iconset>
+   </property>
+   <property name="text">
+    <string>flash_all_action</string>
+   </property>
+  </action>
+  <action name="verify_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/checkbox_empty.png</normaloff>:/icons/icons/checkbox_empty.png</iconset>
+   </property>
+   <property name="text">
+    <string>verify_action</string>
+   </property>
+  </action>
+  <action name="graphs_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/graph.png</normaloff>:/icons/icons/graph.png</iconset>
+   </property>
+   <property name="text">
+    <string>graphs_action</string>
+   </property>
+  </action>
+  <action name="lock_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/lock.png</normaloff>:/icons/icons/lock.png</iconset>
+   </property>
+   <property name="text">
+    <string>lock_action</string>
+   </property>
+  </action>
+  <action name="unlock_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/unlock.png</normaloff>:/icons/icons/unlock.png</iconset>
+   </property>
+   <property name="text">
+    <string>unlock_action</string>
+   </property>
+  </action>
+  <action name="show_equal_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/checkbox_empty.png</normaloff>:/icons/icons/checkbox_empty.png</iconset>
+   </property>
+   <property name="text">
+    <string>show_equal_action</string>
    </property>
   </action>
  </widget>

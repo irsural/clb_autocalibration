@@ -11,21 +11,16 @@ from tstlan_dialog import TstlanDialog
 from irspy.qt import qt_utils
 import irspy.clb.calibrator_constants as clb
 from irspy.dlls.ftdi_dll import FtdiControl
+from MeasureManager import MeasureManager
 import irspy.dlls.ftdi_dll as ftdi_dll
 import irspy.clb.clb_dll as clb_dll
 import irspy.utils as utils
-from enum import IntEnum
 
 
 class MainWindow(QtWidgets.QMainWindow):
     clb_list_changed = QtCore.pyqtSignal([list])
     usb_status_changed = QtCore.pyqtSignal(clb.State)
     signal_enable_changed = QtCore.pyqtSignal(bool)
-
-    class MeasureColumn(IntEnum):
-        NAME = 0
-        SETTINGS = 1
-        ENABLE = 2
 
     def __init__(self):
         super().__init__()
@@ -93,11 +88,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.configuration_changed = False
 
+            self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self)
+
+            self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
+            self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
+            self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
+            self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
+
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
             self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
+            self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -155,20 +158,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
-        selected_row = qt_utils.get_selected_row(self.ui.measures_table)
-        row_index = selected_row if selected_row is not None else self.ui.measures_table.rowCount()
-        self.ui.measures_table.insertRow(row_index)
-        self.ui.measures_table.setItem(row_index, MainWindow.MeasureColumn.NAME,
-                                       QtWidgets.QTableWidgetItem("Новое измерение"))
-
-        button = QtWidgets.QToolButton()
-        button.setText("...")
-        self.ui.measures_table.setCellWidget(row_index, MainWindow.MeasureColumn.SETTINGS, qt_utils.wrap_in_layout(button))
-        
-        cb = QtWidgets.QCheckBox()
-        self.ui.measures_table.setCellWidget(row_index, MainWindow.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
-
+        self.measure_manager.add_measure()
         self.configuration_changed = True
+
+    @utils.exception_decorator
+    def remove_measure_button_clicked(self, _):
+        self.measure_manager.remove_measure()
+        self.configuration_changed = True
+
+    def add_row_button_clicked(self, _):
+        self.measure_manager.add_row_to_current_measure()
+
+    def remove_row_button_clicked(self, _):
+        self.measure_manager.remove_row_from_current_measure()
+
+    def add_column_button_clicked(self, _):
+        self.measure_manager.add_column_to_current_measure()
+
+    def remove_column_button_clicked(self, _):
+        self.measure_manager.remove_column_from_current_measure()
 
     def open_tstlan(self):
         try:
@@ -186,6 +194,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_configuration(self) -> bool:
         self.configuration_changed = False
+        self.measure_manager.save()
         return True
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
