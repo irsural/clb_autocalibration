@@ -86,8 +86,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.show()
 
-            self.configuration_changed = False
-
             self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
 
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
@@ -159,12 +157,10 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
         self.measure_manager.add_measure()
-        self.configuration_changed = True
 
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):
         self.measure_manager.remove_measure()
-        self.configuration_changed = True
 
     def add_row_button_clicked(self, _):
         self.measure_manager.add_row_to_current_measure()
@@ -192,13 +188,11 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             logging.debug(utils.exception_handler(err))
 
-    def save_configuration(self) -> bool:
-        self.configuration_changed = False
+    def save_configuration(self):
         self.measure_manager.save()
-        return True
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
-        if self.configuration_changed:
+        if not self.measure_manager.is_saved():
             msgbox = QtWidgets.QMessageBox()
             msgbox.setWindowTitle("Предупреждение")
             msgbox.setText("Текущая конфигурация не сохранена. Выберите действие")
@@ -208,8 +202,7 @@ class MainWindow(QtWidgets.QMainWindow):
             msgbox.exec()
 
             if msgbox.clickedButton() == save_button:
-                if self.save_configuration():
-                    self.configuration_changed = False
+                if self.measure_manager.save():
                     a_event.ignore()
                     self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                 else:
@@ -217,7 +210,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     a_event.ignore()
 
             elif msgbox.clickedButton() == no_save_button:
-                self.configuration_changed = False
                 a_event.ignore()
                 self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
             else:

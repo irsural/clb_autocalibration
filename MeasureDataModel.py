@@ -18,22 +18,35 @@ class MeasureDataModel(QAbstractTableModel):
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
-    def __init__(self, a_parent=None):
+    def __init__(self, a_name: str, a_parent=None):
         super().__init__(a_parent)
 
-        self.__name = ""
+        self.__name = a_name
+        self.__saved = False
         self.__cells = [[""]]
         self.__measure_parameters = MeasureParameters()
 
     def set_name(self, a_name: str):
         self.__name = a_name
 
+    def set_save_state(self, a_saved: bool):
+        self.__saved = a_saved
+        self.data_save_state_changed.emit(self.__name, self.__saved)
+
+    def is_saved(self):
+        return self.__saved
+
+    def save(self):
+        self.__saved = True
+        self.set_save_state(self.__saved)
+        return self.__saved
+
     def get_parameters(self) -> MeasureParameters:
         return self.__measure_parameters
 
     def set_parameters(self, a_measure_parameters: MeasureParameters):
         self.__measure_parameters = a_measure_parameters
-        self.data_were_changed.emit(self.__name, False)
+        self.set_save_state(False)
 
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)

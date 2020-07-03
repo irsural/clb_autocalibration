@@ -76,7 +76,8 @@ class MeasureManager(QtCore.QObject):
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
         new_name = self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
-        self.measures[new_name] = MeasureDataModel()
+        self.measures[new_name] = MeasureDataModel(new_name)
+        self.measures[new_name].data_save_state_changed.connect(self.set_measure_save_state)
 
         self.measures_table.insertRow(row_index)
         self.measures_table.setItem(row_index, MeasureManager.MeasureColumn.NAME,
@@ -175,6 +176,12 @@ class MeasureManager(QtCore.QObject):
 
         assert False, "Не найдена строка таблицы с виджетом-отправителем сигнала"
 
+    def is_saved(self):
+        return all([data_model.is_saved() for data_model in self.measures.values()])
+
     def save(self):
-        for measure in self.measures.keys():
-            self.set_measure_save_state(measure, True)
+        all_saved = True
+        for measure_data_model in self.measures.values():
+            if not measure_data_model.save():
+                all_saved = False
+        return all_saved
