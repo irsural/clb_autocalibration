@@ -1,3 +1,4 @@
+from enum import IntEnum
 import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -17,12 +18,15 @@ import irspy.clb.clb_dll as clb_dll
 import irspy.utils as utils
 
 
-CONFIG_LIST_FILENAME = "Список измерений.conflist"
-
 class MainWindow(QtWidgets.QMainWindow):
     clb_list_changed = QtCore.pyqtSignal([list])
     usb_status_changed = QtCore.pyqtSignal(clb.State)
     signal_enable_changed = QtCore.pyqtSignal(bool)
+
+    class CloseConfigOptions(IntEnum):
+        SAVE = 0
+        DONT_SAVE = 1
+        CANCEL = 2
 
     def __init__(self):
         super().__init__()
@@ -167,11 +171,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
-        self.measure_manager.add_measure()
+        self.measure_manager.new_measure()
 
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):
-        self.measure_manager.remove_measure()
+        self.measure_manager.remove_measure(self.current_configuration_path)
 
     def add_row_button_clicked(self, _):
         self.measure_manager.add_row_to_current_measure()
@@ -201,60 +205,91 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_configuration(self):
         if self.current_configuration_path:
-            self.save_configuration_by_name(self.current_configuration_path)
+            if not self.measure_manager.is_saved():
+                return self.save_configuration_by_name(self.current_configuration_path)
+            else:
+                return True
         else:
-            self.save_configuration_as()
+            return self.save_configuration_as()
 
     def save_configuration_as(self):
         # noinspection PyTypeChecker
-        config_dir = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог конфигурации", "",
-                                                                QtWidgets.QFileDialog.ShowDirsOnly |
-                                                                QtWidgets.QFileDialog.DontResolveSymlinks)
+        config_dir = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог конфигураций", "")
         if config_dir:
-            config_filename = f"{config_dir}/{CONFIG_LIST_FILENAME}"
-            self.save_configuration_by_name(config_filename)
-            self.open_configuration_by_name(config_filename)
-
-    def save_configuration_by_name(self, a_filename: str):
-        if self.measure_manager.save(a_filename):
-            self.current_configuration_path = a_filename
+            config_filename = f"{config_dir}"
+            if self.save_configuration_by_name(config_filename):
+                # self.open_configuration_by_name(config_filename)
+                return True
+            else:
+                return False
         else:
-            pass
+            return False
+
+    def save_configuration_by_name(self, a_folder: str):
+        if self.measure_manager.save(a_folder):
+            self.current_configuration_path = a_folder
+            return True
+        else:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить конфигурации в каталоге {a_folder}",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return False
 
     def open_configuration(self):
-        config_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Открыть конфигурацию",
-                                                                   self.settings.last_configuration_path,
-                                                                   "Файл конфигурации (*.conflist)")
-        if config_filename:
-            self.settings.last_configuration_path = config_filename
-            self.open_configuration_by_name(config_filename)
+        cancel_open = False
+        if self.current_configuration_path:
+            if not self.measure_manager.is_saved():
+                answer = self.close_configuration()
+                if answer == MainWindow.CloseConfigOptions.SAVE:
+                    if not self.save_configuration():
+                        cancel_open = True
+                elif answer == MainWindow.CloseConfigOptions.CANCEL:
+                    cancel_open = True
 
-    def open_configuration_by_name(self, a_filename: str):
-        if self.measure_manager.load_from_file(a_filename):
-            self.current_configuration_path = a_filename
-            self.setWindowTitle(self.current_configuration_path[:self.current_configuration_path.rfind("/") + 1])
+        if not cancel_open:
+            config_filename = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог конфигураций",
+                                                                         self.settings.last_configuration_path)
+            if config_filename:
+                self.settings.last_configuration_path = config_filename
+                self.open_configuration_by_name(config_filename)
+
+    def open_configuration_by_name(self, a_folder: str):
+        if self.measure_manager.load_from_file(a_folder):
+            self.current_configuration_path = a_folder
+            self.setWindowTitle(self.current_configuration_path)
+        elif a_folder:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось нафти файлы конфигураций в каталоге {a_folder}",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
+    @staticmethod
+    def close_configuration() -> CloseConfigOptions:
+        msgbox = QtWidgets.QMessageBox()
+        msgbox.setWindowTitle("Предупреждение")
+        msgbox.setText("Текущая конфигурация не сохранена. Выберите действие")
+        save_button = msgbox.addButton("Сохранить", QtWidgets.QMessageBox.YesRole)
+        no_save_button = msgbox.addButton("Не сохранять", QtWidgets.QMessageBox.AcceptRole)
+        cancel_button = msgbox.addButton("Отмена", QtWidgets.QMessageBox.AcceptRole)
+        msgbox.exec()
+
+        if msgbox.clickedButton() == save_button:
+            return MainWindow.CloseConfigOptions.SAVE
+        elif msgbox.clickedButton() == no_save_button:
+            return MainWindow.CloseConfigOptions.DONT_SAVE
         else:
-            pass
+            return MainWindow.CloseConfigOptions.CANCEL
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
         if not self.measure_manager.is_saved() and not self.ignore_save:
-            msgbox = QtWidgets.QMessageBox()
-            msgbox.setWindowTitle("Предупреждение")
-            msgbox.setText("Текущая конфигурация не сохранена. Выберите действие")
-            save_button = msgbox.addButton("Сохранить и выйти", QtWidgets.QMessageBox.YesRole)
-            no_save_button = msgbox.addButton("Выйти без сохранения", QtWidgets.QMessageBox.AcceptRole)
-            cancel_button = msgbox.addButton("Отмена", QtWidgets.QMessageBox.AcceptRole)
-            msgbox.exec()
+            answer = self.close_configuration()
 
-            if msgbox.clickedButton() == save_button:
-                if self.measure_manager.save():
+            if answer == MainWindow.CloseConfigOptions.SAVE:
+                if self.save_configuration_by_name(self.current_configuration_path):
                     a_event.ignore()
                     self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                 else:
                     QtWidgets.QMessageBox.critical(self, "Ошибка", "Не удалось сохранить конфигурацию")
                     a_event.ignore()
 
-            elif msgbox.clickedButton() == no_save_button:
+            elif answer == MainWindow.CloseConfigOptions.DONT_SAVE:
                 self.ignore_save = True
                 self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                 a_event.ignore()

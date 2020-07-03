@@ -1,7 +1,9 @@
 from collections import namedtuple
-from typing import Union
+from typing import Union, Dict
 from collections import OrderedDict
 from enum import IntEnum
+import json
+import os
 import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -20,6 +22,9 @@ class MeasureManager(QtCore.QObject):
         SETTINGS = 1
         ENABLE = 2
 
+    MEASURE_FILE_EXTENSION = "measure"
+    MEASURES_ORDER_FILENAME = "measures_order.json"
+
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
                  a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
@@ -29,7 +34,7 @@ class MeasureManager(QtCore.QObject):
         self.data_view = a_data_view
         self.data_view.verticalHeader().setHidden(True)
 
-        self.measures = OrderedDict()
+        self.measures: Dict[str, MeasureDataModel] = OrderedDict()
         self.current_data_model: Union[None, MeasureDataModel] = None
 
         self.changing_name = ""
@@ -71,39 +76,57 @@ class MeasureManager(QtCore.QObject):
 
             self.measures_table.blockSignals(False)
 
-    def add_measure(self):
+    def new_measure(self, a_name="", a_measure_data_model: MeasureDataModel = None):
         selected_row = qt_utils.get_selected_row(self.measures_table)
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
-        new_name = self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
+        new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
-        self.measures[new_name] = MeasureDataModel(new_name)
-        self.measures[new_name].data_save_state_changed.connect(self.set_measure_save_state)
+        measure_data_model = a_measure_data_model if a_measure_data_model else MeasureDataModel(new_name)
+        self.measures[new_name] = measure_data_model
+        measure_data_model.data_save_state_changed.connect(self.set_measure_save_state)
 
-        self.measures_table.insertRow(row_index)
-        self.measures_table.setItem(row_index, MeasureManager.MeasureColumn.NAME,
-                                    QtWidgets.QTableWidgetItem(new_name))
+        self.add_measure_in_table(row_index, new_name, measure_data_model.is_enabled())
+
+        self.set_measure_save_state(new_name, measure_data_model.is_saved())
+        self.measures_table.setCurrentCell(row_index, MeasureManager.MeasureColumn.NAME)
+
+    def add_measure_in_table(self, a_row_index: int, a_name: str, a_enabled: bool):
+        self.measures_table.insertRow(a_row_index)
+        self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.NAME,
+                                    QtWidgets.QTableWidgetItem(a_name))
 
         button = QtWidgets.QToolButton()
         button.setText("...")
-        self.measures_table.setCellWidget(row_index, MeasureManager.MeasureColumn.SETTINGS,
+        self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.SETTINGS,
                                           qt_utils.wrap_in_layout(button))
         button.clicked.connect(self.edit_measure_parameters_button_clicked)
 
         cb = QtWidgets.QCheckBox()
-        self.measures_table.setCellWidget(row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
+        self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
         cb.toggled.connect(self.enable_measure_checkbox_toggled)
+        cb.setChecked(a_enabled)
 
-        self.set_measure_save_state(new_name, False)
-        self.measures_table.setCurrentCell(row_index, MeasureManager.MeasureColumn.NAME)
-
-    def remove_measure(self):
+    # noinspection PyTypeChecker
+    def remove_measure(self, a_measure_folder: str):
         selected_row = qt_utils.get_selected_row(self.measures_table)
         if selected_row is not None:
             removed_name = self.measures_table.item(selected_row, MeasureManager.MeasureColumn.NAME).text()
-            self.measures_table.removeRow(selected_row)
+            cancel_remove = False
+            if a_measure_folder:
+                res = QtWidgets.QMessageBox.question(None, "Подтвердите действие",
+                                                     f"Удалить измерение с именем {removed_name}? "
+                                                     f"Данное действие нельзя отменить",
+                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                     QtWidgets.QMessageBox.No)
+                if res == QtWidgets.QMessageBox.No:
+                    cancel_remove = True
 
-            del self.measures[removed_name]
-            return removed_name
+            if not cancel_remove:
+                self.measures_table.removeRow(selected_row)
+                del self.measures[removed_name]
+                self.save_measures_order_list(a_measure_folder)
+                os.remove(f"{a_measure_folder}/{removed_name}.{MeasureManager.MEASURE_FILE_EXTENSION}")
+                return removed_name
         else:
             return None
 
@@ -194,12 +217,60 @@ class MeasureManager(QtCore.QObject):
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])
 
-    def save(self, a_filename: str):
+    def save_measures_order_list(self, a_folder):
+        measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
+
+        with open(measure_order_filename, "w") as measure_order_file:
+            measures_list = [f"{measure}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+                             for measure in self.__get_measures_list()]
+            measures_order = json.dumps(measures_list, ensure_ascii=False)
+            measure_order_file.write(measures_order)
+
+    def save(self, a_folder: str):
         all_saved = True
-        for measure_data_model in self.measures.values():
-            if not measure_data_model.save():
+        for measure_name in self.measures.keys():
+            measure_data_model = self.measures[measure_name]
+            measure_data_json = measure_data_model.serialize()
+            measure_filename = f"{a_folder}/{measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+            try:
+                with open(measure_filename, "w") as measure_file:
+                    measure_file.write(measure_data_json)
+
+                self.save_measures_order_list(a_folder)
+                measure_data_model.set_save_state(True)
+            except AssertionError:
                 all_saved = False
+
         return all_saved
 
-    def load_from_file(self, a_filename: str) -> bool:
-        return True
+    def load_from_file(self, a_folder: str) -> bool:
+        measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
+        measures_order = []
+        if os.path.exists(measure_order_filename):
+            with open(measure_order_filename, "r") as measure_order_file:
+                measures_order = json.loads(measure_order_file.read())
+
+        measure_files = [file for file in os.listdir(a_folder) if file.endswith(MeasureManager.MEASURE_FILE_EXTENSION)]
+
+        if not measure_files:
+            return False
+        else:
+            if not measures_order:
+                QtWidgets.QMessageBox.warning(None, "Предупреждение", "Файл с порядком измерений не найден, измерения "
+                                                                      "будут отсортированы по имени",
+                                              QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                measures_list = measure_files
+            else:
+                measures_list = measures_order
+
+            self.measures_table.setRowCount(0)
+            self.current_data_model = None
+            self.measures.clear()
+
+            for measure_file in measures_list:
+                measure_name = measure_file[:measure_file.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
+                data_model = MeasureDataModel(measure_name)
+                data_model.set_save_state(True)
+                self.new_measure(measure_name, data_model)
+
+            return True

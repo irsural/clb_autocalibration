@@ -37,10 +37,8 @@ class MeasureDataModel(QAbstractTableModel):
     def is_saved(self):
         return self.__saved
 
-    def save(self):
-        self.__saved = True
-        self.set_save_state(self.__saved)
-        return self.__saved
+    def serialize(self):
+        return self.__name
 
     def get_parameters(self) -> MeasureParameters:
         return self.__measure_parameters
