@@ -194,9 +194,12 @@ class MeasureManager(QtCore.QObject):
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])
 
-    def save(self):
+    def save(self, a_filename: str):
         all_saved = True
         for measure_data_model in self.measures.values():
             if not measure_data_model.save():
                 all_saved = False
         return all_saved
+
+    def load_from_file(self, a_filename: str) -> bool:
+        return True

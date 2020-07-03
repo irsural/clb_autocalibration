@@ -17,6 +17,8 @@ import irspy.clb.clb_dll as clb_dll
 import irspy.utils as utils
 
 
+CONFIG_LIST_FILENAME = "Список измерений.conflist"
+
 class MainWindow(QtWidgets.QMainWindow):
     clb_list_changed = QtCore.pyqtSignal([list])
     usb_status_changed = QtCore.pyqtSignal(clb.State)
@@ -31,7 +33,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self.settings = Settings("./settings.ini", [
                 Settings.VariableInfo(a_name="fixed_step_list", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_FLOAT, a_default=[0.0001,0.01,0.1,1,10,20,100]),
+                                      a_type=Settings.ValueType.LIST_FLOAT,
+                                      a_default=[0.0001, 0.01, 0.1, 1, 10, 20, 100]),
                 Settings.VariableInfo(a_name="checkbox_states", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.LIST_INT),
                 Settings.VariableInfo(a_name="fixed_step_idx", a_section="PARAMETERS",
@@ -50,6 +53,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                       a_type=Settings.ValueType.LIST_INT),
                 Settings.VariableInfo(a_name="tstlan_graphs", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.LIST_INT),
+                Settings.VariableInfo(a_name="last_configuration_path", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.STRING),
             ])
 
             ini_ok = True
@@ -85,9 +90,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.SIGNAL_OFF_TIME_MS = 200
             self.ignore_save = False
 
+            self.current_configuration_path = ""
+
             self.show()
 
             self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
+            self.open_configuration_by_name(self.settings.last_configuration_path)
 
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
@@ -97,6 +105,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
             self.ui.save_action.triggered.connect(self.save_configuration)
+            self.ui.save_as_action.triggered.connect(self.save_configuration_as)
+            self.ui.open_action.triggered.connect(self.open_configuration)
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
             self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
@@ -190,7 +200,41 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.debug(utils.exception_handler(err))
 
     def save_configuration(self):
-        self.measure_manager.save()
+        if self.current_configuration_path:
+            self.save_configuration_by_name(self.current_configuration_path)
+        else:
+            self.save_configuration_as()
+
+    def save_configuration_as(self):
+        # noinspection PyTypeChecker
+        config_dir = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог конфигурации", "",
+                                                                QtWidgets.QFileDialog.ShowDirsOnly |
+                                                                QtWidgets.QFileDialog.DontResolveSymlinks)
+        if config_dir:
+            config_filename = f"{config_dir}/{CONFIG_LIST_FILENAME}"
+            self.save_configuration_by_name(config_filename)
+            self.open_configuration_by_name(config_filename)
+
+    def save_configuration_by_name(self, a_filename: str):
+        if self.measure_manager.save(a_filename):
+            self.current_configuration_path = a_filename
+        else:
+            pass
+
+    def open_configuration(self):
+        config_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Открыть конфигурацию",
+                                                                   self.settings.last_configuration_path,
+                                                                   "Файл конфигурации (*.conflist)")
+        if config_filename:
+            self.settings.last_configuration_path = config_filename
+            self.open_configuration_by_name(config_filename)
+
+    def open_configuration_by_name(self, a_filename: str):
+        if self.measure_manager.load_from_file(a_filename):
+            self.current_configuration_path = a_filename
+            self.setWindowTitle(self.current_configuration_path[:self.current_configuration_path.rfind("/") + 1])
+        else:
+            pass
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
         if not self.measure_manager.is_saved() and not self.ignore_save:

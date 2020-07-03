@@ -56,7 +56,7 @@ class MeasuresManager {
 
 class MeasuresDataModel {
 -str name
-+bool load_from_file(str a_filename)
++bool sload_from_file(str a_filename)
 +bool save_to_file(str a_filename)
 +bool is_saved()
 +add_row(int a_row)
