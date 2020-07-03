@@ -10,7 +10,7 @@ from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
 
-from edit_measure_parameters_dialog import EditMeasureParametersDialog
+from edit_measure_parameters_dialog import EditMeasureParametersDialog, MeasureParameters
 from MeasureDataModel import MeasureDataModel
 
 
@@ -162,13 +162,18 @@ class MeasureManager(QtCore.QObject):
             if button == row_button:
                 measure_name = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
                 measure_data_model = self.measures[measure_name]
-                # measure_parameters = measure_data_model.get_parameters()
-                edit_parameters_dialog = EditMeasureParametersDialog(self.settings)
-                edit_parameters_dialog.exec()
+                measure_parameters = measure_data_model.get_parameters()
+
+                edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings)
+                new_parameters = edit_parameters_dialog.exec_and_get()
+                if new_parameters is not None:
+                    measure_data_model.set_parameters(new_parameters)
+
+                # Иначе не вызывается closeEvent()
+                edit_parameters_dialog.close()
                 return
 
         assert False, "Не найдена строка таблицы с виджетом-отправителем сигнала"
-
 
     def save(self):
         for measure in self.measures.keys():

@@ -2,10 +2,12 @@ import logging
 import enum
 from typing import List, Iterable
 
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
-from PyQt5.QtGui import QBrush, QColor
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from PyQt5.QtGui import QColor
 
-import utils
+from PyQt5 import QtCore
+
+from edit_measure_parameters_dialog import MeasureParameters
 
 
 class MeasureDataModel(QAbstractTableModel):
@@ -14,10 +16,24 @@ class MeasureDataModel(QAbstractTableModel):
     HEADER_COLOR = QColor(209, 230, 255)
     TABLE_COLOR = QColor(255, 255, 255)
 
+    data_save_state_changed = QtCore.pyqtSignal(str, bool)
+
     def __init__(self, a_parent=None):
         super().__init__(a_parent)
 
+        self.__name = ""
         self.__cells = [[""]]
+        self.__measure_parameters = MeasureParameters()
+
+    def set_name(self, a_name: str):
+        self.__name = a_name
+
+    def get_parameters(self) -> MeasureParameters:
+        return self.__measure_parameters
+
+    def set_parameters(self, a_measure_parameters: MeasureParameters):
+        self.__measure_parameters = a_measure_parameters
+        self.data_were_changed.emit(self.__name, False)
 
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)
