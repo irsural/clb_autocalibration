@@ -55,6 +55,8 @@ class Ui_Dialog(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.tab)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.flash_table = QtWidgets.QTableWidget(self.tab)
+        self.flash_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.flash_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.flash_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.flash_table.setObjectName("flash_table")
@@ -97,6 +99,8 @@ class Ui_Dialog(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.tab_2)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.extra_variables_table = QtWidgets.QTableWidget(self.tab_2)
+        self.extra_variables_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.extra_variables_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.extra_variables_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.extra_variables_table.setObjectName("extra_variables_table")
@@ -145,7 +149,7 @@ class Ui_Dialog(object):
         self.verticalLayout.addLayout(self.buttons_layout)
 
         self.retranslateUi(Dialog)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):

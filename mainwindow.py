@@ -83,6 +83,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # noinspection PyTypeChecker
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
+            self.ignore_save = False
 
             self.show()
 
@@ -192,7 +193,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.save()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
-        if not self.measure_manager.is_saved():
+        if not self.measure_manager.is_saved() and not self.ignore_save:
             msgbox = QtWidgets.QMessageBox()
             msgbox.setWindowTitle("Предупреждение")
             msgbox.setText("Текущая конфигурация не сохранена. Выберите действие")
@@ -210,8 +211,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     a_event.ignore()
 
             elif msgbox.clickedButton() == no_save_button:
-                a_event.ignore()
+                self.ignore_save = True
                 self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
+                a_event.ignore()
             else:
                 a_event.ignore()
 

@@ -25,6 +25,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.__saved = False
         self.__cells = [[""]]
         self.__measure_parameters = MeasureParameters()
+        self.__enabled = False
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -48,22 +49,32 @@ class MeasureDataModel(QAbstractTableModel):
         self.__measure_parameters = a_measure_parameters
         self.set_save_state(False)
 
+    def is_enabled(self):
+        return self.__enabled
+
+    def set_enabled(self, a_enabled: bool):
+        self.__enabled = a_enabled
+        self.set_save_state(False)
+
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)
         self.__cells.insert(a_row + 1, [""] * len(self.__cells[0]))
         self.endInsertRows()
+        self.set_save_state(False)
 
     def remove_row(self, a_row: int):
         if a_row != MeasureDataModel.HEADER_ROW:
             self.beginRemoveRows(QModelIndex(), a_row, a_row)
             del self.__cells[a_row]
             self.endRemoveRows()
+            self.set_save_state(False)
 
     def add_column(self, a_column: int):
         self.beginInsertColumns(QModelIndex(), a_column, a_column)
         for cells_row in self.__cells:
             cells_row.insert(a_column + 1, "")
         self.endInsertColumns()
+        self.set_save_state(False)
 
     def remove_column(self, a_column: int):
         if a_column != MeasureDataModel.HEADER_COLUMN:
@@ -71,6 +82,7 @@ class MeasureDataModel(QAbstractTableModel):
             for cell_row in self.__cells:
                 del cell_row[a_column]
             self.endRemoveColumns()
+            self.set_save_state(False)
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.__cells)
@@ -101,6 +113,7 @@ class MeasureDataModel(QAbstractTableModel):
         try:
             self.__cells[index.row()][index.column()] = value
             self.dataChanged.emit(index, index)
+            self.set_save_state(False)
             return True
         except ValueError:
             return False

@@ -77,6 +77,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.enable_all_button)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.measures_table = QtWidgets.QTableWidget(self.verticalLayoutWidget)
+        self.measures_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.measures_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.measures_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -207,6 +209,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.measure_data_view = QtWidgets.QTableView(self.groupBox)
         self.measure_data_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.measure_data_view.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.measure_data_view.setObjectName("measure_data_view")
         self.verticalLayout_2.addWidget(self.measure_data_view)
         self.log_text_edit = QtWidgets.QPlainTextEdit(self.splitter_2)

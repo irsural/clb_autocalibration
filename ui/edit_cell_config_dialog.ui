@@ -81,7 +81,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -90,6 +90,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QTableWidget" name="flash_table">
+           <property name="styleSheet">
+            <string notr="true">selection-color: rgb(0, 0, 0);
+selection-background-color: rgb(170, 170, 255);</string>
+           </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
            </property>
@@ -174,6 +178,10 @@
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
           <widget class="QTableWidget" name="extra_variables_table">
+           <property name="styleSheet">
+            <string notr="true">selection-color: rgb(0, 0, 0);
+selection-background-color: rgb(170, 170, 255);</string>
+           </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
            </property>

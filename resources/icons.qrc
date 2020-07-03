@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/checkboxes.png</file>
     <file>icons/memory.png</file>
     <file>icons/open.png</file>
     <file>icons/stop.png</file>

@@ -51,6 +51,8 @@ class Ui_Dialog(object):
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.flash_table = QtWidgets.QTableWidget(Dialog)
+        self.flash_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.flash_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.flash_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.flash_table.setObjectName("flash_table")

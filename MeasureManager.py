@@ -91,6 +91,7 @@ class MeasureManager(QtCore.QObject):
 
         cb = QtWidgets.QCheckBox()
         self.measures_table.setCellWidget(row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
+        cb.toggled.connect(self.enable_measure_checkbox_toggled)
 
         self.set_measure_save_state(new_name, False)
         self.measures_table.setCurrentCell(row_index, MeasureManager.MeasureColumn.NAME)
@@ -172,6 +173,20 @@ class MeasureManager(QtCore.QObject):
 
                 # Иначе не вызывается closeEvent()
                 edit_parameters_dialog.close()
+                return
+
+        assert False, "Не найдена строка таблицы с виджетом-отправителем сигнала"
+
+    @utils.exception_decorator
+    def enable_measure_checkbox_toggled(self, _):
+        checkbox: QtWidgets.QPushButton = self.sender()
+        for row in range(self.measures_table.rowCount()):
+            cell_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.ENABLE)
+            row_checkbox = qt_utils.unwrap_from_layout(cell_widget)
+            if checkbox == row_checkbox:
+                measure_name = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
+                measure_data_model = self.measures[measure_name]
+                measure_data_model.set_enabled(checkbox.isChecked())
                 return
 
         assert False, "Не найдена строка таблицы с виджетом-отправителем сигнала"
