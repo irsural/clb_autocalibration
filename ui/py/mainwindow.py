@@ -79,7 +79,9 @@ class Ui_MainWindow(object):
         self.measures_table = QtWidgets.QTableWidget(self.verticalLayoutWidget)
         self.measures_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")
-        self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
+        self.measures_table.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
+        self.measures_table.setDefaultDropAction(QtCore.Qt.CopyAction)
         self.measures_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.measures_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.measures_table.setObjectName("measures_table")

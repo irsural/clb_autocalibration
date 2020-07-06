@@ -38,11 +38,10 @@ class MeasureManager(QtCore.QObject):
         self.measures: Dict[str, MeasureDataModel] = OrderedDict()
         self.current_data_model: Union[None, MeasureDataModel] = None
 
+        self.rename_in_process = False
         self.changing_name = ""
         self.names_before_changing = []
 
-        # self.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
-        # self.measures_table.cellChanged.connect(self.measure_name_changed)
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
 
     def __get_measures_list(self):
@@ -58,23 +57,41 @@ class MeasureManager(QtCore.QObject):
             new_name = f"{a_name_template}_{counter}"
         return new_name
 
-    def measure_cell_double_clicked(self, a_row: int, a_column: int):
+    def rename_measure_started(self, a_row: int, a_column: int):
         if a_column == MeasureManager.MeasureColumn.NAME:
+            self.rename_in_process = True
             self.changing_name = self.measures_table.item(a_row, a_column).text()
             self.names_before_changing = self.__get_measures_list()
 
-    def measure_name_changed(self, a_row: int, a_column: int):
-        if a_column == MeasureManager.MeasureColumn.NAME:
+    def rename_measure_finished(self, a_row: int, a_column: int, a_measures_folder: str):
+        if a_column == MeasureManager.MeasureColumn.NAME and self.rename_in_process:
             self.measures_table.blockSignals(True)
 
             new_name = self.measures_table.item(a_row, a_column).text()
             new_name = self.__get_allowable_name(self.names_before_changing, new_name)
-            self.measures_table.item(a_row, a_column).setText(new_name)
 
             if self.changing_name != new_name:
-                # try rename
-                pass
+                try:
+                    if a_measures_folder:
+                        old_filename = f"{a_measures_folder}/{self.changing_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+                        new_filename = f"{a_measures_folder}/{new_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+                        os.rename(old_filename, new_filename)
 
+                        self.measures[new_name] = self.measures[self.changing_name]
+                        self.measures[new_name].set_name(new_name)
+                        del self.measures[self.changing_name]
+
+                    self.measures_table.item(a_row, a_column).setText(new_name)
+
+                    if a_measures_folder:
+                        self.__save_measures_order_list(a_measures_folder)
+                except OSError:
+                    self.measures_table.item(a_row, a_column).setText(self.changing_name)
+
+                    QtWidgets.QMessageBox.critical(None, "Ошибка", f'Не удалось переименовать измерение '
+                                                                   f'"{self.changing_name}" в {new_name}"',
+                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            self.rename_in_process = False
             self.measures_table.blockSignals(False)
 
     def new_measure(self, a_name="", a_measure_data_model: MeasureDataModel = None):
@@ -256,7 +273,7 @@ class MeasureManager(QtCore.QObject):
                     measure_file.write(self.current_data_model.serialize())
 
                 self.current_data_model.set_save_state(True)
-            except AssertionError:
+            except OSError:
                 pass
             return self.is_current_saved()
         else:
@@ -281,7 +298,7 @@ class MeasureManager(QtCore.QObject):
                     measure_file.write(measure_data_model.serialize())
 
                 measure_data_model.set_save_state(True)
-            except AssertionError:
+            except OSError:
                 pass
         return self.is_saved()
 

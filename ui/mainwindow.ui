@@ -126,7 +126,13 @@
 selection-background-color: rgb(170, 170, 255);</string>
            </property>
            <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
+            <set>QAbstractItemView::DoubleClicked</set>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::NoDragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::CopyAction</enum>
            </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
