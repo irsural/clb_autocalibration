@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>561</width>
-    <height>542</height>
+    <width>585</width>
+    <height>698</height>
    </rect>
   </property>
   <property name="font">
@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Параметры измерения</string>
+   <string>Конфигурация ячейки</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -80,27 +80,174 @@
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>TextLabel</string>
+          <string>Задержка измерения, с</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Время измерения, с</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="retry_count_spinbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QEditDoubleClick" name="coeffitient_edit">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>1</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QEditDoubleClick" name="lineEdit"/>
+        <widget class="QSpinBox" name="measure_delay_spinbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+         <property name="value">
+          <number>100</number>
+         </property>
+        </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_2">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>TextLabel</string>
+          <string>Количество попыток</string>
          </property>
         </widget>
        </item>
        <item row="0" column="3">
-        <widget class="QEditDoubleClick" name="lineEdit_2"/>
+        <widget class="QSpinBox" name="measure_time_spinbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximum">
+          <number>99999</number>
+         </property>
+         <property name="value">
+          <number>300</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Коэффициент</string>
+         </property>
+        </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="consider_output_value_checkbox">
+       <property name="title">
+        <string>Учитывать выходное значение при измерении</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="enable_output_filtering_checkbox">
+          <property name="text">
+           <string>Включить фильтрацию выходного значения</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="1" column="0">
+           <widget class="QDoubleSpinBox" name="sampling_time_spinbox">
+            <property name="decimals">
+             <number>4</number>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Время дискретизации</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="filter_points_count_spinbox">
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Количество точек</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item>
       <widget class="QTabWidget" name="tabWidget">
@@ -111,7 +258,200 @@
         <attribute name="title">
          <string>Схема подключения</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QGroupBox" name="groupBox_3">
+           <property name="title">
+            <string>Катушка</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="QRadioButton" name="coil_no_radio">
+              <property name="text">
+               <string>Нет</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_2</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="coil_001_radio">
+              <property name="text">
+               <string>0,01 Ом</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_2</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="coil_1_radio">
+              <property name="text">
+               <string>1 Ом</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_2</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="coil_10_radio">
+              <property name="text">
+               <string>10 Ом</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_2</string>
+              </attribute>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_4">
+           <property name="title">
+            <string>Делит./Усилит.</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <widget class="QRadioButton" name="radioButton_7">
+              <property name="text">
+               <string>Нет</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="divider_650_radio">
+              <property name="text">
+               <string>/650 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="divider_500_radio">
+              <property name="text">
+               <string>/500 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="divider_350_radio">
+              <property name="text">
+               <string>/350 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="divider_200_radio">
+              <property name="text">
+               <string>/200 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="divider_55_radio">
+              <property name="text">
+               <string>/55 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="divider_40_radio">
+              <property name="text">
+               <string>/40 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="amplifier_30_radio">
+              <property name="text">
+               <string>*30 мВ</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="amplifier_10_radio">
+              <property name="text">
+               <string>* 10 мВ</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_2">
+           <property name="title">
+            <string>Измеритель</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QRadioButton" name="ammeter_radio">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Амперметр</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="voltmeter_radio">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Вольтметр</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="tab_2">
         <attribute name="title">
@@ -225,6 +565,9 @@ selection-background-color: rgb(170, 170, 255);</string>
        <property name="text">
         <string>Принять</string>
        </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -245,8 +588,48 @@ selection-background-color: rgb(170, 170, 255);</string>
    <header>irspy.qt.custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>aci_radio</tabstop>
+  <tabstop>dci_radio</tabstop>
+  <tabstop>acv_radio</tabstop>
+  <tabstop>dcv_radio</tabstop>
+  <tabstop>measure_delay_spinbox</tabstop>
+  <tabstop>measure_time_spinbox</tabstop>
+  <tabstop>retry_count_spinbox</tabstop>
+  <tabstop>coeffitient_edit</tabstop>
+  <tabstop>consider_output_value_checkbox</tabstop>
+  <tabstop>enable_output_filtering_checkbox</tabstop>
+  <tabstop>sampling_time_spinbox</tabstop>
+  <tabstop>filter_points_count_spinbox</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>coil_no_radio</tabstop>
+  <tabstop>coil_001_radio</tabstop>
+  <tabstop>coil_1_radio</tabstop>
+  <tabstop>coil_10_radio</tabstop>
+  <tabstop>radioButton_7</tabstop>
+  <tabstop>divider_650_radio</tabstop>
+  <tabstop>divider_500_radio</tabstop>
+  <tabstop>divider_350_radio</tabstop>
+  <tabstop>divider_200_radio</tabstop>
+  <tabstop>divider_55_radio</tabstop>
+  <tabstop>divider_40_radio</tabstop>
+  <tabstop>amplifier_30_radio</tabstop>
+  <tabstop>amplifier_10_radio</tabstop>
+  <tabstop>ammeter_radio</tabstop>
+  <tabstop>voltmeter_radio</tabstop>
+  <tabstop>extra_variables_table</tabstop>
+  <tabstop>add_extra_param_button</tabstop>
+  <tabstop>remove_extra_param_button</tabstop>
+  <tabstop>accept_button</tabstop>
+  <tabstop>cancel_button</tabstop>
+ </tabstops>
  <resources>
   <include location="../resources/icons.qrc"/>
  </resources>
  <connections/>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_2"/>
+ </buttongroups>
 </ui>

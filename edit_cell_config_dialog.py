@@ -121,7 +121,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def add_extra_param_button_clicked(self):
-        init_row = [""] * EditCellConfigDialog.FlashColumn.COUNT
+        init_row = [""] * EditCellConfigDialog.ExtraParamsColumn.COUNT
         init_row[EditCellConfigDialog.ExtraParamsColumn.TYPE] = self.__allowed_extra_param_types[0]
 
         qt_utils.qtablewidget_append_row(self.ui.extra_variables_table, init_row)
