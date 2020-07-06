@@ -114,12 +114,17 @@
         </widget>
        </item>
        <item row="1" column="3">
-        <widget class="QEditDoubleClick" name="coeffitient_edit">
+        <widget class="QEditDoubleClick" name="coefficient_edit">
          <property name="minimumSize">
           <size>
            <width>100</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
          </property>
          <property name="text">
           <string>1</string>
@@ -318,7 +323,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
-             <widget class="QRadioButton" name="radioButton_7">
+             <widget class="QRadioButton" name="divider_no_radio">
               <property name="text">
                <string>Нет</string>
               </property>
@@ -596,7 +601,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>measure_delay_spinbox</tabstop>
   <tabstop>measure_time_spinbox</tabstop>
   <tabstop>retry_count_spinbox</tabstop>
-  <tabstop>coeffitient_edit</tabstop>
+  <tabstop>coefficient_edit</tabstop>
   <tabstop>consider_output_value_checkbox</tabstop>
   <tabstop>enable_output_filtering_checkbox</tabstop>
   <tabstop>sampling_time_spinbox</tabstop>
@@ -606,7 +611,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>coil_001_radio</tabstop>
   <tabstop>coil_1_radio</tabstop>
   <tabstop>coil_10_radio</tabstop>
-  <tabstop>radioButton_7</tabstop>
+  <tabstop>divider_no_radio</tabstop>
   <tabstop>divider_650_radio</tabstop>
   <tabstop>divider_500_radio</tabstop>
   <tabstop>divider_350_radio</tabstop>
