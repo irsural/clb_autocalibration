@@ -30,6 +30,9 @@ class MeasureDataModel(QAbstractTableModel):
     def set_name(self, a_name: str):
         self.__name = a_name
 
+    def get_name(self):
+        return self.__name
+
     def set_save_state(self, a_saved: bool):
         self.__saved = a_saved
         self.data_save_state_changed.emit(self.__name, self.__saved)

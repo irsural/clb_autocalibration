@@ -167,7 +167,7 @@ selection-background-color: rgb(170, 170, 255);</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QPushButton" name="pushButton_2">
+            <widget class="QPushButton" name="save_current_measure_button">
              <property name="minimumSize">
               <size>
                <width>35</width>
@@ -196,7 +196,7 @@ selection-background-color: rgb(170, 170, 255);</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_7">
+            <widget class="QPushButton" name="open_cell_config_button">
              <property name="minimumSize">
               <size>
                <width>35</width>

@@ -110,6 +110,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
             self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.save_as_action.triggered.connect(self.save_configuration_as)
+            self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
+            self.ui.open_cell_config_button.clicked.connect(self.open_cell_configuration)
             self.ui.open_action.triggered.connect(self.open_configuration)
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
@@ -203,6 +205,9 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             logging.debug(utils.exception_handler(err))
 
+    def open_cell_configuration(self):
+        pass
+
     def save_configuration(self):
         result = True
         if self.current_configuration_path:
@@ -226,6 +231,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 result = False
         else:
             result = False
+        return result
+
+    def save_current_configuration(self):
+        result = True
+        if self.current_configuration_path:
+            if not self.measure_manager.is_current_saved():
+                if not self.measure_manager.save_current(self.current_configuration_path):
+                    QtWidgets.QMessageBox.critical(self, "Ошибка", "Не удалось сохранить измерение",
+                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                    result = False
+        else:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Конфигурация не сохранена",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         return result
 
     def save_configuration_by_name(self, a_folder: str):

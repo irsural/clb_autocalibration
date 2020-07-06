@@ -217,6 +217,24 @@ class MeasureManager(QtCore.QObject):
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])
 
+    def is_current_saved(self):
+        saved = True if self.current_data_model is None else self.current_data_model.is_saved()
+        return saved
+
+    def save_current(self, a_folder):
+        if self.current_data_model is not None:
+            measure_filename = f"{a_folder}/{self.current_data_model.get_name()}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+            try:
+                with open(measure_filename, "w") as measure_file:
+                    measure_file.write(self.current_data_model.serialize())
+
+                self.current_data_model.set_save_state(True)
+            except AssertionError:
+                pass
+            return self.is_current_saved()
+        else:
+            return True
+
     def __save_measures_order_list(self, a_folder):
         measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
 
@@ -230,11 +248,10 @@ class MeasureManager(QtCore.QObject):
         self.__save_measures_order_list(a_folder)
         for measure_name in self.measures.keys():
             measure_data_model = self.measures[measure_name]
-            measure_data_json = measure_data_model.serialize()
             measure_filename = f"{a_folder}/{measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
             try:
                 with open(measure_filename, "w") as measure_file:
-                    measure_file.write(measure_data_json)
+                    measure_file.write(measure_data_model.serialize())
 
                 measure_data_model.set_save_state(True)
             except AssertionError:
