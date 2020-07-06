@@ -113,8 +113,8 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
 
             self.accept()
         else:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", "Таблицы заполнены неверно", QtWidgets.QMessageBox.Ok,
-                                           QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Ошибка", "Таблица прошивки заполнена неверно",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def add_flash_table_button_clicked(self):
         qt_utils.qtablewidget_append_row(self.ui.flash_table,

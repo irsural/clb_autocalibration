@@ -206,7 +206,7 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.debug(utils.exception_handler(err))
 
     def open_cell_configuration(self):
-        pass
+        self.measure_manager.open_cell_configuration()
 
     def save_configuration(self):
         result = True

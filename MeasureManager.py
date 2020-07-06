@@ -12,7 +12,8 @@ from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
 
-from edit_measure_parameters_dialog import EditMeasureParametersDialog, MeasureParameters
+from edit_measure_parameters_dialog import EditMeasureParametersDialog
+from edit_cell_config_dialog import EditCellConfigDialog
 from MeasureDataModel import MeasureDataModel
 
 
@@ -130,6 +131,26 @@ class MeasureManager(QtCore.QObject):
         else:
             return None
 
+    def open_cell_configuration(self):
+        if self.current_data_model is not None:
+            selected_indexes = self.data_view.selectionModel().selectedIndexes()
+            if len(selected_indexes) == 1:
+                row, column = selected_indexes[0].row(), selected_indexes[0].column()
+                cell_config = self.current_data_model.get_cell_config(row, column)
+                if cell_config is not None:
+                    signal_type = self.current_data_model.get_measure_parameters().signal_type
+
+                    edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings)
+                    new_cell_config = edit_cell_config_dialog.exec_and_get()
+                    if new_cell_config is not None:
+                        self.current_data_model.set_cell_config(row, column, new_cell_config)
+
+                    edit_cell_config_dialog.close()
+
+            elif len(selected_indexes) > 1:
+                QtWidgets.QMessageBox.critical(None, "Ошибка", "Необходимо выбрать ровно одну ячейку",
+                                               QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
     def add_row_to_current_measure(self):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
@@ -187,12 +208,12 @@ class MeasureManager(QtCore.QObject):
             if button == row_button:
                 measure_name = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
                 measure_data_model = self.measures[measure_name]
-                measure_parameters = measure_data_model.get_parameters()
+                measure_parameters = measure_data_model.get_measure_parameters()
 
                 edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings)
                 new_parameters = edit_parameters_dialog.exec_and_get()
                 if new_parameters is not None:
-                    measure_data_model.set_parameters(new_parameters)
+                    measure_data_model.set_measure_parameters(new_parameters)
 
                 # Иначе не вызывается closeEvent()
                 edit_parameters_dialog.close()
@@ -223,6 +244,7 @@ class MeasureManager(QtCore.QObject):
 
     def save_current(self, a_folder):
         if self.current_data_model is not None:
+            self.__save_measures_order_list(a_folder)
             measure_filename = f"{a_folder}/{self.current_data_model.get_name()}.{MeasureManager.MEASURE_FILE_EXTENSION}"
             try:
                 with open(measure_filename, "w") as measure_file:

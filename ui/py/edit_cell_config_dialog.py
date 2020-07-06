@@ -154,5 +154,5 @@ class Ui_Dialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Dialog", "Дополнительные переменные"))
         self.accept_button.setText(_translate("Dialog", "Принять"))
         self.cancel_button.setText(_translate("Dialog", "Отмена"))
-from custom_widgets.CustomLineEdit import QEditDoubleClick
+from irspy.qt.custom_widgets.CustomLineEdit import QEditDoubleClick
 import icons_rc

@@ -1,6 +1,6 @@
+from typing import List, Iterable, Union
 import logging
 import enum
-from typing import List, Iterable
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5.QtGui import QColor
@@ -8,6 +8,14 @@ from PyQt5.QtGui import QColor
 from PyQt5 import QtCore
 
 from edit_measure_parameters_dialog import MeasureParameters
+from edit_cell_config_dialog import CellConfig
+
+
+class CellData:
+    def __init__(self):
+        self.value = ""
+
+        self.config = CellConfig()
 
 
 class MeasureDataModel(QAbstractTableModel):
@@ -23,7 +31,7 @@ class MeasureDataModel(QAbstractTableModel):
 
         self.__name = a_name
         self.__saved = False
-        self.__cells = [[""]]
+        self.__cells = [[CellData()]]
         self.__measure_parameters = MeasureParameters()
         self.__enabled = False
 
@@ -43,12 +51,24 @@ class MeasureDataModel(QAbstractTableModel):
     def serialize(self):
         return self.__name
 
-    def get_parameters(self) -> MeasureParameters:
+    def get_measure_parameters(self) -> MeasureParameters:
         return self.__measure_parameters
 
-    def set_parameters(self, a_measure_parameters: MeasureParameters):
+    def set_measure_parameters(self, a_measure_parameters: MeasureParameters):
         self.__measure_parameters = a_measure_parameters
         self.set_save_state(False)
+
+    def get_cell_config(self, a_row, a_column) -> Union[None, CellConfig]:
+        if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
+            return None
+        else:
+            return self.__cells[a_row][a_column].config
+
+    def set_cell_config(self, a_row, a_column, a_config: CellConfig):
+        if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
+            return None
+        else:
+            self.__cells[a_row][a_column].config = a_config
 
     def is_enabled(self):
         return self.__enabled
@@ -59,7 +79,7 @@ class MeasureDataModel(QAbstractTableModel):
 
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)
-        self.__cells.insert(a_row + 1, [""] * len(self.__cells[0]))
+        self.__cells.insert(a_row + 1, [CellData() for _ in range(len(self.__cells[0]))])
         self.endInsertRows()
         self.set_save_state(False)
 
@@ -73,7 +93,7 @@ class MeasureDataModel(QAbstractTableModel):
     def add_column(self, a_column: int):
         self.beginInsertColumns(QModelIndex(), a_column, a_column)
         for cells_row in self.__cells:
-            cells_row.insert(a_column + 1, "")
+            cells_row.insert(a_column + 1, CellData())
         self.endInsertColumns()
         self.set_save_state(False)
 
@@ -105,14 +125,14 @@ class MeasureDataModel(QAbstractTableModel):
             else:
                 return MeasureDataModel.TABLE_COLOR
         else:
-            value = self.__cells[index.row()][index.column()]
+            value = self.__cells[index.row()][index.column()].value
             return value
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
         if not index.isValid() or role != Qt.EditRole or self.rowCount() <= index.row():
             return False
         try:
-            self.__cells[index.row()][index.column()] = value
+            self.__cells[index.row()][index.column()].value = value
             self.dataChanged.emit(index, index)
             self.set_save_state(False)
             return True
