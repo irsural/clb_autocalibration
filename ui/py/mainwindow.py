@@ -302,6 +302,7 @@ class Ui_MainWindow(object):
         self.unlock_action.setIcon(icon17)
         self.unlock_action.setObjectName("unlock_action")
         self.show_equal_action = QtWidgets.QAction(MainWindow)
+        self.show_equal_action.setCheckable(True)
         self.show_equal_action.setIcon(icon14)
         self.show_equal_action.setObjectName("show_equal_action")
         self.settings_menu.addAction(self.enter_settings_action)

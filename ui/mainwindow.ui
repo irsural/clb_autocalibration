@@ -725,6 +725,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
   </action>
   <action name="show_equal_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/checkbox_empty.png</normaloff>:/icons/icons/checkbox_empty.png</iconset>

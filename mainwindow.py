@@ -103,6 +103,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
+            self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
             self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
@@ -110,6 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
             self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
+            self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
@@ -189,6 +191,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def measure_cell_changed(self, a_row: int, a_column: int):
         self.measure_manager.rename_measure_finished(a_row, a_column, self.current_configuration_path)
+
+    def measure_data_cell_clicked(self, index: QtCore.QModelIndex):
+        if self.ui.show_equal_action.isChecked():
+            self.measure_manager.set_cell_to_compare(index)
+
+    def show_equal_cell_configs_button_toggled(self, a_enable: bool):
+        self.measure_manager.show_equal_cell_configs(a_enable)
 
     def lock_cell_button_clicked(self):
         self.measure_manager.lock_selected_cells(True)

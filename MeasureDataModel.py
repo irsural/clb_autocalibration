@@ -1,5 +1,6 @@
 from typing import List, Iterable, Union
 import logging
+import copy
 import enum
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
@@ -16,6 +17,7 @@ class CellData:
         self.value = ""
 
         self.__locked = False
+        self.__marked_as_equal = False
 
         self.config = CellConfig()
 
@@ -25,6 +27,11 @@ class CellData:
     def is_locked(self) -> bool:
         return self.__locked
 
+    def mark_as_equal(self, a_mark_as_equal: bool):
+        self.__marked_as_equal = a_mark_as_equal
+
+    def is_marked_as_equal(self):
+        return self.__marked_as_equal
 
 class MeasureDataModel(QAbstractTableModel):
     HEADER_ROW = 0
@@ -32,6 +39,7 @@ class MeasureDataModel(QAbstractTableModel):
     HEADER_COLOR = QColor(209, 230, 255)
     TABLE_COLOR = QColor(255, 255, 255)
     LOCK_COLOR = QColor(254, 255, 171)
+    EQUAL_COLOR = QColor(142, 250, 151)
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
@@ -43,6 +51,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.__cells = [[CellData()]]
         self.__measure_parameters = MeasureParameters()
         self.__enabled = False
+        self.cell_to_compare: Union[None, CellConfig] = None
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -74,27 +83,50 @@ class MeasureDataModel(QAbstractTableModel):
         self.__enabled = a_enabled
         self.set_save_state(False)
 
+    @staticmethod
+    def __is_cell_header(a_row, a_column):
+        return a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN
+
     def get_cell_config(self, a_row, a_column) -> Union[None, CellConfig]:
-        if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
+        if self.__is_cell_header(a_row, a_column):
             return None
         else:
             return self.__cells[a_row][a_column].config
 
     def set_cell_config(self, a_row, a_column, a_config: CellConfig):
-        if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
+        if self.__is_cell_header(a_row, a_column):
             return None
         else:
             self.__cells[a_row][a_column].config = a_config
 
     def is_cell_locked(self, a_row, a_column) -> bool:
-        if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
+        if self.__is_cell_header(a_row, a_column):
             return False
         else:
             return self.__cells[a_row][a_column].is_locked()
 
     def lock_cell(self, a_row, a_column, a_lock: bool):
-        if not (a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN):
+        if not self.__is_cell_header(a_row, a_column):
             self.__cells[a_row][a_column].lock(a_lock)
+
+    def __compare_cells(self):
+        for row, row_data in enumerate(self.__cells):
+            for column, cell in enumerate(row_data):
+                is_equal = self.cell_to_compare == cell.config
+                cell.mark_as_equal(is_equal)
+                self.dataChanged.emit(self.index(row, column), self.index(row, column))
+
+    def set_cell_to_compare(self, a_index: QtCore.QModelIndex):
+        if a_index.isValid() and self.rowCount() > a_index.row() and \
+                not self.__is_cell_header(a_index.row(), a_index.column()):
+            self.cell_to_compare = copy.deepcopy(self.__cells[a_index.row()][a_index.column()].config)
+        else:
+            self.cell_to_compare = None
+        self.__compare_cells()
+
+    def reset_cell_to_compare(self):
+        self.cell_to_compare = None
+        self.__compare_cells()
 
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)
@@ -142,10 +174,13 @@ class MeasureDataModel(QAbstractTableModel):
             if index.column() == MeasureDataModel.HEADER_COLUMN or index.row() == MeasureDataModel.HEADER_ROW:
                 return MeasureDataModel.HEADER_COLOR
             else:
+                color = MeasureDataModel.TABLE_COLOR
                 if self.is_cell_locked(index.row(), index.column()):
-                    return MeasureDataModel.LOCK_COLOR
-                else:
-                    return MeasureDataModel.TABLE_COLOR
+                    color = MeasureDataModel.LOCK_COLOR
+                if self.cell_to_compare is not None:
+                    if self.__cells[index.row()][index.column()].is_marked_as_equal():
+                        color = MeasureDataModel.EQUAL_COLOR
+                return color
         else:
             value = self.__cells[index.row()][index.column()].value
             return value

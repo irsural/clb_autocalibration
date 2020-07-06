@@ -173,6 +173,19 @@ class MeasureManager(QtCore.QObject):
             for cell in self.data_view.selectionModel().selectedIndexes():
                 self.current_data_model.lock_cell(cell.row(), cell.column(), a_lock)
 
+    def show_equal_cell_configs(self, a_enable: bool):
+        if self.current_data_model is not None:
+            if a_enable:
+                selected_indexes = self.data_view.selectedIndexes()
+                if selected_indexes:
+                    self.current_data_model.set_cell_to_compare(selected_indexes[0])
+            else:
+                self.current_data_model.reset_cell_to_compare()
+
+    def set_cell_to_compare(self, a_index: QtCore.QModelIndex):
+        if self.current_data_model is not None:
+            self.current_data_model.set_cell_to_compare(a_index)
+
     def add_row_to_current_measure(self):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
@@ -338,5 +351,3 @@ class MeasureManager(QtCore.QObject):
             return True
         else:
             return False
-
-

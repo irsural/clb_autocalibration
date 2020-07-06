@@ -55,6 +55,21 @@ class CellConfig:
 
         self.extra_parameters: List[CellConfig.ExtraParameter] = []
 
+    def __eq__(self, other):
+        return other is not None and \
+               self.coefficient == other.coefficient and \
+               self.measure_delay == other.measure_delay and \
+               self.measure_time == other.measure_time and \
+               self.retry_count == other.retry_count and \
+               self.consider_output_value == other.consider_output_value and \
+               self.enable_output_filtering == other.enable_output_filtering and \
+               self.filter_sampling_time == other.filter_sampling_time and \
+               self.filter_samples_count == other.filter_samples_count and \
+               self.coil == other.coil and \
+               self.divider == other.divider and \
+               self.meter == other.meter and \
+               self.extra_parameters == other.extra_parameters
+
 
 class EditCellConfigDialog(QtWidgets.QDialog):
     class ExtraParamsColumn(IntEnum):
