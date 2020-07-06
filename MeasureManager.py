@@ -124,7 +124,7 @@ class MeasureManager(QtCore.QObject):
             if not cancel_remove:
                 self.measures_table.removeRow(selected_row)
                 del self.measures[removed_name]
-                self.save_measures_order_list(a_measure_folder)
+                self.__save_measures_order_list(a_measure_folder)
                 os.remove(f"{a_measure_folder}/{removed_name}.{MeasureManager.MEASURE_FILE_EXTENSION}")
                 return removed_name
         else:
@@ -217,7 +217,7 @@ class MeasureManager(QtCore.QObject):
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])
 
-    def save_measures_order_list(self, a_folder):
+    def __save_measures_order_list(self, a_folder):
         measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
 
         with open(measure_order_filename, "w") as measure_order_file:
@@ -227,7 +227,7 @@ class MeasureManager(QtCore.QObject):
             measure_order_file.write(measures_order)
 
     def save(self, a_folder: str):
-        all_saved = True
+        self.__save_measures_order_list(a_folder)
         for measure_name in self.measures.keys():
             measure_data_model = self.measures[measure_name]
             measure_data_json = measure_data_model.serialize()
@@ -236,25 +236,21 @@ class MeasureManager(QtCore.QObject):
                 with open(measure_filename, "w") as measure_file:
                     measure_file.write(measure_data_json)
 
-                self.save_measures_order_list(a_folder)
                 measure_data_model.set_save_state(True)
             except AssertionError:
-                all_saved = False
-
-        return all_saved
+                pass
+        return self.is_saved()
 
     def load_from_file(self, a_folder: str) -> bool:
-        measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
         measures_order = []
+        measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
         if os.path.exists(measure_order_filename):
             with open(measure_order_filename, "r") as measure_order_file:
                 measures_order = json.loads(measure_order_file.read())
 
         measure_files = [file for file in os.listdir(a_folder) if file.endswith(MeasureManager.MEASURE_FILE_EXTENSION)]
 
-        if not measure_files:
-            return False
-        else:
+        if measure_files:
             if not measures_order:
                 QtWidgets.QMessageBox.warning(None, "Предупреждение", "Файл с порядком измерений не найден, измерения "
                                                                       "будут отсортированы по имени",
@@ -268,9 +264,18 @@ class MeasureManager(QtCore.QObject):
             self.measures.clear()
 
             for measure_file in measures_list:
-                measure_name = measure_file[:measure_file.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
-                data_model = MeasureDataModel(measure_name)
-                data_model.set_save_state(True)
-                self.new_measure(measure_name, data_model)
-
+                measure_full_path = f"{a_folder}/{measure_file}"
+                if os.path.exists(measure_full_path):
+                    measure_name = measure_file[:measure_file.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
+                    # deserialize
+                    data_model = MeasureDataModel(measure_name)
+                    data_model.set_save_state(True)
+                    self.new_measure(measure_name, data_model)
+                else:
+                    QtWidgets.QMessageBox.warning(None, "Предупреждение", f"Файл измерения {measure_file} не найден!",
+                                                  QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return True
+        else:
+            return False
+
+

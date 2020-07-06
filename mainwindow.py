@@ -204,35 +204,39 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.debug(utils.exception_handler(err))
 
     def save_configuration(self):
+        result = True
         if self.current_configuration_path:
             if not self.measure_manager.is_saved():
-                return self.save_configuration_by_name(self.current_configuration_path)
-            else:
-                return True
+                result = self.save_configuration_by_name(self.current_configuration_path)
         else:
-            return self.save_configuration_as()
+            result = self.save_configuration_as()
+        return result
 
     def save_configuration_as(self):
+        result = True
         # noinspection PyTypeChecker
-        config_dir = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог конфигураций", "")
+        config_dir = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог конфигураций",
+                                                                self.current_configuration_path)
         if config_dir:
             config_filename = f"{config_dir}"
             if self.save_configuration_by_name(config_filename):
                 # self.open_configuration_by_name(config_filename)
-                return True
+                pass
             else:
-                return False
+                result = False
         else:
-            return False
+            result = False
+        return result
 
     def save_configuration_by_name(self, a_folder: str):
+        result = True
         if self.measure_manager.save(a_folder):
             self.current_configuration_path = a_folder
-            return True
         else:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить конфигурации в каталоге {a_folder}",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
-            return False
+            result = False
+        return result
 
     def open_configuration(self):
         cancel_open = False
