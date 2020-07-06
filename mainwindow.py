@@ -101,6 +101,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
+            self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
+            self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
             self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
@@ -178,6 +180,12 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):
         self.measure_manager.remove_measure(self.current_configuration_path)
+
+    def lock_cell_button_clicked(self):
+        self.measure_manager.lock_selected_cells(True)
+
+    def unlock_cell_button_clicked(self):
+        self.measure_manager.lock_selected_cells(False)
 
     def add_row_button_clicked(self, _):
         self.measure_manager.add_row_to_current_measure()

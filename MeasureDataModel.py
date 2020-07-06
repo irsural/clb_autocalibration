@@ -15,7 +15,15 @@ class CellData:
     def __init__(self):
         self.value = ""
 
+        self.__locked = False
+
         self.config = CellConfig()
+
+    def lock(self, a_lock: bool):
+        self.__locked = a_lock
+
+    def is_locked(self) -> bool:
+        return self.__locked
 
 
 class MeasureDataModel(QAbstractTableModel):
@@ -23,6 +31,7 @@ class MeasureDataModel(QAbstractTableModel):
     HEADER_COLUMN = 0
     HEADER_COLOR = QColor(209, 230, 255)
     TABLE_COLOR = QColor(255, 255, 255)
+    LOCK_COLOR = QColor(254, 255, 171)
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
@@ -58,6 +67,13 @@ class MeasureDataModel(QAbstractTableModel):
         self.__measure_parameters = a_measure_parameters
         self.set_save_state(False)
 
+    def is_enabled(self):
+        return self.__enabled
+
+    def set_enabled(self, a_enabled: bool):
+        self.__enabled = a_enabled
+        self.set_save_state(False)
+
     def get_cell_config(self, a_row, a_column) -> Union[None, CellConfig]:
         if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
             return None
@@ -70,12 +86,15 @@ class MeasureDataModel(QAbstractTableModel):
         else:
             self.__cells[a_row][a_column].config = a_config
 
-    def is_enabled(self):
-        return self.__enabled
+    def is_cell_locked(self, a_row, a_column) -> bool:
+        if a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN:
+            return False
+        else:
+            return self.__cells[a_row][a_column].is_locked()
 
-    def set_enabled(self, a_enabled: bool):
-        self.__enabled = a_enabled
-        self.set_save_state(False)
+    def lock_cell(self, a_row, a_column, a_lock: bool):
+        if not (a_row == MeasureDataModel.HEADER_ROW or a_column == MeasureDataModel.HEADER_COLUMN):
+            self.__cells[a_row][a_column].lock(a_lock)
 
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)
@@ -123,7 +142,10 @@ class MeasureDataModel(QAbstractTableModel):
             if index.column() == MeasureDataModel.HEADER_COLUMN or index.row() == MeasureDataModel.HEADER_ROW:
                 return MeasureDataModel.HEADER_COLOR
             else:
-                return MeasureDataModel.TABLE_COLOR
+                if self.is_cell_locked(index.row(), index.column()):
+                    return MeasureDataModel.LOCK_COLOR
+                else:
+                    return MeasureDataModel.TABLE_COLOR
         else:
             value = self.__cells[index.row()][index.column()].value
             return value

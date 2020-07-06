@@ -151,6 +151,11 @@ class MeasureManager(QtCore.QObject):
                 QtWidgets.QMessageBox.critical(None, "Ошибка", "Необходимо выбрать ровно одну ячейку",
                                                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
+    def lock_selected_cells(self, a_lock):
+        if self.current_data_model is not None:
+            for cell in self.data_view.selectionModel().selectedIndexes():
+                self.current_data_model.lock_cell(cell.row(), cell.column(), a_lock)
+
     def add_row_to_current_measure(self):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
