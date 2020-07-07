@@ -104,13 +104,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="rename_measure_button">
-             <property name="text">
-              <string>Переимен.</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QPushButton" name="enable_all_button">
              <property name="text">
               <string>Вкл./Выкл все</string>

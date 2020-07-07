@@ -1,25 +1,44 @@
 from typing import List, Iterable, Union
 import logging
 import copy
-import enum
+from enum import IntEnum
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5.QtGui import QColor
-
 from PyQt5 import QtCore, QtGui
+
+from irspy import utils
+from irspy.clb import calibrator_constants as clb
 
 from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 
 
 class CellData:
-    def __init__(self):
-        self.value = ""
+    def __init__(self, a_init_value: Union[None, float] = None):
+        self.__value = a_init_value
 
         self.__locked = False
         self.__marked_as_equal = False
 
         self.config = CellConfig()
+
+    def reset(self):
+        self.__value = None
+
+    def has_value(self):
+        return self.__value is not None
+
+    def get_value(self):
+        return self.__value
+
+    def set_value(self, a_value: Union[None, float]):
+        # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
+        self.reset()
+        self.__value = a_value
+
+    def append_value(self):
+        pass
 
     def lock(self, a_lock: bool):
         self.__locked = a_lock
@@ -44,6 +63,10 @@ class MeasureDataModel(QAbstractTableModel):
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
+    class SetDataWay(IntEnum):
+        USER_INPUT = 0
+        MEASURE_INPUT = 1
+
     def __init__(self, a_name: str, a_parent=None):
         super().__init__(a_parent)
 
@@ -54,6 +77,9 @@ class MeasureDataModel(QAbstractTableModel):
         self.__enabled = False
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
+
+        self.__set_data_way = MeasureDataModel.SetDataWay.USER_INPUT
+        self.__units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -100,6 +126,7 @@ class MeasureDataModel(QAbstractTableModel):
             return None
         else:
             self.__cells[a_row][a_column].config = a_config
+            self.set_save_state(False)
             self.__compare_cells()
 
     def is_cell_locked(self, a_row, a_column) -> bool:
@@ -190,24 +217,43 @@ class MeasureDataModel(QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
-                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole and role != Qt.UserRole):
+                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole):
             return QVariant()
         if role == Qt.BackgroundRole:
             return QVariant(QtGui.QBrush(self.__get_cell_color(index)))
         else:
-            value = self.__cells[index.row()][index.column()].value
-            return value
+            cell_data = self.__cells[index.row()][index.column()]
+
+            if not cell_data.has_value() or \
+                    index.row() == MeasureDataModel.HEADER_ROW and index.column() == MeasureDataModel.HEADER_COLUMN:
+                return ""
+
+            else:
+                units = "Гц" if index.row() == MeasureDataModel.HEADER_ROW else self.__units
+                str_value = f"{utils.float_to_string(cell_data.get_value())} {units}"
+                return str_value
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
         if not index.isValid() or role != Qt.EditRole or self.rowCount() <= index.row():
             return False
-        try:
-            self.__cells[index.row()][index.column()].value = value
+
+        result = True
+        cell_data = self.__cells[index.row()][index.column()]
+
+        if not value:
+            cell_data.reset()
+        else:
+            try:
+                float_value = utils.parse_input(value)
+                cell_data.set_value(float_value)
+            except ValueError:
+                result = False
+
+        if result:
             self.dataChanged.emit(index, index)
             self.set_save_state(False)
-            return True
-        except ValueError:
-            return False
+
+        return result
 
     def flags(self, index):
         item_flags = super().flags(index)

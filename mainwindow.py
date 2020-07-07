@@ -73,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.splitter_2.restoreState(self.settings.get_last_geometry(self.ui.splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
-            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view))
+            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.set_up_logger()
@@ -130,6 +130,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
             self.tick_timer.start(10)
+
+            self.ui.add_row_button.click()
+            self.ui.add_row_button.click()
+            self.ui.add_column_button.click()
+            self.ui.add_column_button.click()
+            self.ui.save_action.trigger()
         else:
             self.close()
 

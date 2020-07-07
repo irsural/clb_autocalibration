@@ -1,6 +1,6 @@
+from collections import OrderedDict
 from collections import namedtuple
 from typing import Union, Dict
-from collections import OrderedDict
 from enum import IntEnum
 import json
 import os
@@ -44,6 +44,8 @@ class MeasureManager(QtCore.QObject):
         self.rename_in_process = False
         self.changing_name = ""
         self.names_before_changing = []
+
+        self.show_equal_cells = False
 
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
 
@@ -181,6 +183,8 @@ class MeasureManager(QtCore.QObject):
                 self.current_data_model.lock_cell(cell.row(), cell.column(), a_lock)
 
     def show_equal_cell_configs(self, a_enable: bool):
+        self.show_equal_cells = a_enable
+
         if self.current_data_model is not None:
             self.current_data_model.show_equal_cell_configs(a_enable)
             if a_enable:
@@ -228,6 +232,7 @@ class MeasureManager(QtCore.QObject):
         if a_current is not None:
             self.current_data_model = self.measures[a_current.text()]
             self.data_view.setModel(self.current_data_model)
+            self.show_equal_cell_configs(self.show_equal_cells)
         else:
             self.current_data_model = None
 
