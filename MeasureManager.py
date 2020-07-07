@@ -26,6 +26,9 @@ class MeasureManager(QtCore.QObject):
     MEASURE_FILE_EXTENSION = "measure"
     MEASURES_ORDER_FILENAME = "measures_order.json"
 
+    SAVED_COLOR = QtCore.Qt.white
+    UNSAVED_COLOR = QtGui.QColor(255, 235, 179)
+
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
                  a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
@@ -112,6 +115,10 @@ class MeasureManager(QtCore.QObject):
         self.measures_table.insertRow(a_row_index)
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.NAME,
                                     QtWidgets.QTableWidgetItem(a_name))
+        self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.SETTINGS,
+                                    QtWidgets.QTableWidgetItem())
+        self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.ENABLE,
+                                    QtWidgets.QTableWidgetItem())
 
         button = QtWidgets.QToolButton()
         button.setText("...")
@@ -226,12 +233,14 @@ class MeasureManager(QtCore.QObject):
 
     def set_measure_save_state(self, a_measure_name: str, a_saved: bool):
         for row in range(self.measures_table.rowCount()):
-            measure_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME)
-            if measure_item.text() == a_measure_name:
-                if a_saved:
-                    measure_item.setBackground(QtCore.Qt.white)
-                else:
-                    measure_item.setBackground(QtCore.Qt.yellow)
+            name_item, param_item, enable_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME),\
+                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS),\
+                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.ENABLE),
+            if name_item.text() == a_measure_name:
+                color = MeasureManager.SAVED_COLOR if a_saved else MeasureManager.UNSAVED_COLOR
+                name_item.setBackground(color)
+                param_item.setBackground(color)
+                enable_item.setBackground(color)
 
     @utils.exception_decorator
     def edit_measure_parameters_button_clicked(self, _):

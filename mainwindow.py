@@ -3,7 +3,7 @@ import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from irspy.qt.custom_widgets.QTableDelegates import TransparentPainter
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
 from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
 from ui.py.mainwindow import Ui_MainWindow as MainForm
@@ -73,7 +73,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.splitter_2.restoreState(self.settings.get_last_geometry(self.ui.splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
-            self.ui.measure_data_view.setItemDelegate(TransparentPainter(self.ui.measure_data_view))
+            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view))
+            self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.set_up_logger()
 

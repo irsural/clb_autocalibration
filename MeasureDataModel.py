@@ -100,6 +100,7 @@ class MeasureDataModel(QAbstractTableModel):
             return None
         else:
             self.__cells[a_row][a_column].config = a_config
+            self.__compare_cells()
 
     def is_cell_locked(self, a_row, a_column) -> bool:
         if self.__is_cell_header(a_row, a_column):
@@ -135,15 +136,12 @@ class MeasureDataModel(QAbstractTableModel):
             self.__cell_to_compare = None
         self.__compare_cells()
 
-    def reset_cell_to_compare(self):
-        self.__cell_to_compare = None
-        self.__compare_cells()
-
     def add_row(self, a_row: int):
         self.beginInsertRows(QModelIndex(), a_row, a_row)
         self.__cells.insert(a_row + 1, [CellData() for _ in range(len(self.__cells[0]))])
         self.endInsertRows()
         self.set_save_state(False)
+        self.__compare_cells()
 
     def remove_row(self, a_row: int):
         if a_row != MeasureDataModel.HEADER_ROW:
@@ -158,6 +156,7 @@ class MeasureDataModel(QAbstractTableModel):
             cells_row.insert(a_column + 1, CellData())
         self.endInsertColumns()
         self.set_save_state(False)
+        self.__compare_cells()
 
     def remove_column(self, a_column: int):
         if a_column != MeasureDataModel.HEADER_COLUMN:
@@ -184,7 +183,7 @@ class MeasureDataModel(QAbstractTableModel):
             color = MeasureDataModel.TABLE_COLOR
             if self.is_cell_locked(a_index.row(), a_index.column()):
                 color = MeasureDataModel.LOCK_COLOR
-            if self.__cell_to_compare is not None:
+            if self.__show_equal_cells:
                 if self.__cells[a_index.row()][a_index.column()].is_marked_as_equal():
                     color = MeasureDataModel.EQUAL_COLOR
             return color

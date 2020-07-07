@@ -122,8 +122,7 @@
          <item>
           <widget class="QTableWidget" name="measures_table">
            <property name="styleSheet">
-            <string notr="true">selection-color: rgb(0, 0, 0);
-selection-background-color: rgb(170, 170, 255);</string>
+            <string notr="true"/>
            </property>
            <property name="editTriggers">
             <set>QAbstractItemView::DoubleClicked</set>
