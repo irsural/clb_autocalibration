@@ -36,6 +36,11 @@ class CellConfig:
         AMPERES = 0
         VOLTS = 1
 
+    meter_to_units = {
+        Meter.AMPERES: "А",
+        Meter.VOLTS: "В",
+    }
+
     ExtraParameter = namedtuple("ExtraParameter", ["name", "index", "type", "work_value", "default_value"])
 
     def __init__(self):

@@ -79,7 +79,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.__cell_to_compare: Union[None, CellConfig] = None
 
         self.__set_data_way = MeasureDataModel.SetDataWay.USER_INPUT
-        self.__units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
+        self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -103,6 +103,10 @@ class MeasureDataModel(QAbstractTableModel):
     def set_measure_parameters(self, a_measure_parameters: MeasureParameters):
         self.__measure_parameters = a_measure_parameters
         self.set_save_state(False)
+
+        self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
+        self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW, MeasureDataModel.HEADER_COLUMN),
+                              self.index(self.rowCount(), MeasureDataModel.HEADER_COLUMN), (QtCore.Qt.DisplayRole,))
 
     def is_enabled(self):
         return self.__enabled
@@ -128,6 +132,7 @@ class MeasureDataModel(QAbstractTableModel):
             self.__cells[a_row][a_column].config = a_config
             self.set_save_state(False)
             self.__compare_cells()
+            self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def is_cell_locked(self, a_row, a_column) -> bool:
         if self.__is_cell_header(a_row, a_column):
@@ -229,8 +234,15 @@ class MeasureDataModel(QAbstractTableModel):
                 return ""
 
             else:
-                units = "Гц" if index.row() == MeasureDataModel.HEADER_ROW else self.__units
+                if index.row() == MeasureDataModel.HEADER_ROW:
+                    units = "Гц"
+                elif index.column() == MeasureDataModel.HEADER_COLUMN:
+                    units = self.__signal_type_units
+                else:
+                    units = CellConfig.meter_to_units[cell_data.config.meter]
+
                 str_value = f"{utils.float_to_string(cell_data.get_value())} {units}"
+
                 return str_value
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):

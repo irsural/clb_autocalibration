@@ -157,6 +157,17 @@ class MeasureManager(QtCore.QObject):
         else:
             return None
 
+    def enable_all_measures(self):
+        enable_checkboxes = []
+        for row in range(self.measures_table.rowCount()):
+            cell_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.ENABLE)
+            enable_checkbox = qt_utils.unwrap_from_layout(cell_widget)
+            enable_checkboxes.append(enable_checkbox)
+
+        enable = not all([cb.isChecked() for cb in enable_checkboxes])
+        for cb in enable_checkboxes:
+            cb.setChecked(enable)
+
     def open_cell_configuration(self):
         if self.current_data_model is not None:
             selected_indexes = self.data_view.selectionModel().selectedIndexes()
@@ -230,7 +241,8 @@ class MeasureManager(QtCore.QObject):
 
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:
-            self.current_data_model = self.measures[a_current.text()]
+            measure_name = self.measures_table.item(a_current.row(), MeasureManager.MeasureColumn.NAME).text()
+            self.current_data_model = self.measures[measure_name]
             self.data_view.setModel(self.current_data_model)
             self.show_equal_cell_configs(self.show_equal_cells)
         else:

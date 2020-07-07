@@ -600,6 +600,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>tstlan</string>
    </property>
+   <property name="toolTip">
+    <string>Открыть tstlan</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
    <property name="shortcut">
     <string>T</string>
    </property>
@@ -611,6 +619,17 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="text">
     <string>save</string>
+   </property>
+   <property name="iconText">
+    <string>save</string>
+   </property>
+   <property name="toolTip">
+    <string>Сохранить</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -624,6 +643,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>open_action</string>
    </property>
+   <property name="toolTip">
+    <string>Открыть конфигурацию</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="save_as_action">
    <property name="icon">
@@ -632,6 +659,17 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="text">
     <string>save_as_action</string>
+   </property>
+   <property name="iconText">
+    <string>save_as_action</string>
+   </property>
+   <property name="toolTip">
+    <string>Сохранить как...</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
   <action name="start_all_action">
@@ -642,6 +680,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>start_all_action</string>
    </property>
+   <property name="toolTip">
+    <string>Начать измерение</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="continue_all_action">
    <property name="icon">
@@ -651,6 +697,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>continue_all_action</string>
    </property>
+   <property name="toolTip">
+    <string>Продолжить измерение</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="stop_all_action">
    <property name="icon">
@@ -659,6 +713,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="text">
     <string>stop_all_action</string>
+   </property>
+   <property name="toolTip">
+    <string>Остановить измерение</string>
    </property>
   </action>
   <action name="correction_action">
@@ -672,6 +729,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>correction_action</string>
    </property>
+   <property name="toolTip">
+    <string>Коррекция</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="flash_all_action">
    <property name="icon">
@@ -681,6 +746,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>flash_all_action</string>
    </property>
+   <property name="toolTip">
+    <string>Прошить все измерения</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="verify_action">
    <property name="icon">
@@ -689,6 +762,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="text">
     <string>verify_action</string>
+   </property>
+   <property name="toolTip">
+    <string>Проверить все измерения</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
   <action name="graphs_action">
@@ -702,6 +783,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>graphs_action</string>
    </property>
+   <property name="toolTip">
+    <string>Открыть графики</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="lock_action">
    <property name="icon">
@@ -711,6 +800,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>lock_action</string>
    </property>
+   <property name="toolTip">
+    <string>Заблокировать ячейки</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
   </action>
   <action name="unlock_action">
    <property name="icon">
@@ -719,6 +816,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="text">
     <string>unlock_action</string>
+   </property>
+   <property name="toolTip">
+    <string>Разблокировать ячейки</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
   <action name="show_equal_action">
@@ -731,6 +836,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="text">
     <string>show_equal_action</string>
+   </property>
+   <property name="toolTip">
+    <string>Показать ячейки с одинаковыми конфигурациями</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

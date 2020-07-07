@@ -112,8 +112,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
             self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
 
-            self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
-            self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
+            # self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
+            # self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
@@ -126,6 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
             self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
+            self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -195,6 +196,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def remove_measure_button_clicked(self, _):
         self.measure_manager.remove_measure(self.current_configuration_path)
 
+    def enable_all_button_clicked(self, _):
+        self.measure_manager.enable_all_measures()
+
     def measure_cell_double_clicked(self, a_row: int, a_column: int):
         self.measure_manager.rename_measure_started(a_row, a_column)
 
@@ -226,12 +230,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def remove_column_button_clicked(self, _):
         self.measure_manager.remove_column_from_current_measure()
 
+    @utils.exception_decorator
     def open_tstlan(self):
-        try:
-            tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings, self)
-            tstlan_dialog.exec()
-        except Exception as err:
-            logging.debug(utils.exception_handler(err))
+        tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings, self)
+        tstlan_dialog.exec()
 
     def open_settings(self):
         try:
