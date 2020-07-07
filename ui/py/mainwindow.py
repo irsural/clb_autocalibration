@@ -210,6 +210,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.comboBox_2)
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.measure_data_view = QtWidgets.QTableView(self.groupBox)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.measure_data_view.setFont(font)
         self.measure_data_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measure_data_view.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")

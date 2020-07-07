@@ -6,7 +6,7 @@ import enum
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5.QtGui import QColor
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 
 from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
@@ -33,6 +33,7 @@ class CellData:
     def is_marked_as_equal(self):
         return self.__marked_as_equal
 
+
 class MeasureDataModel(QAbstractTableModel):
     HEADER_ROW = 0
     HEADER_COLUMN = 0
@@ -51,7 +52,8 @@ class MeasureDataModel(QAbstractTableModel):
         self.__cells = [[CellData()]]
         self.__measure_parameters = MeasureParameters()
         self.__enabled = False
-        self.cell_to_compare: Union[None, CellConfig] = None
+        self.__show_equal_cells = False
+        self.__cell_to_compare: Union[None, CellConfig] = None
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -108,24 +110,33 @@ class MeasureDataModel(QAbstractTableModel):
     def lock_cell(self, a_row, a_column, a_lock: bool):
         if not self.__is_cell_header(a_row, a_column):
             self.__cells[a_row][a_column].lock(a_lock)
+            self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.BackgroundRole,))
 
     def __compare_cells(self):
-        for row, row_data in enumerate(self.__cells):
-            for column, cell in enumerate(row_data):
-                is_equal = self.cell_to_compare == cell.config
-                cell.mark_as_equal(is_equal)
-                self.dataChanged.emit(self.index(row, column), self.index(row, column))
+        if self.__show_equal_cells:
+            for row, row_data in enumerate(self.__cells):
+                for column, cell in enumerate(row_data):
+                    is_equal = self.__cell_to_compare == cell.config
+                    cell.mark_as_equal(is_equal)
+            self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW, MeasureDataModel.HEADER_COLUMN),
+                                  self.index(self.rowCount(), self.columnCount()), (QtCore.Qt.BackgroundRole,))
+
+    def show_equal_cell_configs(self, a_enable: bool):
+        if not a_enable:
+            self.__cell_to_compare = None
+            self.__compare_cells()
+        self.__show_equal_cells = a_enable
 
     def set_cell_to_compare(self, a_index: QtCore.QModelIndex):
         if a_index.isValid() and self.rowCount() > a_index.row() and \
                 not self.__is_cell_header(a_index.row(), a_index.column()):
-            self.cell_to_compare = copy.deepcopy(self.__cells[a_index.row()][a_index.column()].config)
+            self.__cell_to_compare = copy.deepcopy(self.__cells[a_index.row()][a_index.column()].config)
         else:
-            self.cell_to_compare = None
+            self.__cell_to_compare = None
         self.__compare_cells()
 
     def reset_cell_to_compare(self):
-        self.cell_to_compare = None
+        self.__cell_to_compare = None
         self.__compare_cells()
 
     def add_row(self, a_row: int):
@@ -166,21 +177,24 @@ class MeasureDataModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return QVariant()
 
+    def __get_cell_color(self, a_index: QtCore.QModelIndex):
+        if self.__is_cell_header(a_index.row(), a_index.column()):
+            return MeasureDataModel.HEADER_COLOR
+        else:
+            color = MeasureDataModel.TABLE_COLOR
+            if self.is_cell_locked(a_index.row(), a_index.column()):
+                color = MeasureDataModel.LOCK_COLOR
+            if self.__cell_to_compare is not None:
+                if self.__cells[a_index.row()][a_index.column()].is_marked_as_equal():
+                    color = MeasureDataModel.EQUAL_COLOR
+            return color
+
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
                 (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole and role != Qt.UserRole):
             return QVariant()
         if role == Qt.BackgroundRole:
-            if index.column() == MeasureDataModel.HEADER_COLUMN or index.row() == MeasureDataModel.HEADER_ROW:
-                return MeasureDataModel.HEADER_COLOR
-            else:
-                color = MeasureDataModel.TABLE_COLOR
-                if self.is_cell_locked(index.row(), index.column()):
-                    color = MeasureDataModel.LOCK_COLOR
-                if self.cell_to_compare is not None:
-                    if self.__cells[index.row()][index.column()].is_marked_as_equal():
-                        color = MeasureDataModel.EQUAL_COLOR
-                return color
+            return QVariant(QtGui.QBrush(self.__get_cell_color(index)))
         else:
             value = self.__cells[index.row()][index.column()].value
             return value

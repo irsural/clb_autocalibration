@@ -3,10 +3,11 @@ import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainter
 from irspy.settings_ini_parser import Settings, BadIniException
+from irspy.clb.network_variables import NetworkVariables
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
-from irspy.clb.network_variables import NetworkVariables
 from settings_dialog import SettingsDialog
 from tstlan_dialog import TstlanDialog
 from irspy.qt import qt_utils
@@ -72,6 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.splitter_2.restoreState(self.settings.get_last_geometry(self.ui.splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
+            self.ui.measure_data_view.setItemDelegate(TransparentPainter(self.ui.measure_data_view))
 
             self.set_up_logger()
 
@@ -192,12 +194,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def measure_cell_changed(self, a_row: int, a_column: int):
         self.measure_manager.rename_measure_finished(a_row, a_column, self.current_configuration_path)
 
+    def show_equal_cell_configs_button_toggled(self, a_enable: bool):
+        self.measure_manager.show_equal_cell_configs(a_enable)
+
     def measure_data_cell_clicked(self, index: QtCore.QModelIndex):
         if self.ui.show_equal_action.isChecked():
             self.measure_manager.set_cell_to_compare(index)
-
-    def show_equal_cell_configs_button_toggled(self, a_enable: bool):
-        self.measure_manager.show_equal_cell_configs(a_enable)
 
     def lock_cell_button_clicked(self):
         self.measure_manager.lock_selected_cells(True)

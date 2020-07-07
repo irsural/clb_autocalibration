@@ -175,12 +175,11 @@ class MeasureManager(QtCore.QObject):
 
     def show_equal_cell_configs(self, a_enable: bool):
         if self.current_data_model is not None:
+            self.current_data_model.show_equal_cell_configs(a_enable)
             if a_enable:
                 selected_indexes = self.data_view.selectedIndexes()
                 if selected_indexes:
                     self.current_data_model.set_cell_to_compare(selected_indexes[0])
-            else:
-                self.current_data_model.reset_cell_to_compare()
 
     def set_cell_to_compare(self, a_index: QtCore.QModelIndex):
         if self.current_data_model is not None:

@@ -500,6 +500,11 @@ selection-background-color: rgb(170, 170, 255);</string>
          </item>
          <item>
           <widget class="QTableView" name="measure_data_view">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
