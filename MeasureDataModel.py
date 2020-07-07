@@ -257,7 +257,10 @@ class MeasureDataModel(QAbstractTableModel):
         else:
             try:
                 float_value = utils.parse_input(value)
-                cell_data.set_value(float_value)
+                if float_value != cell_data.get_value():
+                    cell_data.set_value(float_value)
+                else:
+                    result = False
             except ValueError:
                 result = False
 

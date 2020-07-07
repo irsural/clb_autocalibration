@@ -36,6 +36,36 @@ class CellConfig:
         AMPERES = 0
         VOLTS = 1
 
+    ALLOWED_COILS = {
+        clb.SignalType.ACI: (Coil.NONE, Coil.VAL_0_01_OHM, Coil.VAL_1_OHM, Coil.VAL_10_OHM),
+        clb.SignalType.DCI: (Coil.NONE, Coil.VAL_0_01_OHM, Coil.VAL_1_OHM, Coil.VAL_10_OHM),
+        clb.SignalType.ACV: (Coil.NONE,),
+        clb.SignalType.DCV: (Coil.NONE,),
+    }
+
+    ALLOWED_DIVIDERS = {
+        clb.SignalType.ACI: (Divider.NONE,),
+        clb.SignalType.DCI: (Divider.NONE,),
+        clb.SignalType.ACV: (Divider.NONE, Divider.MUL_10_mV, Divider.MUL_30_mV, Divider.DIV_650_V, Divider.DIV_500_V,
+                             Divider.DIV_350_V, Divider.DIV_200_V, Divider.DIV_55_V, Divider.DIV_40_V),
+        clb.SignalType.DCV: (Divider.NONE, Divider.MUL_10_mV, Divider.MUL_30_mV, Divider.DIV_650_V, Divider.DIV_500_V,
+                             Divider.DIV_350_V, Divider.DIV_200_V, Divider.DIV_55_V, Divider.DIV_40_V),
+    }
+
+    ALLOWED_DIVIDERS_WITH_COIL = {
+        clb.SignalType.ACI: (Divider.NONE, Divider.MUL_10_mV, Divider.MUL_30_mV, ),
+        clb.SignalType.DCI: (Divider.NONE, Divider.MUL_10_mV, Divider.MUL_30_mV, ),
+        clb.SignalType.ACV: (Divider.NONE,),
+        clb.SignalType.DCV: (Divider.NONE,),
+    }
+
+    ALLOWED_METERS = {
+        clb.SignalType.ACI: (Meter.AMPERES, Meter.VOLTS),
+        clb.SignalType.DCI: (Meter.AMPERES, Meter.VOLTS),
+        clb.SignalType.ACV: (Meter.VOLTS,),
+        clb.SignalType.DCV: (Meter.VOLTS,),
+    }
+
     meter_to_units = {
         Meter.AMPERES: "А",
         Meter.VOLTS: "В",
@@ -143,6 +173,15 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.signal_type = a_signal_type
         self.recover_config(a_init_config)
 
+        self.lock_scheme_radios()
+        self.scheme_changed()
+
+        for radio in self.radio_to_coil:
+            radio.toggled.connect(self.scheme_changed)
+
+        for radio in self.radio_to_divider:
+            radio.toggled.connect(self.scheme_changed)
+
         self.ui.add_extra_param_button.clicked.connect(self.add_extra_param_button_clicked)
         self.ui.remove_extra_param_button.clicked.connect(self.remove_extra_param_button_clicked)
 
@@ -160,7 +199,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         assert isinstance(edit, QtWidgets.QLineEdit), "edit_text_edited must be connected to QLineEdit event!"
         self.update_edit_color(edit)
 
-    def update_edit_color(self, a_edit: QtWidgets.QLineEdit):
+    @staticmethod
+    def update_edit_color(a_edit: QtWidgets.QLineEdit):
         try:
             utils.parse_input(a_edit.text())
             # По каким то причинам это меняет размер шрифта
@@ -203,6 +243,32 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                 extra_parameter.name, utils.float_to_string(extra_parameter.index), extra_parameter.type,
                 utils.float_to_string(extra_parameter.work_value), utils.float_to_string(extra_parameter.default_value)
             ))
+
+    def lock_scheme_radios(self):
+        for radio, coil in self.radio_to_coil.items():
+            enable_cb = coil in CellConfig.ALLOWED_COILS[self.signal_type]
+            if not enable_cb and radio.isChecked():
+                self.ui.coil_no_radio.setChecked(True)
+            radio.setEnabled(enable_cb)
+
+        is_coil_using = not self.ui.coil_no_radio.isChecked()
+        allowed_dividers = CellConfig.ALLOWED_DIVIDERS_WITH_COIL if is_coil_using else CellConfig.ALLOWED_DIVIDERS
+
+        for radio, divider in self.radio_to_divider.items():
+            enable_cb = divider in allowed_dividers[self.signal_type]
+            if not enable_cb and radio.isChecked():
+                self.ui.divider_no_radio.setChecked(True)
+            radio.setEnabled(enable_cb)
+
+    def scheme_changed(self):
+        meter = CellConfig.Meter.VOLTS if clb.is_voltage_signal[self.signal_type] else CellConfig.Meter.AMPERES
+
+        is_coil_using = not self.ui.coil_no_radio.isChecked()
+        if is_coil_using:
+            meter = CellConfig.Meter.VOLTS
+
+        self.meter_to_radio[meter].setChecked(True)
+        self.lock_scheme_radios()
 
     def exec_and_get(self) -> Union[CellConfig, None]:
         if self.exec() == QtWidgets.QDialog.Accepted:
