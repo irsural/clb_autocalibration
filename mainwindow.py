@@ -195,11 +195,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calibrator.connect(a_clb_name)
 
     def copy_cell_config(self):
-        logging.debug("copy cell")
         self.measure_manager.copy_cell_config()
 
     def paste_cell_config(self):
-        logging.debug("paste cell")
         self.measure_manager.paste_cell_config()
 
     def copy_cell_value(self):

@@ -99,7 +99,7 @@ class MeasureDataModel(QAbstractTableModel):
         return self.__name
 
     def get_measure_parameters(self) -> MeasureParameters:
-        return self.__measure_parameters
+        return copy.deepcopy(self.__measure_parameters)
 
     def set_measure_parameters(self, a_measure_parameters: MeasureParameters):
         self.__measure_parameters = copy.deepcopy(a_measure_parameters)
@@ -125,7 +125,7 @@ class MeasureDataModel(QAbstractTableModel):
         if self.__is_cell_header(a_row, a_column):
             return None
         else:
-            return self.__cells[a_row][a_column].config
+            return copy.deepcopy(self.__cells[a_row][a_column].config)
 
     def set_cell_config(self, a_row, a_column, a_config: CellConfig):
         if self.__is_cell_header(a_row, a_column):
