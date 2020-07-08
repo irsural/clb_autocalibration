@@ -219,7 +219,7 @@ class MeasureManager(QtCore.QObject):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
             if selection:
-                row = max(selection, key=lambda idx: idx.row()).row()
+                row = max(selection, key=lambda idx: idx.row()).row() + 1
             else:
                 row = self.current_data_model.rowCount()
             self.current_data_model.add_row(row)
@@ -235,7 +235,7 @@ class MeasureManager(QtCore.QObject):
         if self.current_data_model is not None:
             selection = self.data_view.selectionModel().selectedIndexes()
             if selection:
-                column = max(selection, key=lambda idx: idx.column()).column()
+                column = max(selection, key=lambda idx: idx.column()).column() + 1
             else:
                 column = self.current_data_model.columnCount()
             self.current_data_model.add_column(column)

@@ -171,8 +171,16 @@ class MeasureDataModel(QAbstractTableModel):
         self.__compare_cells()
 
     def add_row(self, a_row: int):
+        assert a_row != 0, "Строка не должна иметь 0 индекс!"
+
+        new_data_row = []
+        for cell_data in self.__cells[a_row - 1]:
+            new_data = CellData()
+            new_data.config = copy.deepcopy(cell_data.config)
+            new_data_row.append(new_data)
+
         self.beginInsertRows(QModelIndex(), a_row, a_row)
-        self.__cells.insert(a_row + 1, [CellData() for _ in range(len(self.__cells[0]))])
+        self.__cells.insert(a_row, new_data_row)
         self.endInsertRows()
         self.set_save_state(False)
         self.__compare_cells()
@@ -185,9 +193,17 @@ class MeasureDataModel(QAbstractTableModel):
             self.set_save_state(False)
 
     def add_column(self, a_column: int):
+        assert a_column != 0, "Столбец не должен иметь 0 индекс!"
+
+        new_data_column = []
+        for cell_data_row in self.__cells:
+            new_data = CellData()
+            new_data.config = copy.deepcopy(cell_data_row[a_column - 1].config)
+            new_data_column.append(new_data)
+
         self.beginInsertColumns(QModelIndex(), a_column, a_column)
-        for cells_row in self.__cells:
-            cells_row.insert(a_column + 1, CellData())
+        for idx, cells_row in enumerate(self.__cells):
+            cells_row.insert(a_column, new_data_column[idx])
         self.endInsertColumns()
         self.set_save_state(False)
         self.__compare_cells()
