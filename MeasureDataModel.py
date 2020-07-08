@@ -60,6 +60,7 @@ class MeasureDataModel(QAbstractTableModel):
     TABLE_COLOR = QColor(255, 255, 255)
     LOCK_COLOR = QColor(254, 255, 171)
     EQUAL_COLOR = QColor(142, 250, 151)
+    HZ_UNITS = "Гц"
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
@@ -102,6 +103,7 @@ class MeasureDataModel(QAbstractTableModel):
 
     def set_measure_parameters(self, a_measure_parameters: MeasureParameters):
         self.__measure_parameters = a_measure_parameters
+        self.verify_cell_configs(self.__measure_parameters.signal_type, True)
         self.set_save_state(False)
 
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
@@ -198,6 +200,27 @@ class MeasureDataModel(QAbstractTableModel):
             self.endRemoveColumns()
             self.set_save_state(False)
 
+    def get_amplitude(self, a_row):
+        cell_data = self.__cells[a_row][MeasureDataModel.HEADER_COLUMN]
+        return 0 if not cell_data.has_value() else cell_data.get_value()
+
+    def get_frequency(self, a_column):
+        cell_data = self.__cells[MeasureDataModel.HEADER_ROW][a_column]
+        return 0 if not cell_data.has_value() else cell_data.get_value()
+
+    def verify_cell_configs(self, a_signal_type: clb.SignalType, a_reset_bad_cells=False):
+        bad_cells = []
+        for row, row_data in enumerate(self.__cells):
+            for column, cell in enumerate(row_data):
+                if not self.__is_cell_header(row, column):
+                    if not cell.config.verify_scheme(a_signal_type):
+                        bad_cells.append((f"{self.get_amplitude(row)} {self.__signal_type_units}",
+                                         f"{self.get_frequency(column)} {MeasureDataModel.HZ_UNITS}"))
+                        if a_reset_bad_cells:
+                            cell.config.reset_scheme(a_signal_type)
+                            self.set_save_state(False)
+        return bad_cells
+
     def rowCount(self, parent=QModelIndex()):
         return len(self.__cells)
 
@@ -235,7 +258,7 @@ class MeasureDataModel(QAbstractTableModel):
 
             else:
                 if index.row() == MeasureDataModel.HEADER_ROW:
-                    units = "Гц"
+                    units = MeasureDataModel.HZ_UNITS
                 elif index.column() == MeasureDataModel.HEADER_COLUMN:
                     units = self.__signal_type_units
                 else:

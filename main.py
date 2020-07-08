@@ -5,7 +5,7 @@ ui_to_py.convert_resources("./resources", ".")
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 
 from mainwindow import MainWindow
 from irspy.utils import exception_decorator_print
@@ -15,6 +15,7 @@ from irspy.utils import exception_decorator_print
 def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+    app.setFont(QtGui.QFont("MS Shell Dlg 2", 10))
 
     translator = QtCore.QTranslator(app)
     path = QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)

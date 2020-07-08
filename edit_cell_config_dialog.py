@@ -60,8 +60,15 @@ class CellConfig:
     }
 
     ALLOWED_METERS = {
-        clb.SignalType.ACI: (Meter.AMPERES, Meter.VOLTS),
-        clb.SignalType.DCI: (Meter.AMPERES, Meter.VOLTS),
+        clb.SignalType.ACI: (Meter.AMPERES,),
+        clb.SignalType.DCI: (Meter.AMPERES,),
+        clb.SignalType.ACV: (Meter.VOLTS,),
+        clb.SignalType.DCV: (Meter.VOLTS,),
+    }
+
+    ALLOWED_METERS_WITH_COIL = {
+        clb.SignalType.ACI: (Meter.VOLTS,),
+        clb.SignalType.DCI: (Meter.VOLTS,),
         clb.SignalType.ACV: (Meter.VOLTS,),
         clb.SignalType.DCV: (Meter.VOLTS,),
     }
@@ -89,6 +96,20 @@ class CellConfig:
         self.meter = CellConfig.Meter.AMPERES
 
         self.extra_parameters: List[CellConfig.ExtraParameter] = []
+
+    def verify_scheme(self, a_signal_type: clb.SignalType):
+        is_coil_used = self.coil != CellConfig.Coil.NONE
+        allowed_dividers = CellConfig.ALLOWED_DIVIDERS_WITH_COIL if is_coil_used else CellConfig.ALLOWED_DIVIDERS
+        allowed_meters = CellConfig.ALLOWED_METERS_WITH_COIL if is_coil_used else CellConfig.ALLOWED_METERS
+        scheme_is_ok = self.coil in CellConfig.ALLOWED_COILS[a_signal_type] and \
+                       self.divider in allowed_dividers[a_signal_type] and \
+                       self.meter in allowed_meters[a_signal_type]
+        return scheme_is_ok
+
+    def reset_scheme(self, a_signal_type: clb.SignalType):
+        self.coil = CellConfig.Coil.NONE
+        self.divider = CellConfig.Divider.NONE
+        self.meter = CellConfig.Meter.VOLTS if clb.is_voltage_signal[a_signal_type] else CellConfig.Meter.AMPERES
 
     def __eq__(self, other):
         return other is not None and \
@@ -171,6 +192,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         self.cell_config = None
         self.signal_type = a_signal_type
+        logging.debug(f"{a_init_config.coil.name}, {a_init_config.divider.name}, {a_init_config.meter.name}")
         self.recover_config(a_init_config)
 
         self.lock_scheme_radios()

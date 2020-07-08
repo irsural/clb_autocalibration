@@ -273,8 +273,14 @@ class MeasureManager(QtCore.QObject):
                 edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings)
                 new_parameters = edit_parameters_dialog.exec_and_get()
                 if new_parameters is not None:
+                    bad_cells = measure_data_model.verify_cell_configs(new_parameters.signal_type)
+                    if bad_cells:
+                        bad_cells_text = "\n".join([f"{ampli}; {freq}" for ampli, freq in bad_cells])
+                        QtWidgets.QMessageBox.warning(None, "Предупреждение",
+                                                      f"Схема подключения следующих ячеек не подходит для выбранного "
+                                                      f"типа сигнала и БУДЕТ СБРОШЕНА:\n\n{bad_cells_text}.",
+                                                      QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
                     measure_data_model.set_measure_parameters(new_parameters)
-
                 # Иначе не вызывается closeEvent()
                 edit_parameters_dialog.close()
                 return
