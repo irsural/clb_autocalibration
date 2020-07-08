@@ -192,7 +192,6 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         self.cell_config = None
         self.signal_type = a_signal_type
-        logging.debug(f"{a_init_config.coil.name}, {a_init_config.divider.name}, {a_init_config.meter.name}")
         self.recover_config(a_init_config)
 
         self.lock_scheme_radios()

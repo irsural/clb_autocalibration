@@ -115,6 +115,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
             # self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
+            self.ui.measure_data_view.customContextMenuRequested.connect(self.show_measure_table_context_menu)
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
@@ -187,6 +188,59 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
+
+    def copy_cell_config(self):
+        self.measure_manager.copy_cell_config()
+
+    def paste_cell_config(self):
+        self.measure_manager.paste_cell_config()
+
+    def copy_cell_value(self):
+        self.measure_manager.copy_cell_value()
+
+    def paste_cell_value(self):
+        self.measure_manager.paste_cell_value()
+
+    def show_cell_graph(self):
+        logging.debug("Не реализовано")
+
+    def flash_table(self):
+        logging.debug("Не реализовано")
+
+    def flash_diapason_of_cell(self):
+        logging.debug("Не реализовано")
+
+    def show_measure_table_context_menu(self):
+        menu = QtWidgets.QMenu(self)
+
+        copy_cell_value = QtWidgets.QAction("Копировать значение", self)
+        copy_cell_value.triggered.connect(self.copy_cell_value)
+        menu.addAction(copy_cell_value)
+        paste_cell_value = QtWidgets.QAction("Вставить значение", self)
+        paste_cell_value.triggered.connect(self.paste_cell_value)
+        menu.addAction(paste_cell_value)
+
+        copy_cell_config_action = QtWidgets.QAction("Копировать настройки ячейки", self)
+        menu.addAction(copy_cell_config_action)
+        paste_cell_config_action = QtWidgets.QAction("Вставить настройки ячейки", self)
+        menu.addAction(paste_cell_config_action)
+        menu.insertSeparator(copy_cell_config_action)
+
+        show_measure_graph = QtWidgets.QAction("График измерения", self)
+        show_measure_graph.triggered.connect(self.show_cell_graph)
+        menu.addAction(show_measure_graph)
+        menu.insertSeparator(show_measure_graph)
+
+        flash_table = QtWidgets.QAction("Прошить таблицу", self)
+        flash_table.triggered.connect(self.flash_table)
+        menu.addAction(flash_table)
+        flash_diapason_of_cell = QtWidgets.QAction("Прошить диапазон ячейки", self)
+        flash_diapason_of_cell.triggered.connect(self.flash_diapason_of_cell)
+        menu.addAction(flash_diapason_of_cell)
+        menu.insertSeparator(flash_table)
+
+        # add other required actions
+        menu.popup(QtGui.QCursor.pos())
 
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):

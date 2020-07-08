@@ -62,6 +62,16 @@ class MeasureManager(QtCore.QObject):
             new_name = f"{a_name_template}_{counter}"
         return new_name
 
+    def __get_only_selected_cell(self) -> Union[None, QtCore.QModelIndex]:
+        selected_indexes = self.data_view.selectionModel().selectedIndexes()
+        if len(selected_indexes) == 1:
+            return selected_indexes[0]
+        elif len(selected_indexes) > 1:
+            QtWidgets.QMessageBox.critical(None, "Ошибка", "Необходимо выбрать ровно одну ячейку",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+        else:
+            return None
+
     def rename_measure_started(self, a_row: int, a_column: int):
         if a_column == MeasureManager.MeasureColumn.NAME:
             self.rename_in_process = True
@@ -169,24 +179,19 @@ class MeasureManager(QtCore.QObject):
             cb.setChecked(enable)
 
     def open_cell_configuration(self):
-        if self.current_data_model is not None:
-            selected_indexes = self.data_view.selectionModel().selectedIndexes()
-            if len(selected_indexes) == 1:
-                row, column = selected_indexes[0].row(), selected_indexes[0].column()
-                cell_config = self.current_data_model.get_cell_config(row, column)
-                if cell_config is not None:
-                    signal_type = self.current_data_model.get_measure_parameters().signal_type
+        selected_index = self.__get_only_selected_cell()
+        if selected_index:
+            row, column = selected_index.row(), selected_index.column()
+            cell_config = self.current_data_model.get_cell_config(row, column)
+            if cell_config is not None:
+                signal_type = self.current_data_model.get_measure_parameters().signal_type
 
-                    edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings)
-                    new_cell_config = edit_cell_config_dialog.exec_and_get()
-                    if new_cell_config is not None:
-                        self.current_data_model.set_cell_config(row, column, new_cell_config)
+                edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings)
+                new_cell_config = edit_cell_config_dialog.exec_and_get()
+                if new_cell_config is not None and new_cell_config != cell_config:
+                    self.current_data_model.set_cell_config(row, column, new_cell_config)
 
-                    edit_cell_config_dialog.close()
-
-            elif len(selected_indexes) > 1:
-                QtWidgets.QMessageBox.critical(None, "Ошибка", "Необходимо выбрать ровно одну ячейку",
-                                               QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                edit_cell_config_dialog.close()
 
     def lock_selected_cells(self, a_lock):
         if self.current_data_model is not None:
@@ -239,6 +244,29 @@ class MeasureManager(QtCore.QObject):
             for column in reversed(removing_cols):
                 self.current_data_model.remove_column(column)
 
+    def copy_cell_config(self):
+        selected_index = self.__get_only_selected_cell()
+        if selected_index:
+            pass
+
+    def paste_cell_config(self):
+        pass
+
+    def copy_cell_value(self):
+        if self.current_data_model is not None:
+            selected_index = self.__get_only_selected_cell()
+            if selected_index:
+                value: str = self.current_data_model.data(selected_index)
+                if value:
+                    value_without_units = value.split(" ")[0]
+                    QtWidgets.QApplication.clipboard().setText(value_without_units)
+
+    def paste_cell_value(self):
+        if self.current_data_model is not None:
+            for index in self.data_view.selectedIndexes():
+                value = QtWidgets.QApplication.clipboard().text()
+                self.current_data_model.setData(index, value)
+
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:
             measure_name = self.measures_table.item(a_current.row(), MeasureManager.MeasureColumn.NAME).text()
@@ -272,7 +300,7 @@ class MeasureManager(QtCore.QObject):
 
                 edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings)
                 new_parameters = edit_parameters_dialog.exec_and_get()
-                if new_parameters is not None:
+                if new_parameters is not None and new_parameters != measure_parameters:
                     bad_cells = measure_data_model.verify_cell_configs(new_parameters.signal_type)
                     if bad_cells:
                         bad_cells_text = "\n".join([f"{ampli}; {freq}" for ampli, freq in bad_cells])

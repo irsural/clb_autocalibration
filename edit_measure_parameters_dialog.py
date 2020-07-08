@@ -22,6 +22,12 @@ class MeasureParameters:
 
         self.flash_table: List[MeasureParameters.FlashTableRow] = []
 
+    def __eq__(self, other):
+        return other is not None and \
+               self.signal_type == other.signal_type and \
+               self.flash_after_finish == other.flash_after_finish and \
+               self.flash_table == other.flash_table
+
 
 class EditMeasureParametersDialog(QtWidgets.QDialog):
     class FlashColumn(IntEnum):
