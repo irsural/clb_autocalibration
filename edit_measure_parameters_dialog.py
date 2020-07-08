@@ -7,7 +7,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 
 from irspy.settings_ini_parser import Settings
 
-from ui.py.edit_measure_parameters_dialog import Ui_Dialog as EditMeasureParametersForm
+from ui.py.edit_measure_parameters_dialog import Ui_edit_measure_parameters_dialog as EditMeasureParametersForm
 from irspy.clb import calibrator_constants as clb
 from irspy.qt import qt_utils
 import irspy.utils as utils

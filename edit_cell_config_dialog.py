@@ -8,7 +8,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from irspy.settings_ini_parser import Settings
 from irspy.qt.custom_widgets.QTableDelegates import ComboboxCellDelegate
 
-from ui.py.edit_cell_config_dialog import Ui_Dialog as EditCellConfigForm
+from ui.py.edit_cell_config_dialog import Ui_edit_cell_config_dialog as EditCellConfigForm
 from irspy.clb import calibrator_constants as clb
 from irspy.qt import qt_utils
 import irspy.utils as utils

@@ -1,11 +1,10 @@
 from collections import OrderedDict
-from collections import namedtuple
 from typing import Union, Dict
 from enum import IntEnum
+import logging
 import copy
 import json
 import os
-import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -165,7 +164,9 @@ class MeasureManager(QtCore.QObject):
                 self.measures_table.removeRow(selected_row)
                 del self.measures[removed_name]
                 self.__save_measures_order_list(a_measure_folder)
-                os.remove(f"{a_measure_folder}/{removed_name}.{MeasureManager.MEASURE_FILE_EXTENSION}")
+                measure_filename = f"{a_measure_folder}/{removed_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+                if os.path.exists(measure_filename):
+                    os.remove(measure_filename)
                 return removed_name
         else:
             return None

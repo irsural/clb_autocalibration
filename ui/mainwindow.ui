@@ -559,16 +559,28 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="save_action"/>
    <addaction name="save_as_action"/>
    <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="start_all_action"/>
    <addaction name="continue_all_action"/>
    <addaction name="stop_all_action"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="correction_action"/>
    <addaction name="flash_all_action"/>
    <addaction name="verify_action"/>
    <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="open_tstlan_action"/>
    <addaction name="graphs_action"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="lock_action"/>
    <addaction name="unlock_action"/>
@@ -590,9 +602,6 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
   </action>
   <action name="open_tstlan_action">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/tstlan.png</normaloff>:/icons/icons/tstlan.png</iconset>
@@ -651,6 +660,9 @@ selection-background-color: rgb(170, 170, 255);</string>
      <pointsize>10</pointsize>
     </font>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="save_as_action">
    <property name="icon">
@@ -670,6 +682,9 @@ selection-background-color: rgb(170, 170, 255);</string>
     <font>
      <pointsize>10</pointsize>
     </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="start_all_action">
@@ -758,7 +773,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <action name="verify_action">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/checkbox_empty.png</normaloff>:/icons/icons/checkbox_empty.png</iconset>
+     <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
    </property>
    <property name="text">
     <string>verify_action</string>
@@ -773,9 +788,6 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
   </action>
   <action name="graphs_action">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/graph.png</normaloff>:/icons/icons/graph.png</iconset>
@@ -832,7 +844,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/checkbox_empty.png</normaloff>:/icons/icons/checkbox_empty.png</iconset>
+     <normaloff>:/icons/icons/squares.png</normaloff>:/icons/icons/squares.png</iconset>
    </property>
    <property name="text">
     <string>show_equal_action</string>
