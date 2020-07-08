@@ -1,4 +1,7 @@
 from typing import List, Iterable, Union
+from time import perf_counter
+from array import array
+import json
 import logging
 import copy
 from enum import IntEnum
@@ -8,6 +11,7 @@ from PyQt5.QtGui import QColor
 from PyQt5 import QtCore, QtGui
 
 from irspy import utils
+from irspy import metrology
 from irspy.clb import calibrator_constants as clb
 
 from edit_measure_parameters_dialog import MeasureParameters
@@ -15,30 +19,38 @@ from edit_cell_config_dialog import CellConfig
 
 
 class CellData:
-    def __init__(self, a_init_value: Union[None, float] = None):
-        self.__value = a_init_value
-
+    def __init__(self):
         self.__locked = False
         self.__marked_as_equal = False
+
+        self.__measured_values = array('d')
+        self.__measured_times = array('d')
+        self.__start_time_point = perf_counter()
+        self.__average = metrology.MovingAverage(999)
 
         self.config = CellConfig()
 
     def reset(self):
-        self.__value = None
+        self.__average.reset()
+        self.__measured_values.clear()
+        self.__measured_times.clear()
+        self.__start_time_point = perf_counter()
 
     def has_value(self):
-        return self.__value is not None
+        return bool(self.__measured_values)
 
     def get_value(self):
-        return self.__value
+        return self.__average.get()
 
-    def set_value(self, a_value: Union[None, float]):
+    def set_value(self, a_value: float):
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
         self.reset()
-        self.__value = a_value
+        self.append_value(a_value)
 
-    def append_value(self):
-        pass
+    def append_value(self, a_value: float):
+        self.__measured_values.append(a_value)
+        self.__measured_times.append(perf_counter() - self.__start_time_point)
+        self.__average.add(a_value)
 
     def lock(self, a_lock: bool):
         self.__locked = a_lock
@@ -64,10 +76,6 @@ class MeasureDataModel(QAbstractTableModel):
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
-    class SetDataWay(IntEnum):
-        USER_INPUT = 0
-        MEASURE_INPUT = 1
-
     def __init__(self, a_name: str, a_parent=None):
         super().__init__(a_parent)
 
@@ -79,7 +87,6 @@ class MeasureDataModel(QAbstractTableModel):
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
 
-        self.__set_data_way = MeasureDataModel.SetDataWay.USER_INPUT
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
     def set_name(self, a_name: str):
@@ -96,7 +103,7 @@ class MeasureDataModel(QAbstractTableModel):
         return self.__saved
 
     def serialize(self):
-        return self.__name
+        return str(self.__dict__)
 
     def get_measure_parameters(self) -> MeasureParameters:
         return copy.deepcopy(self.__measure_parameters)
