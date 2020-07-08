@@ -102,7 +102,7 @@ class MeasureDataModel(QAbstractTableModel):
         return self.__measure_parameters
 
     def set_measure_parameters(self, a_measure_parameters: MeasureParameters):
-        self.__measure_parameters = a_measure_parameters
+        self.__measure_parameters = copy.deepcopy(a_measure_parameters)
         self.verify_cell_configs(self.__measure_parameters.signal_type, True)
         self.set_save_state(False)
 
@@ -131,7 +131,7 @@ class MeasureDataModel(QAbstractTableModel):
         if self.__is_cell_header(a_row, a_column):
             return None
         else:
-            self.__cells[a_row][a_column].config = a_config
+            self.__cells[a_row][a_column].config = copy.deepcopy(a_config)
             self.set_save_state(False)
             self.__compare_cells()
             self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
@@ -204,9 +204,15 @@ class MeasureDataModel(QAbstractTableModel):
         cell_data = self.__cells[a_row][MeasureDataModel.HEADER_COLUMN]
         return 0 if not cell_data.has_value() else cell_data.get_value()
 
+    def get_amplitude_with_units(self, a_row):
+        return self.data(self.index(a_row, MeasureDataModel.HEADER_COLUMN))
+
     def get_frequency(self, a_column):
         cell_data = self.__cells[MeasureDataModel.HEADER_ROW][a_column]
         return 0 if not cell_data.has_value() else cell_data.get_value()
+
+    def get_frequency_with_units(self, a_column):
+        return self.data(self.index(MeasureDataModel.HEADER_ROW, a_column))
 
     def verify_cell_configs(self, a_signal_type: clb.SignalType, a_reset_bad_cells=False):
         bad_cells = []

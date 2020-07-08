@@ -319,10 +319,60 @@
          <item>
           <widget class="QGroupBox" name="groupBox_4">
            <property name="title">
-            <string>Делит./Усилит.</string>
+            <string>Делитель/Усилитель</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="4" column="0">
+             <widget class="QRadioButton" name="divider_200_radio">
+              <property name="text">
+               <string>/200 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QRadioButton" name="divider_500_radio">
+              <property name="text">
+               <string>/500 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QRadioButton" name="divider_650_radio">
+              <property name="text">
+               <string>/650 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QRadioButton" name="divider_40_radio">
+              <property name="text">
+               <string>/40 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QRadioButton" name="divider_350_radio">
+              <property name="text">
+               <string>/350 В</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup_3</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="0" column="0">
              <widget class="QRadioButton" name="divider_no_radio">
               <property name="text">
                <string>Нет</string>
@@ -335,47 +385,7 @@
               </attribute>
              </widget>
             </item>
-            <item>
-             <widget class="QRadioButton" name="divider_650_radio">
-              <property name="text">
-               <string>/650 В</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">buttonGroup_3</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="divider_500_radio">
-              <property name="text">
-               <string>/500 В</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">buttonGroup_3</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="divider_350_radio">
-              <property name="text">
-               <string>/350 В</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">buttonGroup_3</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="divider_200_radio">
-              <property name="text">
-               <string>/200 В</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">buttonGroup_3</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
+            <item row="5" column="0">
              <widget class="QRadioButton" name="divider_55_radio">
               <property name="text">
                <string>/55 В</string>
@@ -385,17 +395,7 @@
               </attribute>
              </widget>
             </item>
-            <item>
-             <widget class="QRadioButton" name="divider_40_radio">
-              <property name="text">
-               <string>/40 В</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">buttonGroup_3</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
+            <item row="1" column="1">
              <widget class="QRadioButton" name="amplifier_30_radio">
               <property name="text">
                <string>*30 мВ</string>
@@ -405,7 +405,7 @@
               </attribute>
              </widget>
             </item>
-            <item>
+            <item row="2" column="1">
              <widget class="QRadioButton" name="amplifier_10_radio">
               <property name="text">
                <string>* 10 мВ</string>
@@ -618,8 +618,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>divider_200_radio</tabstop>
   <tabstop>divider_55_radio</tabstop>
   <tabstop>divider_40_radio</tabstop>
-  <tabstop>amplifier_30_radio</tabstop>
-  <tabstop>amplifier_10_radio</tabstop>
   <tabstop>ammeter_radio</tabstop>
   <tabstop>voltmeter_radio</tabstop>
   <tabstop>extra_variables_table</tabstop>
@@ -633,8 +631,8 @@ selection-background-color: rgb(170, 170, 255);</string>
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

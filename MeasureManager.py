@@ -2,6 +2,7 @@ from collections import OrderedDict
 from collections import namedtuple
 from typing import Union, Dict
 from enum import IntEnum
+import copy
 import json
 import os
 import logging
@@ -13,7 +14,7 @@ from irspy.qt import qt_utils
 from irspy import utils
 
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
-from edit_cell_config_dialog import EditCellConfigDialog
+from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
 from MeasureDataModel import MeasureDataModel
 
 
@@ -47,6 +48,8 @@ class MeasureManager(QtCore.QObject):
 
         self.show_equal_cells = False
 
+        self.copied_cell_config: Union[None, CellConfig] = None
+
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
 
     def __get_measures_list(self):
@@ -79,7 +82,7 @@ class MeasureManager(QtCore.QObject):
             self.names_before_changing = self.__get_measures_list()
 
     def rename_measure_finished(self, a_row: int, a_column: int, a_measures_folder: str):
-        if a_column == MeasureManager.MeasureColumn.NAME and self.rename_in_process:
+        if a_column == MeasureManager.MeasureColumn.NfAME and self.rename_in_process:
             self.measures_table.blockSignals(True)
 
             new_name = self.measures_table.item(a_row, a_column).text()
@@ -245,12 +248,46 @@ class MeasureManager(QtCore.QObject):
                 self.current_data_model.remove_column(column)
 
     def copy_cell_config(self):
-        selected_index = self.__get_only_selected_cell()
-        if selected_index:
-            pass
+        if self.current_data_model is not None:
+            index = self.__get_only_selected_cell()
+            if index:
+                self.copied_cell_config = self.current_data_model.get_cell_config(index.row(), index.column())
 
     def paste_cell_config(self):
-        pass
+        if self.current_data_model is not None and self.copied_cell_config is not None:
+            current_signal_type = self.current_data_model.get_measure_parameters().signal_type
+            always_paste = False
+            for index in self.data_view.selectedIndexes():
+                if self.copied_cell_config != self.current_data_model.get_cell_config(index.row(), index.column()):
+                    scheme_is_ok = self.copied_cell_config.verify_scheme(current_signal_type)
+                    exec_paste = True
+                    if not scheme_is_ok and not always_paste:
+                        amplitude = self.current_data_model.get_amplitude_with_units(index.row())
+                        frequency = self.current_data_model.get_frequency_with_units(index.column())
+
+                        msgbox = QtWidgets.QMessageBox()
+                        msgbox.setWindowTitle("Предупреждение")
+                        msgbox.setText(f'Схема подключения ячейки "{amplitude}; {frequency}" не подходит для текущего '
+                                       f'типа сигнала.Если вы согласитесь продолжить, то схема ячейки будет сброшена.\n'
+                                       f'Вставить конфигурацию ячейки?')
+                        always_yes_button = msgbox.addButton("Всегда да", QtWidgets.QMessageBox.YesRole)
+                        yes_button = msgbox.addButton("Да", QtWidgets.QMessageBox.AcceptRole)
+                        no_button = msgbox.addButton("Нет", QtWidgets.QMessageBox.AcceptRole)
+                        msgbox.exec()
+
+                        if msgbox.clickedButton() == always_yes_button:
+                            always_paste = True
+                        elif msgbox.clickedButton() == no_button:
+                            exec_paste = False
+
+                    if exec_paste or always_paste:
+                        if not scheme_is_ok:
+                            new_cell_config = copy.deepcopy(self.copied_cell_config)
+                            new_cell_config.reset_scheme(current_signal_type)
+                        else:
+                            new_cell_config = self.copied_cell_config
+
+                        self.current_data_model.set_cell_config(index.row(), index.column(), new_cell_config)
 
     def copy_cell_value(self):
         if self.current_data_model is not None:

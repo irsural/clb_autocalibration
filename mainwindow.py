@@ -129,6 +129,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
             self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
 
+            self.ui.copy_cell_config_action.triggered.connect(self.copy_cell_config)
+            self.ui.measure_data_view.addAction(self.ui.copy_cell_config_action)
+            self.ui.paste_cell_config_action.triggered.connect(self.paste_cell_config)
+            self.ui.measure_data_view.addAction(self.ui.paste_cell_config_action)
+
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
             self.tick_timer.start(10)
@@ -190,9 +195,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calibrator.connect(a_clb_name)
 
     def copy_cell_config(self):
+        logging.debug("copy cell")
         self.measure_manager.copy_cell_config()
 
     def paste_cell_config(self):
+        logging.debug("paste cell")
         self.measure_manager.paste_cell_config()
 
     def copy_cell_value(self):
@@ -220,11 +227,9 @@ class MainWindow(QtWidgets.QMainWindow):
         paste_cell_value.triggered.connect(self.paste_cell_value)
         menu.addAction(paste_cell_value)
 
-        copy_cell_config_action = QtWidgets.QAction("Копировать настройки ячейки", self)
-        menu.addAction(copy_cell_config_action)
-        paste_cell_config_action = QtWidgets.QAction("Вставить настройки ячейки", self)
-        menu.addAction(paste_cell_config_action)
-        menu.insertSeparator(copy_cell_config_action)
+        menu.addAction(self.ui.copy_cell_config_action)
+        menu.addAction(self.ui.paste_cell_config_action)
+        menu.insertSeparator(self.ui.copy_cell_config_action)
 
         show_measure_graph = QtWidgets.QAction("График измерения", self)
         show_measure_graph.triggered.connect(self.show_cell_graph)
@@ -285,7 +290,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.remove_column_from_current_measure()
 
     @utils.exception_decorator
-    def open_tstlan(self):
+    def open_tstlan(self, _):
         tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings, self)
         tstlan_dialog.exec()
 

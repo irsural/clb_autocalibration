@@ -118,7 +118,7 @@
             <string notr="true"/>
            </property>
            <property name="editTriggers">
-            <set>QAbstractItemView::DoubleClicked</set>
+            <set>QAbstractItemView::NoEditTriggers</set>
            </property>
            <property name="dragDropMode">
             <enum>QAbstractItemView::NoDragDrop</enum>
@@ -844,6 +844,22 @@ selection-background-color: rgb(170, 170, 255);</string>
     <font>
      <pointsize>10</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="copy_cell_config_action">
+   <property name="text">
+    <string>Копировать настройки ячейки</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="paste_cell_config_action">
+   <property name="text">
+    <string>Вставить настройки ячейки</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
    </property>
   </action>
  </widget>
