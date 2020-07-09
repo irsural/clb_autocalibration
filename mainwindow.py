@@ -138,11 +138,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tick_timer.timeout.connect(self.tick)
             self.tick_timer.start(10)
 
-            self.ui.add_row_button.click()
-            self.ui.add_row_button.click()
-            self.ui.add_column_button.click()
-            self.ui.add_column_button.click()
-            self.ui.save_action.trigger()
         else:
             self.close()
 
@@ -373,7 +368,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.current_configuration_path = a_folder
             self.setWindowTitle(self.current_configuration_path)
         elif a_folder:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось нафти файлы конфигураций в каталоге {a_folder}",
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось найти файлы конфигураций в каталоге {a_folder}",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     @staticmethod

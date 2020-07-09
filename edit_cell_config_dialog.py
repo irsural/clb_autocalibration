@@ -97,6 +97,49 @@ class CellConfig:
 
         self.extra_parameters: List[CellConfig.ExtraParameter] = []
 
+    def serialize_to_dict(self):
+        data_dict = {
+            "coefficient": self.coefficient,
+            "measure_delay": self.measure_delay,
+            "measure_time": self.measure_time,
+            "retry_count": self.retry_count,
+
+            "consider_output_value": self.consider_output_value,
+            "enable_output_filtering": self.enable_output_filtering,
+            "filter_sampling_time": self.filter_sampling_time,
+            "filter_samples_count": self.filter_samples_count,
+
+            "coil": int(self.coil),
+            "divider": int(self.divider),
+            "meter": int(self.meter),
+
+            "extra_parameters": self.extra_parameters
+        }
+        return data_dict
+
+    @classmethod
+    def from_dict(cls, a_data_dict: dict):
+        cell_config = cls()
+
+        cell_config.coefficient = float(a_data_dict["coefficient"])
+        cell_config.measure_delay = int(a_data_dict["measure_delay"])
+        cell_config.measure_time = int(a_data_dict["measure_time"])
+        cell_config.retry_count = int(a_data_dict["retry_count"])
+
+        cell_config.consider_output_value = bool(a_data_dict["consider_output_value"])
+        cell_config.enable_output_filtering = bool(a_data_dict["enable_output_filtering"])
+        cell_config.filter_sampling_time = float(a_data_dict["filter_sampling_time"])
+        cell_config.filter_samples_count = int(a_data_dict["filter_samples_count"])
+
+        cell_config.coil = CellConfig.Coil(int(a_data_dict["coil"]))
+        cell_config.divider = CellConfig.Divider(int(a_data_dict["divider"]))
+        cell_config.meter = CellConfig.Meter(int(a_data_dict["meter"]))
+
+        cell_config.extra_parameters = [CellConfig.ExtraParameter(*extra_parameter)
+                                        for extra_parameter in a_data_dict["extra_parameters"]]
+
+        return cell_config
+
     def verify_scheme(self, a_signal_type: clb.SignalType):
         is_coil_used = self.coil != CellConfig.Coil.NONE
         allowed_dividers = CellConfig.ALLOWED_DIVIDERS_WITH_COIL if is_coil_used else CellConfig.ALLOWED_DIVIDERS

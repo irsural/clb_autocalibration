@@ -374,21 +374,6 @@ class MeasureManager(QtCore.QObject):
         saved = True if self.current_data_model is None else self.current_data_model.is_saved()
         return saved
 
-    def save_current(self, a_folder):
-        if self.current_data_model is not None:
-            self.__save_measures_order_list(a_folder)
-            measure_filename = f"{a_folder}/{self.current_data_model.get_name()}.{MeasureManager.MEASURE_FILE_EXTENSION}"
-            try:
-                with open(measure_filename, "w") as measure_file:
-                    measure_file.write(self.current_data_model.serialize())
-
-                self.current_data_model.set_save_state(True)
-            except OSError:
-                pass
-            return self.is_current_saved()
-        else:
-            return True
-
     def __save_measures_order_list(self, a_folder):
         measure_order_filename = f"{a_folder}/{MeasureManager.MEASURES_ORDER_FILENAME}"
 
@@ -398,6 +383,21 @@ class MeasureManager(QtCore.QObject):
             measures_order = json.dumps(measures_list, ensure_ascii=False)
             measure_order_file.write(measures_order)
 
+    def save_current(self, a_folder):
+        if self.current_data_model is not None:
+            self.__save_measures_order_list(a_folder)
+            measure_filename = f"{a_folder}/{self.current_data_model.get_name()}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+            try:
+                with open(measure_filename, "w") as measure_file:
+                    measure_file.write(str(self.current_data_model.serialize_to_dict()))
+
+                self.current_data_model.set_save_state(True)
+            except OSError:
+                pass
+            return self.is_current_saved()
+        else:
+            return True
+
     def save(self, a_folder: str):
         self.__save_measures_order_list(a_folder)
         for measure_name in self.measures.keys():
@@ -405,7 +405,7 @@ class MeasureManager(QtCore.QObject):
             measure_filename = f"{a_folder}/{measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
             try:
                 with open(measure_filename, "w") as measure_file:
-                    measure_file.write(measure_data_model.serialize())
+                    measure_file.write(json.dumps(measure_data_model.serialize_to_dict(), ensure_ascii=False))
 
                 measure_data_model.set_save_state(True)
             except OSError:
@@ -434,16 +434,17 @@ class MeasureManager(QtCore.QObject):
             self.current_data_model = None
             self.measures.clear()
 
-            for measure_file in measures_list:
-                measure_full_path = f"{a_folder}/{measure_file}"
+            for measure_filename in measures_list:
+                measure_full_path = f"{a_folder}/{measure_filename}"
                 if os.path.exists(measure_full_path):
-                    measure_name = measure_file[:measure_file.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
-                    # deserialize
-                    data_model = MeasureDataModel(measure_name)
-                    data_model.set_save_state(True)
-                    self.new_measure(measure_name, data_model)
+                    with open(measure_full_path, 'r') as measure_file:
+                        data_dict = json.loads(measure_file.read())
+
+                        measure_name = measure_filename[:measure_filename.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
+                        data_model = MeasureDataModel.from_dict(measure_name, data_dict)
+                        self.new_measure(measure_name, data_model)
                 else:
-                    QtWidgets.QMessageBox.warning(None, "Предупреждение", f"Файл измерения {measure_file} не найден!",
+                    QtWidgets.QMessageBox.warning(None, "Предупреждение", f"Файл измерения {measure_filename} не найден!",
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return True
         else:

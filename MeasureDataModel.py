@@ -1,14 +1,15 @@
 from typing import List, Iterable, Union
+from collections import OrderedDict
 from time import perf_counter
 from array import array
-import json
-import logging
-import copy
 from enum import IntEnum
+import logging
+import json
+import copy
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
-from PyQt5.QtGui import QColor
 from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import QColor
 
 from irspy import utils
 from irspy import metrology
@@ -19,21 +20,50 @@ from edit_cell_config_dialog import CellConfig
 
 
 class CellData:
-    def __init__(self):
-        self.__locked = False
+    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_start_time_point=None,
+                 a_config=None):
+        self.__locked = a_locked
         self.__marked_as_equal = False
 
-        self.__measured_values = array('d')
-        self.__measured_times = array('d')
-        self.__start_time_point = perf_counter()
+        self.__measured_values = a_init_values if a_init_values is not None else array('d')
+        self.__measured_times = a_init_times if a_init_times is not None else array('d')
+        self.__start_time_point = a_start_time_point if a_start_time_point is not None else perf_counter()
         self.__average = metrology.MovingAverage(999)
 
-        self.config = CellConfig()
+        if a_init_values:
+            for value in self.__measured_values:
+                self.__average.add(value)
+
+        self.config = a_config if a_config is not None else CellConfig()
+
+    def serialize_to_dict(self):
+        data_dict = {
+            "locked": self.__locked,
+            "measured_values": utils.bytes_to_base64(self.__measured_values.tobytes()),
+            "measured_times": utils.bytes_to_base64(self.__measured_times.tobytes()),
+            "start_time_point": self.__start_time_point,
+            "config": self.config.serialize_to_dict(),
+        }
+        return data_dict
+
+    @classmethod
+    def from_dict(cls, a_data_dict: dict):
+        init_values = array('d')
+        init_values.frombytes(utils.base64_to_bytes(a_data_dict["measured_values"]))
+
+        init_times = array('d')
+        init_times.frombytes(utils.base64_to_bytes(a_data_dict["measured_times"]))
+
+        return cls(a_locked=bool(a_data_dict["locked"]),
+                   a_init_values=init_values,
+                   a_init_times=init_times,
+                   a_start_time_point=float(a_data_dict["start_time_point"]),
+                   a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
         self.__average.reset()
-        self.__measured_values.clear()
-        self.__measured_times.clear()
+        self.__measured_values = array('d')
+        self.__measured_times = array('d')
         self.__start_time_point = perf_counter()
 
     def has_value(self):
@@ -76,18 +106,63 @@ class MeasureDataModel(QAbstractTableModel):
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
-    def __init__(self, a_name: str, a_parent=None):
+    def __init__(self, a_name: str, a_saved=False, a_init_cells: [List[List[CellData]]] = None,
+                 a_measured_parameters=None, a_enabled=False, a_parent=None):
         super().__init__(a_parent)
 
         self.__name = a_name
-        self.__saved = False
-        self.__cells = [[CellData()]]
-        self.__measure_parameters = MeasureParameters()
-        self.__enabled = False
+        self.__saved = a_saved
+        self.__cells = a_init_cells if a_init_cells is not None else [[CellData()]]
+        self.__measure_parameters = a_measured_parameters if a_measured_parameters else MeasureParameters()
+        self.__enabled = a_enabled
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
 
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
+
+    def __serialize_cells_to_dict(self):
+        data_dict = OrderedDict()
+        for row, row_data in enumerate(self.__cells):
+            for column, cell in enumerate(row_data):
+                data_dict[f"{row},{column}"] = cell.serialize_to_dict()
+        return data_dict
+
+    def serialize_to_dict(self):
+        data_dict = {
+            "name": self.__name,
+            "row_count": self.rowCount(),
+            "column_count": self.columnCount(),
+            "enabled": self.__enabled,
+            "cells": self.__serialize_cells_to_dict(),
+            "measure_parameters": self.__measure_parameters.serialize_to_dict(),
+        }
+        return data_dict
+
+    @classmethod
+    def from_dict(cls, a_measure_name: str, a_data_dict: dict):
+        name_in_dict = a_data_dict["name"]
+        assert a_measure_name == name_in_dict, "Имена в измерении и в имени файла должны совпадать!"
+
+        row_count = a_data_dict["row_count"]
+        column_count = a_data_dict["column_count"]
+        assert row_count != 0 and column_count != 0, "Количество строк и колонок должно быть больше нуля!"
+
+        cells_dict: dict = a_data_dict["cells"]
+        assert len(cells_dict) == row_count * column_count, \
+            "Количество ячеек должно быть равно количество_строк * количество_колонок"
+
+        cells: List[List[CellData]] = [[None] * column_count for _ in range(row_count)]
+        for row_column, cell_data in cells_dict.items():
+            row, column = int(row_column.split(",")[0]), int(row_column.split(",")[1])
+            cells[row][column] = CellData.from_dict(cell_data)
+
+        assert all([cell is not None for cell in cells])
+
+        measure_parameters = MeasureParameters.from_dict(a_data_dict["measure_parameters"])
+        enabled = a_data_dict["enabled"]
+
+        return cls(a_name=a_measure_name, a_saved=True, a_init_cells=cells, a_measured_parameters=measure_parameters,
+                   a_enabled=enabled)
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -101,9 +176,6 @@ class MeasureDataModel(QAbstractTableModel):
 
     def is_saved(self):
         return self.__saved
-
-    def serialize(self):
-        return str(self.__dict__)
 
     def get_measure_parameters(self) -> MeasureParameters:
         return copy.deepcopy(self.__measure_parameters)

@@ -16,17 +16,34 @@ import irspy.utils as utils
 class MeasureParameters:
     FlashTableRow = namedtuple("FlashTableRow", ["number", "index", "size", "value_number", "number_coef"])
 
-    def __init__(self):
-        self.signal_type = clb.SignalType.ACI
-        self.flash_after_finish = False
+    def __init__(self, a_signal_type=clb.SignalType.ACI, a_flash_after_finish=False, a_flash_table=None):
+        self.signal_type = a_signal_type
+        self.flash_after_finish = a_flash_after_finish
 
-        self.flash_table: List[MeasureParameters.FlashTableRow] = []
+        self.flash_table: List[MeasureParameters.FlashTableRow] = a_flash_table if a_flash_table is not None else []
 
     def __eq__(self, other):
         return other is not None and \
                self.signal_type == other.signal_type and \
                self.flash_after_finish == other.flash_after_finish and \
                self.flash_table == other.flash_table
+
+    def serialize_to_dict(self):
+        data_dict = {
+            "signal_type": self.signal_type,
+            "flash_after_finish": self.flash_after_finish,
+            "flash_table": self.flash_table,
+        }
+        return data_dict
+
+    @classmethod
+    def from_dict(cls, a_data_dict: dict):
+        flash_table = [MeasureParameters.FlashTableRow(*flash_table_row)
+                       for flash_table_row in a_data_dict["flash_table"]]
+
+        return cls(a_signal_type=clb.SignalType(int(a_data_dict["signal_type"])),
+                   a_flash_after_finish=bool(a_data_dict["flash_after_finish"]),
+                   a_flash_table=flash_table)
 
 
 class EditMeasureParametersDialog(QtWidgets.QDialog):
