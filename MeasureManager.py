@@ -380,7 +380,7 @@ class MeasureManager(QtCore.QObject):
         with open(measure_order_filename, "w") as measure_order_file:
             measures_list = [f"{measure}.{MeasureManager.MEASURE_FILE_EXTENSION}"
                              for measure in self.__get_measures_list()]
-            measures_order = json.dumps(measures_list, ensure_ascii=False)
+            measures_order = json.dumps(measures_list, ensure_ascii=False, indent=4)
             measure_order_file.write(measures_order)
 
     def save_current(self, a_folder):
@@ -405,7 +405,7 @@ class MeasureManager(QtCore.QObject):
             measure_filename = f"{a_folder}/{measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
             try:
                 with open(measure_filename, "w") as measure_file:
-                    measure_file.write(json.dumps(measure_data_model.serialize_to_dict(), ensure_ascii=False))
+                    measure_file.write(json.dumps(measure_data_model.serialize_to_dict(), ensure_ascii=False, indent=4))
 
                 measure_data_model.set_save_state(True)
             except OSError:
