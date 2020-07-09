@@ -96,6 +96,7 @@ class Ui_edit_measure_parameters_dialog(object):
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.buttons_layout.addItem(spacerItem1)
         self.accept_button = QtWidgets.QPushButton(edit_measure_parameters_dialog)
+        self.accept_button.setDefault(True)
         self.accept_button.setObjectName("accept_button")
         self.buttons_layout.addWidget(self.accept_button)
         self.cancel_button = QtWidgets.QPushButton(edit_measure_parameters_dialog)

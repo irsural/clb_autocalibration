@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/graph_2.png</file>
+    <file>icons/graph_3.png</file>
     <file>icons/eye_checked.png</file>
     <file>icons/squares.png</file>
     <file>icons/squares_2.png</file>

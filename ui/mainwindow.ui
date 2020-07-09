@@ -854,7 +854,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <action name="graphs_action">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/graph.png</normaloff>:/icons/icons/graph.png</iconset>
+     <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
    </property>
    <property name="text">
     <string>graphs_action</string>

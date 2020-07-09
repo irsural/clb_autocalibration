@@ -185,6 +185,9 @@ selection-background-color: rgb(170, 170, 255);</string>
        <property name="text">
         <string>Принять</string>
        </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>

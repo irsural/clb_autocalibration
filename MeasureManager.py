@@ -472,6 +472,9 @@ class MeasureManager(QtCore.QObject):
                     QtWidgets.QMessageBox.warning(None, "Предупреждение",
                                                   f"Файл измерения {measure_filename} не найден!",
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            if self.measures_table.rowCount() > 0:
+                self.measures_table.setCurrentCell(0, 0)
+
             return True
         else:
             return False

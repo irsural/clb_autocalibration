@@ -332,7 +332,7 @@ class Ui_MainWindow(object):
         self.verify_action.setObjectName("verify_action")
         self.graphs_action = QtWidgets.QAction(MainWindow)
         icon19 = QtGui.QIcon()
-        icon19.addPixmap(QtGui.QPixmap(":/icons/icons/graph.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon19.addPixmap(QtGui.QPixmap(":/icons/icons/graph_2.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.graphs_action.setIcon(icon19)
         font = QtGui.QFont()
         font.setPointSize(10)

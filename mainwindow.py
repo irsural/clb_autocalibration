@@ -269,8 +269,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def stop_measure_button_clicked(self, _):
         self.lock_interface(False)
 
-    def toggle_correction(self, a_enable):
-        self.lock_interface(a_enable)
+    def toggle_correction(self, _):
+        logging.debug("Не реализовано")
 
     def copy_cell_config(self):
         self.measure_manager.copy_cell_config()
