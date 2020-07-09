@@ -389,7 +389,8 @@ class MeasureManager(QtCore.QObject):
             measure_filename = f"{a_folder}/{self.current_data_model.get_name()}.{MeasureManager.MEASURE_FILE_EXTENSION}"
             try:
                 with open(measure_filename, "w") as measure_file:
-                    measure_file.write(str(self.current_data_model.serialize_to_dict()))
+                    measure_file.write(json.dumps(self.current_data_model.serialize_to_dict(), ensure_ascii=False,
+                                                  indent=4))
 
                 self.current_data_model.set_save_state(True)
             except OSError:
