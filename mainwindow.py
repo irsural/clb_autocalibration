@@ -114,6 +114,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
             self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
 
+            self.ui.start_all_action.triggered.connect(self.start_all_measures_button_clicked)
+            self.ui.continue_all_action.triggered.connect(self.continue_all_measures_button_clicked)
+            self.ui.start_current_measure_button.clicked.connect(self.start_current_measure_button_clicked)
+            self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
+            self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
+
             # self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
             # self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
@@ -123,6 +129,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
+            self.ui.correction_action.triggered.connect(self.toggle_correction)
             self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.save_as_action.triggered.connect(self.save_configuration_as)
             self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
@@ -137,6 +144,19 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.measure_data_view.addAction(self.ui.copy_cell_config_action)
             self.ui.paste_cell_config_action.triggered.connect(self.paste_cell_config)
             self.ui.measure_data_view.addAction(self.ui.paste_cell_config_action)
+
+            self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
+            self.ui.measure_data_view.addAction(self.ui.copy_cell_value_action)
+            self.ui.paste_cell_value_action.triggered.connect(self.paste_cell_value)
+            self.ui.measure_data_view.addAction(self.ui.paste_cell_value_action)
+
+            self.ui.show_cell_graph_action.triggered.connect(self.show_cell_graph)
+            self.ui.measure_data_view.addAction(self.ui.show_cell_graph_action)
+
+            self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
+            self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
+            self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
+            self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -161,6 +181,47 @@ class MainWindow(QtWidgets.QMainWindow):
         self.signal_enable_changed.connect(source_mode_widget.signal_enable_changed)
         self.ui.source_mode_layout.addWidget(source_mode_widget)
         return source_mode_widget
+
+    def lock_interface(self, a_lock: bool):
+        self.ui.open_action.setDisabled(a_lock)
+        self.ui.save_action.setDisabled(a_lock)
+        self.ui.save_as_action.setDisabled(a_lock)
+
+        self.ui.start_all_action.setDisabled(a_lock)
+        self.ui.continue_all_action.setDisabled(a_lock)
+
+        self.ui.correction_action.setDisabled(a_lock)
+        self.ui.flash_all_action.setDisabled(a_lock)
+        self.ui.verify_action.setDisabled(a_lock)
+
+        self.ui.lock_action.setDisabled(a_lock)
+        self.ui.unlock_action.setDisabled(a_lock)
+
+        self.ui.save_current_measure_button.setDisabled(a_lock)
+
+        self.ui.start_current_measure_button.setDisabled(a_lock)
+        self.ui.continue_current_measure_button.setDisabled(a_lock)
+
+        self.ui.add_row_button.setDisabled(a_lock)
+        self.ui.remove_row_button.setDisabled(a_lock)
+        self.ui.add_column_button.setDisabled(a_lock)
+        self.ui.remove_column_button.setDisabled(a_lock)
+
+        self.ui.clb_list_combobox.setDisabled(a_lock)
+        self.ui.meter_combobox.setDisabled(a_lock)
+        self.ui.meter_settings_button.setDisabled(a_lock)
+
+        self.ui.add_measure_button.setDisabled(a_lock)
+        self.ui.delete_measure_button.setDisabled(a_lock)
+        self.ui.rename_measure_button.setDisabled(a_lock)
+        self.ui.enable_all_button.setDisabled(a_lock)
+
+        self.ui.paste_cell_value_action.setDisabled(a_lock)
+        self.ui.paste_cell_config_action.setDisabled(a_lock)
+        self.ui.flash_current_measure_action.setDisabled(a_lock)
+        self.ui.flash_diapason_of_cell_action.setDisabled(a_lock)
+
+        self.measure_manager.lock_interface(a_lock)
 
     def tick(self):
         self.usb_driver.tick()
@@ -193,6 +254,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
 
+    def start_all_measures_button_clicked(self, _):
+        self.lock_interface(True)
+
+    def continue_all_measures_button_clicked(self, _):
+        self.lock_interface(True)
+
+    def start_current_measure_button_clicked(self, _):
+        self.lock_interface(True)
+
+    def continue_current_measure_button_clicked(self, _):
+        self.lock_interface(True)
+
+    def stop_measure_button_clicked(self, _):
+        self.lock_interface(False)
+
+    def toggle_correction(self, a_enable):
+        self.lock_interface(a_enable)
+
     def copy_cell_config(self):
         self.measure_manager.copy_cell_config()
 
@@ -217,29 +296,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)
 
-        copy_cell_value = QtWidgets.QAction("Копировать значение", self)
-        copy_cell_value.triggered.connect(self.copy_cell_value)
-        menu.addAction(copy_cell_value)
-        paste_cell_value = QtWidgets.QAction("Вставить значение", self)
-        paste_cell_value.triggered.connect(self.paste_cell_value)
-        menu.addAction(paste_cell_value)
+        menu.addAction(self.ui.copy_cell_value_action)
+        menu.addAction(self.ui.paste_cell_value_action)
 
         menu.addAction(self.ui.copy_cell_config_action)
         menu.addAction(self.ui.paste_cell_config_action)
         menu.insertSeparator(self.ui.copy_cell_config_action)
 
-        show_measure_graph = QtWidgets.QAction("График измерения", self)
-        show_measure_graph.triggered.connect(self.show_cell_graph)
-        menu.addAction(show_measure_graph)
-        menu.insertSeparator(show_measure_graph)
+        menu.addAction(self.ui.show_cell_graph_action)
+        menu.insertSeparator(self.ui.show_cell_graph_action)
 
-        flash_table = QtWidgets.QAction("Прошить таблицу", self)
-        flash_table.triggered.connect(self.flash_table)
-        menu.addAction(flash_table)
-        flash_diapason_of_cell = QtWidgets.QAction("Прошить диапазон ячейки", self)
-        flash_diapason_of_cell.triggered.connect(self.flash_diapason_of_cell)
-        menu.addAction(flash_diapason_of_cell)
-        menu.insertSeparator(flash_table)
+        menu.addAction(self.ui.flash_current_measure_action)
+        menu.addAction(self.ui.flash_diapason_of_cell_action)
+        menu.insertSeparator(self.ui.flash_current_measure_action)
 
         # add other required actions
         menu.popup(QtGui.QCursor.pos())

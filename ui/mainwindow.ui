@@ -70,10 +70,10 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox"/>
+            <widget class="QComboBox" name="meter_combobox"/>
            </item>
            <item>
-            <widget class="QPushButton" name="agilent_settings_button">
+            <widget class="QPushButton" name="meter_settings_button">
              <property name="maximumSize">
               <size>
                <width>40</width>
@@ -91,22 +91,94 @@
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <widget class="QPushButton" name="add_measure_button">
+             <property name="toolTip">
+              <string>Добавить измерение</string>
+             </property>
              <property name="text">
-              <string>Добавить</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="delete_measure_button">
+             <property name="toolTip">
+              <string>Удалить измерение</string>
+             </property>
              <property name="text">
-              <string>Удалить</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="enable_all_button">
+            <widget class="QPushButton" name="rename_measure_button">
+             <property name="toolTip">
+              <string>Переименовать измерение</string>
+             </property>
              <property name="text">
-              <string>Вкл./Выкл все</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/edit.png</normaloff>:/icons/icons/edit.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="enable_all_button">
+             <property name="toolTip">
+              <string>Включить/выключить все</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/checkboxes.png</normaloff>:/icons/icons/checkboxes.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -181,6 +253,9 @@
                <height>35</height>
               </size>
              </property>
+             <property name="toolTip">
+              <string>Сохранить текущее измерение</string>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -209,6 +284,9 @@
                <width>35</width>
                <height>35</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Настройки ячейки</string>
              </property>
              <property name="text">
               <string/>
@@ -239,7 +317,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_6">
+            <widget class="QPushButton" name="start_current_measure_button">
              <property name="minimumSize">
               <size>
                <width>35</width>
@@ -251,6 +329,9 @@
                <width>35</width>
                <height>35</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Начать измерение по текущей таблице</string>
              </property>
              <property name="text">
               <string/>
@@ -268,7 +349,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_9">
+            <widget class="QPushButton" name="continue_current_measure_button">
              <property name="minimumSize">
               <size>
                <width>35</width>
@@ -280,6 +361,9 @@
                <width>35</width>
                <height>35</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Продолжить измерение по текущей таблице</string>
              </property>
              <property name="text">
               <string/>
@@ -287,35 +371,6 @@
              <property name="icon">
               <iconset resource="../resources/icons.qrc">
                <normaloff>:/icons/icons/next.png</normaloff>:/icons/icons/next.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>25</width>
-               <height>25</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_8">
-             <property name="minimumSize">
-              <size>
-               <width>35</width>
-               <height>35</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>35</width>
-               <height>35</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -468,7 +523,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox_2">
+            <widget class="QComboBox" name="displayed_data_type_combobox">
              <item>
               <property name="text">
                <string>Измерено</string>
@@ -507,6 +562,12 @@
             <string notr="true">selection-color: rgb(0, 0, 0);
 selection-background-color: rgb(170, 170, 255);</string>
            </property>
+           <attribute name="horizontalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
           </widget>
          </item>
         </layout>
@@ -875,6 +936,31 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="copy_cell_value_action">
+   <property name="text">
+    <string>Копировать значение</string>
+   </property>
+  </action>
+  <action name="paste_cell_value_action">
+   <property name="text">
+    <string>Вставить значение</string>
+   </property>
+  </action>
+  <action name="show_cell_graph_action">
+   <property name="text">
+    <string>График измерения</string>
+   </property>
+  </action>
+  <action name="flash_current_measure_action">
+   <property name="text">
+    <string>Прошить таблицу</string>
+   </property>
+  </action>
+  <action name="flash_diapason_of_cell_action">
+   <property name="text">
+    <string>Прошить диапазон ячейки</string>
    </property>
   </action>
  </widget>

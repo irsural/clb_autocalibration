@@ -46,8 +46,9 @@ class MeasureManager(QtCore.QObject):
         self.names_before_changing = []
 
         self.show_equal_cells = False
-
         self.copied_cell_config: Union[None, CellConfig] = None
+
+        self.interface_is_locked = False
 
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
 
@@ -190,7 +191,8 @@ class MeasureManager(QtCore.QObject):
             if cell_config is not None:
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
 
-                edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings)
+                edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings,
+                                                               self.interface_is_locked)
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
                     self.current_data_model.set_cell_config(row, column, new_cell_config)
@@ -305,6 +307,25 @@ class MeasureManager(QtCore.QObject):
                 value = QtWidgets.QApplication.clipboard().text()
                 self.current_data_model.setData(index, value)
 
+    def lock_interface(self, a_lock: bool):
+        for row in range(self.measures_table.rowCount()):
+            enabled_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.ENABLE)
+            enabled_button = qt_utils.unwrap_from_layout(enabled_widget)
+            enabled_button.setDisabled(a_lock)
+
+            if a_lock:
+                self.data_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+            else:
+                # noinspection PyTypeChecker
+                self.data_view.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked |
+                                               QtWidgets.QAbstractItemView.EditKeyPressed |
+                                               QtWidgets.QAbstractItemView.AnyKeyPressed)
+            # Чтобы сбросился фокус с ячейки, если в ней открыт эдитор
+            self.data_view.setDisabled(True)
+            self.data_view.setDisabled(False)
+
+            self.interface_is_locked = a_lock
+
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:
             measure_name = self.measures_table.item(a_current.row(), MeasureManager.MeasureColumn.NAME).text()
@@ -327,6 +348,7 @@ class MeasureManager(QtCore.QObject):
 
     @utils.exception_decorator
     def edit_measure_parameters_button_clicked(self, _):
+        # noinspection PyTypeChecker
         button: QtWidgets.QPushButton = self.sender()
         for row in range(self.measures_table.rowCount()):
             cell_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.SETTINGS)
@@ -336,7 +358,8 @@ class MeasureManager(QtCore.QObject):
                 measure_data_model = self.measures[measure_name]
                 measure_parameters = measure_data_model.get_measure_parameters()
 
-                edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings)
+                edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings,
+                                                                     self.interface_is_locked)
                 new_parameters = edit_parameters_dialog.exec_and_get()
                 if new_parameters is not None and new_parameters != measure_parameters:
                     bad_cells = measure_data_model.verify_cell_configs(new_parameters.signal_type)
@@ -355,6 +378,7 @@ class MeasureManager(QtCore.QObject):
 
     @utils.exception_decorator
     def enable_measure_checkbox_toggled(self, _):
+        # noinspection PyTypeChecker
         checkbox: QtWidgets.QPushButton = self.sender()
         for row in range(self.measures_table.rowCount()):
             cell_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.ENABLE)
@@ -445,7 +469,8 @@ class MeasureManager(QtCore.QObject):
                         data_model = MeasureDataModel.from_dict(measure_name, data_dict)
                         self.new_measure(measure_name, data_model)
                 else:
-                    QtWidgets.QMessageBox.warning(None, "Предупреждение", f"Файл измерения {measure_filename} не найден!",
+                    QtWidgets.QMessageBox.warning(None, "Предупреждение",
+                                                  f"Файл измерения {measure_filename} не найден!",
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return True
         else:

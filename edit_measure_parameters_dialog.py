@@ -56,12 +56,16 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
         NUMBER_COEF = 4
         COUNT = 5
 
-    def __init__(self, a_init_parameters: MeasureParameters, a_settings: Settings, a_parent=None):
+    def __init__(self, a_init_parameters: MeasureParameters, a_settings: Settings, a_lock_editing=False,
+                 a_parent=None):
         super().__init__(a_parent)
 
         self.ui = EditMeasureParametersForm()
         self.ui.setupUi(self)
         self.show()
+
+        if a_lock_editing:
+            self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))

@@ -181,13 +181,16 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         COUNT = 5
 
     def __init__(self, a_init_config: CellConfig, a_signal_type: clb.SignalType, a_settings: Settings,
-                 a_parent=None):
+                 a_lock_editing=False, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = EditCellConfigForm()
         self.ui.setupUi(self)
         self.ui.tabWidget.setCurrentIndex(0)
         self.show()
+
+        if a_lock_editing:
+            self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.__allowed_extra_param_types = ("double", "float", "bit", "u32", "i32", "u8", "i8", "u16", "i16",
                                             "bool", "u64", "i64")
