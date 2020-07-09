@@ -618,6 +618,8 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>divider_200_radio</tabstop>
   <tabstop>divider_55_radio</tabstop>
   <tabstop>divider_40_radio</tabstop>
+  <tabstop>amplifier_30_radio</tabstop>
+  <tabstop>amplifier_10_radio</tabstop>
   <tabstop>ammeter_radio</tabstop>
   <tabstop>voltmeter_radio</tabstop>
   <tabstop>extra_variables_table</tabstop>
@@ -632,7 +634,7 @@ selection-background-color: rgb(170, 170, 255);</string>
  <connections/>
  <buttongroups>
   <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

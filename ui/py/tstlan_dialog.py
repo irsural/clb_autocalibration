@@ -78,7 +78,9 @@ class Ui_tstlan_dialog(object):
         self.retranslateUi(tstlan_dialog)
         QtCore.QMetaObject.connectSlotsByName(tstlan_dialog)
         tstlan_dialog.setTabOrder(self.variables_table, self.upadte_time_spinbox)
-        tstlan_dialog.setTabOrder(self.upadte_time_spinbox, self.name_filter_edit)
+        tstlan_dialog.setTabOrder(self.upadte_time_spinbox, self.show_marked_checkbox)
+        tstlan_dialog.setTabOrder(self.show_marked_checkbox, self.graphs_button)
+        tstlan_dialog.setTabOrder(self.graphs_button, self.name_filter_edit)
 
     def retranslateUi(self, tstlan_dialog):
         _translate = QtCore.QCoreApplication.translate

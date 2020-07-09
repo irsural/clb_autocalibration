@@ -165,6 +165,8 @@
  <tabstops>
   <tabstop>variables_table</tabstop>
   <tabstop>upadte_time_spinbox</tabstop>
+  <tabstop>show_marked_checkbox</tabstop>
+  <tabstop>graphs_button</tabstop>
   <tabstop>name_filter_edit</tabstop>
  </tabstops>
  <resources/>
