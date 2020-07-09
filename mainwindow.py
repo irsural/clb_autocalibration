@@ -7,17 +7,18 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
 from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
+import irspy.clb.calibrator_constants as clb
+from irspy.dlls.ftdi_dll import FtdiControl
+import irspy.dlls.ftdi_dll as ftdi_dll
+import irspy.clb.clb_dll as clb_dll
+from irspy.qt import qt_utils
+import irspy.utils as utils
+
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
 from settings_dialog import SettingsDialog
-from tstlan_dialog import TstlanDialog
-from irspy.qt import qt_utils
-import irspy.clb.calibrator_constants as clb
-from irspy.dlls.ftdi_dll import FtdiControl
 from MeasureManager import MeasureManager
-import irspy.dlls.ftdi_dll as ftdi_dll
-import irspy.clb.clb_dll as clb_dll
-import irspy.utils as utils
+from tstlan_dialog import TstlanDialog
 
 
 class MainWindow(QtWidgets.QMainWindow):

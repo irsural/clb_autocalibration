@@ -5,12 +5,13 @@ import logging
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from irspy.settings_ini_parser import Settings
-
-from ui.py.edit_measure_parameters_dialog import Ui_edit_measure_parameters_dialog as EditMeasureParametersForm
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
 from irspy.clb import calibrator_constants as clb
+from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 import irspy.utils as utils
+
+from ui.py.edit_measure_parameters_dialog import Ui_edit_measure_parameters_dialog as EditMeasureParametersForm
 
 
 class MeasureParameters:
@@ -66,6 +67,7 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
         self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
         self.ui.flash_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
             self.ui.flash_table.objectName()))
+        self.ui.flash_table.setItemDelegate(TransparentPainterForWidget(self.ui.flash_table, "#d4d4ff"))
 
         self.signal_type_to_radio = {
             clb.SignalType.ACI: self.ui.aci_radio,

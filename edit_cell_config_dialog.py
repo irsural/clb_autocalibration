@@ -5,13 +5,14 @@ import logging
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
 from irspy.qt.custom_widgets.QTableDelegates import ComboboxCellDelegate
-
-from ui.py.edit_cell_config_dialog import Ui_edit_cell_config_dialog as EditCellConfigForm
 from irspy.clb import calibrator_constants as clb
+from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 import irspy.utils as utils
+
+from ui.py.edit_cell_config_dialog import Ui_edit_cell_config_dialog as EditCellConfigForm
 
 
 class CellConfig:
@@ -190,6 +191,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         self.__allowed_extra_param_types = ("double", "float", "bit", "u32", "i32", "u8", "i8", "u16", "i16",
                                             "bool", "u64", "i64")
+        self.ui.extra_variables_table.setItemDelegate(TransparentPainterForWidget(self.ui.extra_variables_table, "#d4d4ff"))
         self.ui.extra_variables_table.setItemDelegateForColumn(EditCellConfigDialog.ExtraParamsColumn.TYPE,
                                                                ComboboxCellDelegate(self,
                                                                                     self.__allowed_extra_param_types))
