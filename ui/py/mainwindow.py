@@ -74,6 +74,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.enable_all_button)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.measures_table = QtWidgets.QTableWidget(self.verticalLayoutWidget)
+        self.measures_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measures_table.setStyleSheet("")
         self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.measures_table.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)

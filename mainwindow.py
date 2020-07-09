@@ -1,3 +1,4 @@
+from os import system as os_system
 from enum import IntEnum
 import logging
 
@@ -115,7 +116,9 @@ class MainWindow(QtWidgets.QMainWindow):
             # self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
             # self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
-            self.ui.measure_data_view.customContextMenuRequested.connect(self.show_measure_table_context_menu)
+            self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
+
+            self.ui.measures_table.customContextMenuRequested.connect(self.show_measures_table_context_menu)
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
@@ -210,7 +213,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def flash_diapason_of_cell(self):
         logging.debug("Не реализовано")
 
-    def show_measure_table_context_menu(self):
+    def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)
 
         copy_cell_value = QtWidgets.QAction("Копировать значение", self)
@@ -236,6 +239,21 @@ class MainWindow(QtWidgets.QMainWindow):
         flash_diapason_of_cell.triggered.connect(self.flash_diapason_of_cell)
         menu.addAction(flash_diapason_of_cell)
         menu.insertSeparator(flash_table)
+
+        # add other required actions
+        menu.popup(QtGui.QCursor.pos())
+
+    def open_measure_folder(self):
+        if self.current_configuration_path:
+            path = self.current_configuration_path.replace("/", "\\")
+            os_system(f'explorer.exe "{path}"')
+
+    def show_measures_table_context_menu(self):
+        menu = QtWidgets.QMenu(self)
+
+        open_measure_folder_action = QtWidgets.QAction("Открыть каталог измерения", self)
+        open_measure_folder_action.triggered.connect(self.open_measure_folder)
+        menu.addAction(open_measure_folder_action)
 
         # add other required actions
         menu.popup(QtGui.QCursor.pos())

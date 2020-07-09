@@ -142,8 +142,8 @@ class MeasureManager(QtCore.QObject):
 
         cb = QtWidgets.QCheckBox()
         self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
-        cb.toggled.connect(self.enable_measure_checkbox_toggled)
         cb.setChecked(a_enabled)
+        cb.toggled.connect(self.enable_measure_checkbox_toggled)
 
     # noinspection PyTypeChecker
     def remove_measure(self, a_measure_folder: str):

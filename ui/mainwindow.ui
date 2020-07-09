@@ -114,6 +114,9 @@
          </item>
          <item>
           <widget class="QTableWidget" name="measures_table">
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
