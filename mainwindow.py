@@ -16,6 +16,7 @@ import irspy.utils as utils
 
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
+from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
@@ -105,6 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
+
+            self.measure_conductor = MeasureConductor(self.measure_manager)
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
@@ -224,6 +227,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.lock_interface(a_lock)
 
     def tick(self):
+        self.measure_conductor.tick()
         self.usb_driver.tick()
 
         if self.usb_driver.is_dev_list_changed():
@@ -256,6 +260,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_all_measures_button_clicked(self, _):
         self.lock_interface(True)
+        self.measure_conductor.start()
 
     def continue_all_measures_button_clicked(self, _):
         self.lock_interface(True)
