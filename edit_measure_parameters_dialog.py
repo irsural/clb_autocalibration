@@ -17,9 +17,11 @@ from ui.py.edit_measure_parameters_dialog import Ui_edit_measure_parameters_dial
 class MeasureParameters:
     FlashTableRow = namedtuple("FlashTableRow", ["number", "index", "size", "value_number", "number_coef"])
 
-    def __init__(self, a_signal_type=clb.SignalType.ACI, a_flash_after_finish=False, a_flash_table=None):
+    def __init__(self, a_signal_type=clb.SignalType.ACI, a_flash_after_finish=False, a_enable_correction=False,
+                 a_flash_table=None):
         self.signal_type = a_signal_type
         self.flash_after_finish = a_flash_after_finish
+        self.enable_correction = a_enable_correction
 
         self.flash_table: List[MeasureParameters.FlashTableRow] = a_flash_table if a_flash_table is not None else []
 
@@ -27,12 +29,14 @@ class MeasureParameters:
         return other is not None and \
                self.signal_type == other.signal_type and \
                self.flash_after_finish == other.flash_after_finish and \
+               self.enable_correction == other.enable_correction and \
                self.flash_table == other.flash_table
 
     def serialize_to_dict(self):
         data_dict = {
             "signal_type": self.signal_type,
             "flash_after_finish": self.flash_after_finish,
+            "enable_correction": self.enable_correction,
             "flash_table": self.flash_table,
         }
         return data_dict
@@ -44,6 +48,7 @@ class MeasureParameters:
 
         return cls(a_signal_type=clb.SignalType(int(a_data_dict["signal_type"])),
                    a_flash_after_finish=bool(a_data_dict["flash_after_finish"]),
+                   a_enable_correction=bool(a_data_dict["enable_correction"]),
                    a_flash_table=flash_table)
 
 
@@ -95,6 +100,7 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
     def recover_parameters(self, a_measure_parameters: MeasureParameters):
         self.signal_type_to_radio[a_measure_parameters.signal_type].setChecked(True)
         self.ui.flash_after_finish_checkbox.setChecked(a_measure_parameters.flash_after_finish)
+        self.ui.enable_correction_checkbox.setChecked(a_measure_parameters.enable_correction)
 
         for flash_row in a_measure_parameters.flash_table:
             qt_utils.qtablewidget_append_row(self.ui.flash_table, (
@@ -137,6 +143,7 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
                 self.measure_parameters.signal_type = clb.SignalType.DCV
 
             self.measure_parameters.flash_after_finish = self.ui.flash_after_finish_checkbox.isChecked()
+            self.measure_parameters.enable_correction = self.ui.enable_correction_checkbox.isChecked()
 
             self.measure_parameters.flash_table = flash_table
 

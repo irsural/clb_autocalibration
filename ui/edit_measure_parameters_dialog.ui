@@ -67,6 +67,13 @@
       </layout>
      </item>
      <item>
+      <widget class="QCheckBox" name="enable_correction_checkbox">
+       <property name="text">
+        <string>Коррекция включена</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="flash_after_finish_checkbox">
        <property name="font">
         <font>
@@ -201,6 +208,19 @@ selection-background-color: rgb(170, 170, 255);</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>aci_radio</tabstop>
+  <tabstop>dci_radio</tabstop>
+  <tabstop>acv_radio</tabstop>
+  <tabstop>dcv_radio</tabstop>
+  <tabstop>enable_correction_checkbox</tabstop>
+  <tabstop>flash_after_finish_checkbox</tabstop>
+  <tabstop>flash_table</tabstop>
+  <tabstop>add_flash_table_row_button</tabstop>
+  <tabstop>remove_flash_table_row_button</tabstop>
+  <tabstop>accept_button</tabstop>
+  <tabstop>cancel_button</tabstop>
+ </tabstops>
  <resources>
   <include location="../resources/icons.qrc"/>
  </resources>
