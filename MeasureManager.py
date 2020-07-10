@@ -12,6 +12,7 @@ from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
 
+from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
 from MeasureDataModel import MeasureDataModel
@@ -325,6 +326,39 @@ class MeasureManager(QtCore.QObject):
             self.data_view.setDisabled(False)
 
             self.interface_is_locked = a_lock
+
+    def get_measure_iterator(self):
+        return MeasureIteratorDirectByRows([data_model for data_model in self.measures.values()])
+
+    def get_measure_iterator_from_current(self):
+        selected_cells_idx = self.__get_only_selected_cell()
+        if selected_cells_idx:
+            measure_models_list = []
+            start_add = False
+            for data_model in self.measures.values():
+                if self.current_data_model == data_model:
+                    start_add = True
+                if start_add:
+                    measure_models_list.append(data_model)
+
+            return MeasureIteratorDirectByRows(measure_models_list,
+                                               (selected_cells_idx.row(), selected_cells_idx.column()))
+        else:
+            return None
+
+    def set_active_cell(self, a_cell_pos: MeasureIterator.CellPosition):
+        name_item = None
+        for row in range(self.measures_table.rowCount()):
+            name_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME)
+            if a_cell_pos.measure_name == name_item.text():
+                break
+
+        assert name_item is not None, f"Не найдено измерение с именем {a_cell_pos.measure_name}"
+
+        self.measures_table.setCurrentItem(name_item)
+        assert self.current_data_model is not None, f"current_data_model не должна быть None"
+
+        self.data_view.setCurrentIndex(self.current_data_model.index(a_cell_pos.row, a_cell_pos.column))
 
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:

@@ -14,8 +14,9 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
-from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
+from ui.py.mainwindow import Ui_MainWindow as MainForm
+from MeasureIterator import MeasureIterator
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
@@ -161,6 +162,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
             self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
 
+            self.measure_iterator = None
+            self.measure_iterator_from_current = None
+
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
             self.tick_timer.start(10)
@@ -259,11 +263,26 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calibrator.connect(a_clb_name)
 
     def start_all_measures_button_clicked(self, _):
-        self.lock_interface(True)
-        self.measure_conductor.start()
+        # self.lock_interface(True)
+        if self.measure_iterator is None:
+            self.measure_iterator = self.measure_manager.get_measure_iterator()
+
+        self.measure_iterator.next()
+        cell_pos = self.measure_iterator.get()
+        if cell_pos is not None:
+            self.measure_manager.set_active_cell(cell_pos)
+            logging.debug(cell_pos)
 
     def continue_all_measures_button_clicked(self, _):
-        self.lock_interface(True)
+        # self.lock_interface(True)
+        if self.measure_iterator_from_current is None:
+            self.measure_iterator_from_current = self.measure_manager.get_measure_iterator_from_current()
+
+        self.measure_iterator_from_current.next()
+        cell_pos = self.measure_iterator_from_current.get()
+        if cell_pos is not None:
+            self.measure_manager.set_active_cell(cell_pos)
+            logging.debug(cell_pos)
 
     def start_current_measure_button_clicked(self, _):
         self.lock_interface(True)
