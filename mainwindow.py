@@ -109,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
             self.measure_conductor = MeasureConductor(self.measure_manager)
+            self.measure_conductor.measure_done.connect(self.measure_done)
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
@@ -263,33 +264,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calibrator.connect(a_clb_name)
 
     def start_all_measures_button_clicked(self, _):
-        # self.lock_interface(True)
-        if self.measure_iterator is None:
-            self.measure_iterator = self.measure_manager.get_measure_iterator()
-            cell_pos = self.measure_iterator.get()
-            self.measure_manager.set_active_cell(cell_pos)
-        elif not self.__iterate(self.measure_iterator):
-            self.measure_iterator = None
+        self.lock_interface(True)
+        self.measure_conductor.start()
 
     def continue_all_measures_button_clicked(self, _):
-        # self.lock_interface(True)
-        if self.measure_iterator_from_current is None:
-            self.measure_iterator_from_current = self.measure_manager.get_measure_iterator_from_current()
-            cell_pos = self.measure_iterator_from_current.get()
-            self.measure_manager.set_active_cell(cell_pos)
-        elif not self.__iterate(self.measure_iterator_from_current):
-            self.measure_iterator_from_current = None
+        self.lock_interface(True)
+        self.measure_conductor.continue_()
 
-    def __iterate(self, a_iterator: MeasureIterator):
-        a_iterator.next()
-        cell_pos = a_iterator.get()
-
-        if cell_pos is not None:
-            self.measure_manager.set_active_cell(cell_pos)
-            return True
-        else:
-            logging.debug("THE END")
-            return False
+    def measure_done(self):
+        self.lock_interface(False)
 
     def start_current_measure_button_clicked(self, _):
         self.lock_interface(True)
@@ -298,6 +281,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lock_interface(True)
 
     def stop_measure_button_clicked(self, _):
+        self.measure_conductor.stop()
         self.lock_interface(False)
 
     def toggle_correction(self, _):

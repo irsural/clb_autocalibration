@@ -369,6 +369,16 @@ class MeasureDataModel(QAbstractTableModel):
 
                 return str_value
 
+    def reset_cell(self, a_row, a_column):
+        self.__cells[a_row][a_column].reset()
+        self.set_save_state(False)
+        self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
+
+    def update_cell_with_value(self, a_row, a_column, a_value: float):
+        self.__cells[a_row][a_column].append_value(a_value)
+        self.set_save_state(False)
+        self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
+
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
         if not index.isValid() or role != Qt.EditRole or self.rowCount() <= index.row():
             return False

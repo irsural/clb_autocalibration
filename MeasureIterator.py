@@ -1,6 +1,5 @@
 from collections import namedtuple
 from typing import List, Tuple
-import logging
 import abc
 
 from MeasureDataModel import MeasureDataModel

@@ -184,6 +184,14 @@ class MeasureManager(QtCore.QObject):
         for cb in enable_checkboxes:
             cb.setChecked(enable)
 
+    def get_cell_config(self, a_measure_name: str, a_row: int, a_column: int) -> CellConfig:
+        assert a_measure_name in self.measures, f"Не найдено измерение с именем {a_measure_name}"
+        return self.measures[a_measure_name].get_cell_config(a_row, a_column)
+
+    def get_measure_parameters(self, a_measure_name: str):
+        assert a_measure_name in self.measures, f"Не найдено измерение с именем {a_measure_name}"
+        return self.measures[a_measure_name].get_measure_parameters()
+
     def open_cell_configuration(self):
         selected_index = self.__get_only_selected_cell()
         if selected_index:
@@ -360,6 +368,12 @@ class MeasureManager(QtCore.QObject):
         assert self.current_data_model is not None, f"current_data_model не должна быть None"
 
         self.data_view.setCurrentIndex(self.current_data_model.index(a_cell_pos.row, a_cell_pos.column))
+
+    def reset_measure(self, a_name: str, a_row, a_column):
+        self.measures[a_name].reset_cell(a_row, a_column)
+
+    def add_measured_value(self, a_name: str, a_row, a_column, a_value: float):
+        self.measures[a_name].update_cell_with_value(a_row, a_column, a_value)
 
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:
