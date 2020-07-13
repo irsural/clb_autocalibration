@@ -14,9 +14,8 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
-from source_mode_window import SourceModeWidget
 from ui.py.mainwindow import Ui_MainWindow as MainForm
-from MeasureIterator import MeasureIterator
+from source_mode_window import SourceModeWidget
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
@@ -266,29 +265,26 @@ class MainWindow(QtWidgets.QMainWindow):
     def get_measure_iterator(self):
         pass
 
-    def start_all_measures_button_clicked(self, _):
-        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.START_ALL)
+    def start_measure(self, a_iteration_type: MeasureManager.IterationType):
+        measure_iterator = self.measure_manager.get_measure_iterator(a_iteration_type)
         if measure_iterator is not None:
-            self.lock_interface(True)
-            self.measure_conductor.start(measure_iterator)
+            # Это происходит, когда нет выделенных ячеек
+            if measure_iterator.get() is not None:
+                if self.save_configuration():
+                    self.lock_interface(True)
+                    self.measure_conductor.start(measure_iterator)
+
+    def start_all_measures_button_clicked(self, _):
+        self.start_measure(MeasureManager.IterationType.START_ALL)
 
     def continue_all_measures_button_clicked(self, _):
-        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.CONTINUE_ALL)
-        if measure_iterator is not None:
-            self.lock_interface(True)
-            self.measure_conductor.start(measure_iterator)
+        self.start_measure(MeasureManager.IterationType.CONTINUE_ALL)
 
     def start_current_measure_button_clicked(self, _):
-        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.START_CURRENT)
-        if measure_iterator is not None:
-            self.lock_interface(True)
-            self.measure_conductor.start(measure_iterator)
+        self.start_measure(MeasureManager.IterationType.START_CURRENT)
 
     def continue_current_measure_button_clicked(self, _):
-        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.CONTINUE_CURRENT)
-        if measure_iterator is not None:
-            self.lock_interface(True)
-            self.measure_conductor.start(measure_iterator)
+        self.start_measure(MeasureManager.IterationType.CONTINUE_CURRENT)
 
     def stop_measure_button_clicked(self, _):
         self.measure_conductor.stop()

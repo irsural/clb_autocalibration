@@ -21,8 +21,8 @@ class MeasureIteratorDirectByRows(MeasureIterator):
     """
     Ходит по заблокированным ячейкам слева направо и сверху вниз
     """
-    FIRST_CELL_ROW = 1
-    FIRST_CELL_COLUMN = 1
+    FIRST_CELL_ROW = 0
+    FIRST_CELL_COLUMN = 0
 
     def __init__(self, a_data_models: List[MeasureDataModel],
                  a_start_index: Tuple[int, int] = (FIRST_CELL_ROW, FIRST_CELL_COLUMN)):
