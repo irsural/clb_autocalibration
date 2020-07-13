@@ -50,7 +50,8 @@ class MeasureConductor(QtCore.QObject):
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
     }
 
-    measure_done = QtCore.pyqtSignal()
+    all_measures_done = QtCore.pyqtSignal()
+    single_measure_done = QtCore.pyqtSignal()
 
     def __init__(self, a_measure_manager: MeasureManager, a_parent=None):
         super().__init__(a_parent)
@@ -160,6 +161,8 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.NEXT_MEASURE:
+            self.single_measure_done.emit()
+
             self.measure_iterator.next()
             cell_position = self.measure_iterator.get()
 
@@ -170,5 +173,5 @@ class MeasureConductor(QtCore.QObject):
                 logging.debug("Измерение выполнено")
 
                 self.reset()
-                self.measure_done.emit()
+                self.all_measures_done.emit()
                 self.__stage = MeasureConductor.Stage.REST

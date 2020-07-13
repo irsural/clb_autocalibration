@@ -108,7 +108,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
             self.measure_conductor = MeasureConductor(self.measure_manager)
-            self.measure_conductor.measure_done.connect(self.measure_done)
+            self.measure_conductor.all_measures_done.connect(self.measure_done)
+            self.measure_conductor.single_measure_done.connect(self.save_current_configuration)
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
