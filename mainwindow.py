@@ -266,23 +266,30 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.lock_interface(True)
         if self.measure_iterator is None:
             self.measure_iterator = self.measure_manager.get_measure_iterator()
-
-        self.measure_iterator.next()
-        cell_pos = self.measure_iterator.get()
-        if cell_pos is not None:
+            cell_pos = self.measure_iterator.get()
             self.measure_manager.set_active_cell(cell_pos)
-            logging.debug(cell_pos)
+        elif not self.__iterate(self.measure_iterator):
+            self.measure_iterator = None
 
     def continue_all_measures_button_clicked(self, _):
         # self.lock_interface(True)
         if self.measure_iterator_from_current is None:
             self.measure_iterator_from_current = self.measure_manager.get_measure_iterator_from_current()
+            cell_pos = self.measure_iterator_from_current.get()
+            self.measure_manager.set_active_cell(cell_pos)
+        elif not self.__iterate(self.measure_iterator_from_current):
+            self.measure_iterator_from_current = None
 
-        self.measure_iterator_from_current.next()
-        cell_pos = self.measure_iterator_from_current.get()
+    def __iterate(self, a_iterator: MeasureIterator):
+        a_iterator.next()
+        cell_pos = a_iterator.get()
+
         if cell_pos is not None:
             self.measure_manager.set_active_cell(cell_pos)
-            logging.debug(cell_pos)
+            return True
+        else:
+            logging.debug("THE END")
+            return False
 
     def start_current_measure_button_clicked(self, _):
         self.lock_interface(True)

@@ -347,6 +347,7 @@ class MeasureManager(QtCore.QObject):
             return None
 
     def set_active_cell(self, a_cell_pos: MeasureIterator.CellPosition):
+        logging.debug(a_cell_pos)
         name_item = None
         for row in range(self.measures_table.rowCount()):
             name_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME)
