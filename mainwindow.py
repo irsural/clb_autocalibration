@@ -263,25 +263,38 @@ class MainWindow(QtWidgets.QMainWindow):
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
 
+    def get_measure_iterator(self):
+        pass
+
     def start_all_measures_button_clicked(self, _):
-        self.lock_interface(True)
-        self.measure_conductor.start()
+        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.START_ALL)
+        if measure_iterator is not None:
+            self.lock_interface(True)
+            self.measure_conductor.start(measure_iterator)
 
     def continue_all_measures_button_clicked(self, _):
-        self.lock_interface(True)
-        self.measure_conductor.continue_()
-
-    def measure_done(self):
-        self.lock_interface(False)
+        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.CONTINUE_ALL)
+        if measure_iterator is not None:
+            self.lock_interface(True)
+            self.measure_conductor.start(measure_iterator)
 
     def start_current_measure_button_clicked(self, _):
-        self.lock_interface(True)
+        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.START_CURRENT)
+        if measure_iterator is not None:
+            self.lock_interface(True)
+            self.measure_conductor.start(measure_iterator)
 
     def continue_current_measure_button_clicked(self, _):
-        self.lock_interface(True)
+        measure_iterator = self.measure_manager.get_measure_iterator(MeasureManager.IterationType.CONTINUE_CURRENT)
+        if measure_iterator is not None:
+            self.lock_interface(True)
+            self.measure_conductor.start(measure_iterator)
 
     def stop_measure_button_clicked(self, _):
         self.measure_conductor.stop()
+        self.lock_interface(False)
+
+    def measure_done(self):
         self.lock_interface(False)
 
     def toggle_correction(self, _):

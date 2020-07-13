@@ -24,6 +24,12 @@ class MeasureManager(QtCore.QObject):
         SETTINGS = 1
         ENABLE = 2
 
+    class IterationType(IntEnum):
+        START_ALL = 0
+        CONTINUE_ALL = 1
+        START_CURRENT = 2
+        CONTINUE_CURRENT = 3
+
     MEASURE_FILE_EXTENSION = "measure"
     MEASURES_ORDER_FILENAME = "measures_order.json"
 
@@ -335,24 +341,47 @@ class MeasureManager(QtCore.QObject):
 
             self.interface_is_locked = a_lock
 
-    def get_measure_iterator(self):
-        return MeasureIteratorDirectByRows([data_model for data_model in self.measures.values()])
+    def get_measure_iterator(self, a_iteration_type: IterationType):
+        pass_through_measures = a_iteration_type in (MeasureManager.IterationType.START_ALL,
+                                                     MeasureManager.IterationType.CONTINUE_ALL)
 
-    def get_measure_iterator_from_current(self):
-        selected_cells_idx = self.__get_only_selected_cell()
-        if selected_cells_idx:
-            measure_models_list = []
-            start_add = False
-            for data_model in self.measures.values():
-                if self.current_data_model == data_model:
-                    start_add = True
-                if start_add:
-                    measure_models_list.append(data_model)
-
-            return MeasureIteratorDirectByRows(measure_models_list,
-                                               (selected_cells_idx.row(), selected_cells_idx.column()))
+        if a_iteration_type in (MeasureManager.IterationType.START_ALL, MeasureManager.IterationType.START_CURRENT):
+            return self.__get_measure_iterator(pass_through_measures)
         else:
-            return None
+            return self.__get_measure_iterator_from_current(pass_through_measures)
+
+    def __get_measure_iterator(self, a_pass_through_measures: bool):
+        iterator = None
+        if self.current_data_model:
+            measure_models_list = [data_model for data_model in self.measures.values() if data_model.is_enabled()] \
+                if a_pass_through_measures else [self.current_data_model]
+
+            if measure_models_list:
+                iterator = MeasureIteratorDirectByRows(measure_models_list)
+
+        return iterator
+
+    def __get_measure_iterator_from_current(self, a_pass_through_measures: bool):
+        iterator = None
+        if self.current_data_model:
+            selected_cells_idx = self.__get_only_selected_cell()
+            if selected_cells_idx:
+
+                measure_models_list = []
+                if a_pass_through_measures:
+                    start_add = False
+                    for data_model in self.measures.values():
+                        if self.current_data_model == data_model:
+                            start_add = True
+                        if start_add and data_model.is_enabled():
+                            measure_models_list.append(data_model)
+                else:
+                    measure_models_list.append(self.current_data_model)
+
+                if measure_models_list:
+                    iterator = MeasureIteratorDirectByRows(measure_models_list,
+                                                           (selected_cells_idx.row(), selected_cells_idx.column()))
+        return iterator
 
     def set_active_cell(self, a_cell_pos: MeasureIterator.CellPosition):
         logging.debug(a_cell_pos)

@@ -73,21 +73,10 @@ class MeasureConductor(QtCore.QObject):
         self.current_measure_parameters = None
         self.current_config = None
 
-    def start(self):
-        """
-        Начинает измерение с первой ячейки
-        """
-        self.measure_iterator = self.measure_manager.get_measure_iterator()
+    def start(self, a_measure_iterator: MeasureIterator):
+        assert a_measure_iterator is not None, "Итератор не инициализирован!"
+        self.measure_iterator = a_measure_iterator
         self.__stage = MeasureConductor.Stage.CONNECT_TO_METER
-
-    def continue_(self):
-        """
-        Начинает измерение с текущей ячейкт ячейки, если ячейка не заблокирована, ищет первую заблокированную ячейку
-        начиная с текущей ячейки
-        """
-        self.measure_iterator = self.measure_manager.get_measure_iterator_from_current()
-        if self.measure_iterator is not None:
-            self.__stage = MeasureConductor.Stage.CONNECT_TO_METER
 
     def stop(self):
         self.reset()
