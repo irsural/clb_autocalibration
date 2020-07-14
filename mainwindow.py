@@ -154,6 +154,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
             self.ui.open_cell_config_button.clicked.connect(self.open_cell_configuration)
             self.ui.open_action.triggered.connect(self.open_configuration)
+            self.ui.new_configuration_action.triggered.connect(self.create_new_configuration)
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
             self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
@@ -483,6 +484,28 @@ class MainWindow(QtWidgets.QMainWindow):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             result = False
         return result
+
+    def reset_measure_manager(self):
+        self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
+
+        self.measure_conductor = MeasureConductor(self.measure_manager)
+        self.measure_conductor.all_measures_done.connect(self.measure_done)
+        self.measure_conductor.single_measure_done.connect(self.save_current_configuration)
+
+    def create_new_configuration(self):
+        cancel_open = False
+        if self.current_configuration_path:
+            if not self.measure_manager.is_saved():
+                answer = self.close_configuration()
+                if answer == MainWindow.CloseConfigOptions.SAVE:
+                    if not self.save_configuration():
+                        cancel_open = True
+                elif answer == MainWindow.CloseConfigOptions.CANCEL:
+                    cancel_open = True
+
+        if not cancel_open:
+            self.current_configuration_path = ""
+            self.reset_measure_manager()
 
     def open_configuration(self):
         cancel_open = False

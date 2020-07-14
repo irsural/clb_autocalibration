@@ -47,12 +47,6 @@
           <number>0</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout"/>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4"/>
-         </item>
-         <item>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="1" column="0">
             <widget class="QLabel" name="label_2">
@@ -651,6 +645,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="new_configuration_action"/>
    <addaction name="open_action"/>
    <addaction name="save_action"/>
    <addaction name="save_as_action"/>
@@ -993,6 +988,18 @@ selection-background-color: rgb(170, 170, 255);</string>
   <action name="flash_diapason_of_cell_action">
    <property name="text">
     <string>Прошить диапазон ячейки</string>
+   </property>
+  </action>
+  <action name="new_configuration_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/add_file.png</normaloff>:/icons/icons/add_file.png</iconset>
+   </property>
+   <property name="text">
+    <string>new_configuration</string>
+   </property>
+   <property name="toolTip">
+    <string>Создать новую конфигурацию</string>
    </property>
   </action>
  </widget>

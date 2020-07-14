@@ -46,8 +46,9 @@ class MeasureManager(QtCore.QObject):
 
         self.settings = a_settings
         self.measures_table = a_measures_table
+        self.measures_table.setRowCount(0)
         self.data_view = a_data_view
-        self.data_view.verticalHeader().setHidden(True)
+        self.data_view.setModel(None)
 
         self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
