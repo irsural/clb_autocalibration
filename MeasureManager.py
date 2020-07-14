@@ -12,6 +12,7 @@ from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
 
+from edit_agilent_config_dialog import EditAgilentConfigDialog, AgilentConfig
 from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
@@ -29,6 +30,9 @@ class MeasureManager(QtCore.QObject):
         CONTINUE_ALL = 1
         START_CURRENT = 2
         CONTINUE_CURRENT = 3
+
+    class MeterType(IntEnum):
+        AGILENT_3458A = 0
 
     MEASURE_FILE_EXTENSION = "measure"
     MEASURES_ORDER_FILENAME = "measures_order.json"
@@ -56,6 +60,9 @@ class MeasureManager(QtCore.QObject):
         self.copied_cell_config: Union[None, CellConfig] = None
 
         self.interface_is_locked = False
+
+        self.meter_type = MeasureManager.MeterType.AGILENT_3458A
+        self.agilent_config: Union[None, AgilentConfig] = None
 
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
 
@@ -89,7 +96,7 @@ class MeasureManager(QtCore.QObject):
             self.names_before_changing = self.__get_measures_list()
 
     def rename_measure_finished(self, a_row: int, a_column: int, a_measures_folder: str):
-        if a_column == MeasureManager.MeasureColumn.NfAME and self.rename_in_process:
+        if a_column == MeasureManager.MeasureColumn.NAME and self.rename_in_process:
             self.measures_table.blockSignals(True)
 
             new_name = self.measures_table.item(a_row, a_column).text()
@@ -468,6 +475,36 @@ class MeasureManager(QtCore.QObject):
                 return
 
         assert False, "Не найдена строка таблицы с виджетом-отправителем сигнала"
+
+    def set_meter(self, a_meter_type: MeterType):
+        self.meter_type = a_meter_type
+        if a_meter_type == MeasureManager.MeterType.AGILENT_3458A:
+            self.agilent_config = AgilentConfig()
+            self.agilent_config.connect_type = self.settings.agilent_connect_type
+            self.agilent_config.gpib_index = self.settings.agilent_gpib_index
+            self.agilent_config.gpib_address = self.settings.agilent_gpib_address
+            self.agilent_config.com_name = self.settings.agilent_com_name
+            self.agilent_config.ip_address = self.settings.agilent_ip_address
+            self.agilent_config.port = self.settings.agilent_port
+        else:
+            assert False, f"Не реализованный измеритель '{a_meter_type}'"
+
+    def open_meter_settings(self):
+        if self.meter_type == MeasureManager.MeterType.AGILENT_3458A:
+            edit_agilent_config_dialog = EditAgilentConfigDialog(self.agilent_config, self.settings,
+                                                                 self.interface_is_locked)
+
+            new_config = edit_agilent_config_dialog.exec_and_get()
+            if new_config is not None and new_config != self.agilent_config:
+                self.agilent_config = new_config
+                self.settings.agilent_connect_type = self.agilent_config.connect_type
+                self.settings.agilent_gpib_index = self.agilent_config.gpib_index
+                self.settings.agilent_gpib_address = self.agilent_config.gpib_address
+                self.settings.agilent_com_name = self.agilent_config.com_name
+                self.settings.agilent_ip_address = self.agilent_config.ip_address
+                self.settings.agilent_port = self.agilent_config.port
+        else:
+            assert False, f"Не реализованный измеритель '{self.meter_type}'"
 
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])

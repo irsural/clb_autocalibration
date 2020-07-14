@@ -63,6 +63,20 @@ class MainWindow(QtWidgets.QMainWindow):
                                       a_type=Settings.ValueType.LIST_INT),
                 Settings.VariableInfo(a_name="last_configuration_path", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.STRING),
+                Settings.VariableInfo(a_name="meter_type", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="agilent_connect_type", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="agilent_gpib_index", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="agilent_gpib_address", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=22),
+                Settings.VariableInfo(a_name="agilent_com_name", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.STRING, a_default="com4"),
+                Settings.VariableInfo(a_name="agilent_ip_address", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.STRING, a_default="0.0.0.0"),
+                Settings.VariableInfo(a_name="agilent_port", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
             ])
 
             ini_ok = True
@@ -162,6 +176,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
             self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
             self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
+
+            self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
+            self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
+
+            self.ui.meter_combobox.setCurrentIndex(self.settings.meter_type)
+            self.set_meter(self.settings.meter_type)
 
             self.measure_iterator = None
             self.measure_iterator_from_current = None
@@ -409,6 +429,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
+
+    def set_meter(self, a_index: int):
+        self.measure_manager.set_meter(MeasureManager.MeterType(a_index))
+
+    def open_meter_settings(self):
+        self.measure_manager.open_meter_settings()
 
     def save_configuration(self):
         result = True
