@@ -77,6 +77,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                       a_type=Settings.ValueType.STRING, a_default="0.0.0.0"),
                 Settings.VariableInfo(a_name="agilent_port", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="switch_to_active_cell", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
             ])
 
             ini_ok = True
@@ -121,13 +123,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
-            self.measure_conductor = MeasureConductor(self.measure_manager)
+            self.measure_conductor = MeasureConductor(self.measure_manager, self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
             self.measure_conductor.single_measure_done.connect(self.save_current_configuration)
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
             self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
+
+            self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
+            self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
+
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
             self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
@@ -394,6 +400,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_equal_cell_configs_button_toggled(self, a_enable: bool):
         self.measure_manager.show_equal_cell_configs(a_enable)
 
+    def switch_to_active_cell_action_toggled(self, a_enable: bool):
+        self.settings.switch_to_active_cell = int(a_enable)
+
     def measure_data_cell_clicked(self, index: QtCore.QModelIndex):
         if self.ui.show_equal_action.isChecked():
             self.measure_manager.set_cell_to_compare(index)
@@ -526,11 +535,16 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.open_configuration_by_name(config_filename)
 
     def open_configuration_by_name(self, a_folder: str):
-        if self.measure_manager.load_from_file(a_folder):
-            self.current_configuration_path = a_folder
-            self.setWindowTitle(self.current_configuration_path)
-        elif a_folder:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось найти файлы конфигураций в каталоге {a_folder}",
+        try:
+            if self.measure_manager.load_from_file(a_folder):
+                self.current_configuration_path = a_folder
+                self.setWindowTitle(self.current_configuration_path)
+            elif a_folder:
+                QtWidgets.QMessageBox.critical(self, "Ошибка",
+                                               f'Не удалось найти файлы конфигураций в каталоге "{a_folder}"',
+                                               QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f'Не удалось найти каталог "{a_folder}"',
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     @staticmethod

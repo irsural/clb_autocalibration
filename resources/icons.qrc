@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/tracker.png</file>
     <file>icons/add_file.png</file>
     <file>icons/graph_2.png</file>
     <file>icons/graph_3.png</file>

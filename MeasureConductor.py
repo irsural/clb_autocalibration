@@ -5,6 +5,7 @@ import random
 
 from PyQt5 import QtCore
 
+from irspy.settings_ini_parser import Settings
 from irspy import utils
 
 from MeasureIterator import MeasureIterator
@@ -53,9 +54,10 @@ class MeasureConductor(QtCore.QObject):
     all_measures_done = QtCore.pyqtSignal()
     single_measure_done = QtCore.pyqtSignal()
 
-    def __init__(self, a_measure_manager: MeasureManager, a_parent=None):
+    def __init__(self, a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
+        self.settings = a_settings
         self.measure_manager = a_measure_manager
         self.measure_iterator: Union[None, MeasureIterator] = None
 
@@ -105,7 +107,8 @@ class MeasureConductor(QtCore.QObject):
             assert self.measure_iterator is not None, "Итератор не инициализирован!"
 
             self.current_cell_position = self.measure_iterator.get()
-            self.measure_manager.set_active_cell(self.current_cell_position)
+            if self.settings.switch_to_active_cell:
+                self.measure_manager.set_active_cell(self.current_cell_position)
 
             self.current_measure_parameters = \
                 self.measure_manager.get_measure_parameters(self.current_cell_position.measure_name)

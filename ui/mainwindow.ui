@@ -639,6 +639,12 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="windowTitle">
     <string>Панель инструментов</string>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>30</width>
+     <height>30</height>
+    </size>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -676,6 +682,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="lock_action"/>
    <addaction name="unlock_action"/>
    <addaction name="show_equal_action"/>
+   <addaction name="switch_to_active_cell_action"/>
   </widget>
   <action name="change_fixed_range_action">
    <property name="text">
@@ -1000,6 +1007,21 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="toolTip">
     <string>Создать новую конфигурацию</string>
+   </property>
+  </action>
+  <action name="switch_to_active_cell_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/tracker.png</normaloff>:/icons/icons/tracker.png</iconset>
+   </property>
+   <property name="text">
+    <string>switch_to_active_cell</string>
+   </property>
+   <property name="toolTip">
+    <string>Переключаться на измеряемую ячейку</string>
    </property>
   </action>
  </widget>
