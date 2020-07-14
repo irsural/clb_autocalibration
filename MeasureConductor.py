@@ -70,6 +70,9 @@ class MeasureConductor(QtCore.QObject):
 
         self.__stage = MeasureConductor.Stage.REST
 
+    def __del__(self):
+        print("MeasureConductor deleted")
+
     def reset(self):
         self.measure_iterator = None
         self.current_cell_position = None

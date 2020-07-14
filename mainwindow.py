@@ -187,12 +187,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
             self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
 
-            self.ui.meter_combobox.setCurrentIndex(self.settings.meter_type)
-            self.set_meter(self.settings.meter_type)
-
-            self.measure_iterator = None
-            self.measure_iterator_from_current = None
-
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
             self.tick_timer.start(10)
@@ -488,6 +482,8 @@ class MainWindow(QtWidgets.QMainWindow):
         result = True
         if self.measure_manager.save(a_folder):
             self.current_configuration_path = a_folder
+            self.settings.last_configuration_path = a_folder
+            self.setWindowTitle(self.current_configuration_path)
         else:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить конфигурации в каталоге {a_folder}",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
@@ -497,7 +493,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def reset_measure_manager(self):
         self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
 
-        self.measure_conductor = MeasureConductor(self.measure_manager)
+        self.measure_conductor = MeasureConductor(self.measure_manager, self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
         self.measure_conductor.single_measure_done.connect(self.save_current_configuration)
 

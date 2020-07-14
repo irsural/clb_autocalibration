@@ -42,9 +42,12 @@ class MeasureManager(QtCore.QObject):
 
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
                  a_settings: Settings, a_parent=None):
-        super().__init__(a_parent)
+        # a_parent специально не передается в super, потому что иначе MeasureManager не удаляется в MainWindow при
+        # пересоздании
+        super().__init__(None)
 
         self.settings = a_settings
+        self.__parent = a_parent
         self.measures_table = a_measures_table
         self.measures_table.setRowCount(0)
         self.data_view = a_data_view
@@ -58,10 +61,14 @@ class MeasureManager(QtCore.QObject):
 
         self.interface_is_locked = False
 
-        self.meter_type = MeasureManager.MeterType.AGILENT_3458A
+        self.meter_type = self.settings.meter_type
         self.agilent_config: Union[None, AgilentConfig] = None
+        self.set_meter(self.meter_type)
 
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
+
+    def __del__(self):
+        print("MeasureManager deleted")
 
     def __get_measures_list(self):
         return [self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
@@ -124,7 +131,7 @@ class MeasureManager(QtCore.QObject):
                 changing_name = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
 
                 # noinspection PyTypeChecker
-                new_name, accept = QtWidgets.QInputDialog.getText(self.parent(), "Переименование измерения",
+                new_name, accept = QtWidgets.QInputDialog.getText(self.__parent, "Переименование измерения",
                                                                   "Введите новое имя измерения\t\t", text=changing_name)
 
                 if accept and changing_name != new_name:
@@ -228,7 +235,7 @@ class MeasureManager(QtCore.QObject):
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
 
                 edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings,
-                                                               self.interface_is_locked, self.parent())
+                                                               self.interface_is_locked, self.__parent)
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
                     self.measures[measure_name].set_cell_config(row, column, new_cell_config)
@@ -461,7 +468,7 @@ class MeasureManager(QtCore.QObject):
                 measure_parameters = measure_data_model.get_measure_parameters()
 
                 edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings,
-                                                                     self.interface_is_locked, self.parent())
+                                                                     self.interface_is_locked, self.__parent)
                 new_parameters = edit_parameters_dialog.exec_and_get()
                 if new_parameters is not None and new_parameters != measure_parameters:
                     bad_cells = measure_data_model.verify_cell_configs(new_parameters.signal_type)
@@ -509,7 +516,7 @@ class MeasureManager(QtCore.QObject):
     def open_meter_settings(self):
         if self.meter_type == MeasureManager.MeterType.AGILENT_3458A:
             edit_agilent_config_dialog = EditAgilentConfigDialog(self.agilent_config, self.settings,
-                                                                 self.interface_is_locked, self.parent())
+                                                                 self.interface_is_locked, self.__parent)
 
             new_config = edit_agilent_config_dialog.exec_and_get()
             if new_config is not None and new_config != self.agilent_config:
