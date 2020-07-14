@@ -212,13 +212,14 @@ class MeasureManager(QtCore.QObject):
             row, column = selected_index.row(), selected_index.column()
             cell_config = self.current_data_model.get_cell_config(row, column)
             if cell_config is not None:
+                measure_name = self.current_data_model.get_name()
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
 
                 edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings,
                                                                self.interface_is_locked)
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
-                    self.current_data_model.set_cell_config(row, column, new_cell_config)
+                    self.measures[measure_name].set_cell_config(row, column, new_cell_config)
 
                 edit_cell_config_dialog.close()
 
