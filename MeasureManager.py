@@ -53,10 +53,6 @@ class MeasureManager(QtCore.QObject):
         self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
 
-        self.rename_in_process = False
-        self.changing_name = ""
-        self.names_before_changing = []
-
         self.show_equal_cells = False
         self.copied_cell_config: Union[None, CellConfig] = None
 
@@ -90,42 +86,58 @@ class MeasureManager(QtCore.QObject):
         else:
             return None
 
-    def rename_measure_started(self, a_row: int, a_column: int):
-        if a_column == MeasureManager.MeasureColumn.NAME:
-            self.rename_in_process = True
-            self.changing_name = self.measures_table.item(a_row, a_column).text()
-            self.names_before_changing = self.__get_measures_list()
+    @staticmethod
+    def __get_full_path_to_measure(a_folder: str, a_measure_name: str):
+        return f"{a_folder}/{a_measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
 
-    def rename_measure_finished(self, a_row: int, a_column: int, a_measures_folder: str):
-        if a_column == MeasureManager.MeasureColumn.NAME and self.rename_in_process:
-            self.measures_table.blockSignals(True)
+    def __rename_measure(self, a_measure_row, a_old_name, a_new_name, a_folder):
+        if a_folder:
+            old_full_path = self.__get_full_path_to_measure(a_folder, a_old_name)
+            new_full_path = self.__get_full_path_to_measure(a_folder, a_new_name)
+            os.rename(old_full_path, new_full_path)
 
-            new_name = self.measures_table.item(a_row, a_column).text()
-            new_name = self.__get_allowable_name(self.names_before_changing, new_name)
+        data_model = self.measures[a_old_name]
+        del self.measures[a_old_name]
+        self.measures.insert(a_measure_row, a_new_name, data_model)
 
-            if self.changing_name != new_name:
-                try:
-                    if a_measures_folder:
-                        old_filename = f"{a_measures_folder}/{self.changing_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
-                        new_filename = f"{a_measures_folder}/{new_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
-                        os.rename(old_filename, new_filename)
+        measure_item = self.measures_table.item(a_measure_row, MeasureManager.MeasureColumn.NAME)
+        measure_item.setText(a_new_name)
+        # Обязательно вызывать после изменения текста в таблице
+        data_model.set_name(a_new_name)
+        self.current_measure_changed(measure_item, None)
 
-                        self.measures[new_name] = self.measures[self.changing_name]
-                        self.measures[new_name].set_name(new_name)
-                        del self.measures[self.changing_name]
+        if a_folder:
+            if not self.save_current(a_folder):
+                QtWidgets.QMessageBox.critical(None, "Ошибка", f'При переименовании измерения возникла ошибка!!'
+                                                               f'Необходимо вручную изменить имя в файле измерения '
+                                                               f'"имя_измерения.measure"',
+                                               QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
-                    self.measures_table.item(a_row, a_column).setText(new_name)
+    def rename_current_measure(self, a_folder):
+        if self.current_data_model:
+            selected_indexes = self.measures_table.selectedIndexes()
+            if selected_indexes:
+                # Разрешено выделение только по строкам, так что у всех ячеек будет одинаковая строка
+                row = selected_indexes[0].row()
 
-                    if a_measures_folder:
-                        self.__save_measures_order_list(a_measures_folder)
-                except OSError:
-                    self.measures_table.item(a_row, a_column).setText(self.changing_name)
+                names_before_changing = self.__get_measures_list()
+                changing_name = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME).text()
 
-                    QtWidgets.QMessageBox.critical(None, "Ошибка", f'Не удалось переименовать измерение '
-                                                                   f'"{self.changing_name}" в {new_name}"',
-                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
-            self.rename_in_process = False
-            self.measures_table.blockSignals(False)
+                # noinspection PyTypeChecker
+                new_name, accept = QtWidgets.QInputDialog.getText(self.parent(), "Переименование измерения",
+                                                                  "Введите новое имя измерения\t\t", text=changing_name)
+
+                if accept and changing_name != new_name:
+                    new_name = self.__get_allowable_name(names_before_changing, new_name)
+
+                    try:
+                        logging.debug("start_rename")
+                        self.__rename_measure(row, changing_name, new_name, a_folder)
+                        logging.debug("renamed")
+                    except OSError:
+                        QtWidgets.QMessageBox.critical(None, "Ошибка", f'Не удалось переименовать измерение '
+                                                                       f'"{changing_name}" в "{new_name}"',
+                                                       QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def new_measure(self, a_name="", a_measure_data_model: MeasureDataModel = None):
         selected_row = qt_utils.get_selected_row(self.measures_table)
@@ -424,14 +436,17 @@ class MeasureManager(QtCore.QObject):
 
     def set_measure_save_state(self, a_measure_name: str, a_saved: bool):
         for row in range(self.measures_table.rowCount()):
-            name_item, param_item, enable_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME),\
-                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS),\
+            name_item, param_item, enable_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME), \
+                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS), \
                                                  self.measures_table.item(row, MeasureManager.MeasureColumn.ENABLE),
             if name_item.text() == a_measure_name:
                 color = MeasureManager.SAVED_COLOR if a_saved else MeasureManager.UNSAVED_COLOR
                 name_item.setBackground(color)
                 param_item.setBackground(color)
                 enable_item.setBackground(color)
+                break
+        else:
+            assert False, f"Не найдено измерение с именем {a_measure_name}"
 
     @utils.exception_decorator
     def edit_measure_parameters_button_clicked(self, _):
@@ -527,7 +542,7 @@ class MeasureManager(QtCore.QObject):
     def save_current(self, a_folder):
         if self.current_data_model is not None:
             self.__save_measures_order_list(a_folder)
-            measure_filename = f"{a_folder}/{self.current_data_model.get_name()}.{MeasureManager.MEASURE_FILE_EXTENSION}"
+            measure_filename = self.__get_full_path_to_measure(a_folder, self.current_data_model.get_name())
             try:
                 with open(measure_filename, "w") as measure_file:
                     measure_file.write(json.dumps(self.current_data_model.serialize_to_dict(), ensure_ascii=False,

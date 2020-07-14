@@ -145,8 +145,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
             self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
 
-            # self.ui.measures_table.cellDoubleClicked.connect(self.measure_cell_double_clicked)
-            # self.ui.measures_table.cellChanged.connect(self.measure_cell_changed)
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
             self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
 
@@ -164,6 +162,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
             self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
+            self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
+
             self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
 
             self.ui.copy_cell_config_action.triggered.connect(self.copy_cell_config)
@@ -390,11 +390,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def enable_all_button_clicked(self, _):
         self.measure_manager.enable_all_measures()
 
-    def measure_cell_double_clicked(self, a_row: int, a_column: int):
-        self.measure_manager.rename_measure_started(a_row, a_column)
-
-    def measure_cell_changed(self, a_row: int, a_column: int):
-        self.measure_manager.rename_measure_finished(a_row, a_column, self.current_configuration_path)
+    @utils.exception_decorator
+    def rename_measure_button_clicked(self, _):
+        self.measure_manager.rename_current_measure(self.current_configuration_path)
 
     def show_equal_cell_configs_button_toggled(self, a_enable: bool):
         self.measure_manager.show_equal_cell_configs(a_enable)

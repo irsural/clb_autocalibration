@@ -194,7 +194,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         self.__allowed_extra_param_types = ("double", "float", "bit", "u32", "i32", "u8", "i8", "u16", "i16",
                                             "bool", "u64", "i64")
-        self.ui.extra_variables_table.setItemDelegate(TransparentPainterForWidget(self.ui.extra_variables_table, "#d4d4ff"))
+        self.ui.extra_variables_table.setItemDelegate(TransparentPainterForWidget(self.ui.extra_variables_table,
+                                                                                  "#d4d4ff"))
         self.ui.extra_variables_table.setItemDelegateForColumn(EditCellConfigDialog.ExtraParamsColumn.TYPE,
                                                                ComboboxCellDelegate(self,
                                                                                     self.__allowed_extra_param_types))

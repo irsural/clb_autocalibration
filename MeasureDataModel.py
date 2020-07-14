@@ -166,6 +166,7 @@ class MeasureDataModel(QAbstractTableModel):
 
     def set_name(self, a_name: str):
         self.__name = a_name
+        self.set_save_state(False)
 
     def get_name(self):
         return self.__name
