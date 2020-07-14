@@ -244,7 +244,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.clb_list_combobox.setDisabled(a_lock)
         self.ui.meter_combobox.setDisabled(a_lock)
-        self.ui.meter_settings_button.setDisabled(a_lock)
 
         self.ui.add_measure_button.setDisabled(a_lock)
         self.ui.delete_measure_button.setDisabled(a_lock)
@@ -427,15 +426,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @utils.exception_decorator
     def open_tstlan(self, _):
-        tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings, self)
-        tstlan_dialog.exec()
+        # noinspection PyTypeChecker
+        tstlan_dialog: QtWidgets.QDialog = self.findChild(QtWidgets.QDialog, "tstlan_dialog")
+        if not tstlan_dialog:
+            tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings, self)
+            tstlan_dialog.exec()
+        else:
+            tstlan_dialog.activateWindow()
 
-    def open_settings(self):
-        try:
-            settings_dialog = SettingsDialog(self.settings, self)
-            settings_dialog.exec()
-        except Exception as err:
-            logging.debug(utils.exception_handler(err))
+    @utils.exception_decorator
+    def open_settings(self, _):
+        settings_dialog = SettingsDialog(self.settings, self)
+        settings_dialog.exec()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()

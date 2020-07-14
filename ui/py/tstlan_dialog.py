@@ -19,6 +19,9 @@ class Ui_tstlan_dialog(object):
         font.setPointSize(10)
         tstlan_dialog.setFont(font)
         tstlan_dialog.setFocusPolicy(QtCore.Qt.TabFocus)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/tstlan.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        tstlan_dialog.setWindowIcon(icon)
         self.verticalLayout = QtWidgets.QVBoxLayout(tstlan_dialog)
         self.verticalLayout.setContentsMargins(5, 5, 5, 5)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -102,3 +105,4 @@ class Ui_tstlan_dialog(object):
         item.setText(_translate("tstlan_dialog", "Тип"))
         item = self.variables_table.horizontalHeaderItem(6)
         item.setText(_translate("tstlan_dialog", "Значение"))
+import icons_rc

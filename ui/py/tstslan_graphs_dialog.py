@@ -15,6 +15,9 @@ class Ui_tstlan_graphs_dialog(object):
     def setupUi(self, tstlan_graphs_dialog):
         tstlan_graphs_dialog.setObjectName("tstlan_graphs_dialog")
         tstlan_graphs_dialog.resize(838, 554)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/graph_2.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        tstlan_graphs_dialog.setWindowIcon(icon)
         self.verticalLayout = QtWidgets.QVBoxLayout(tstlan_graphs_dialog)
         self.verticalLayout.setContentsMargins(3, 3, 3, 3)
         self.verticalLayout.setSpacing(0)
@@ -28,4 +31,5 @@ class Ui_tstlan_graphs_dialog(object):
 
     def retranslateUi(self, tstlan_graphs_dialog):
         _translate = QtCore.QCoreApplication.translate
-        tstlan_graphs_dialog.setWindowTitle(_translate("tstlan_graphs_dialog", "Dialog"))
+        tstlan_graphs_dialog.setWindowTitle(_translate("tstlan_graphs_dialog", "Графики tstlan"))
+import icons_rc

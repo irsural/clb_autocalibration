@@ -24,6 +24,10 @@
   <property name="windowTitle">
    <string>Настройки</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/icons.qrc">
+    <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QWidget" name="layout" native="true">

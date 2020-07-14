@@ -216,7 +216,7 @@ class MeasureManager(QtCore.QObject):
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
 
                 edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings,
-                                                               self.interface_is_locked)
+                                                               self.interface_is_locked, self.parent())
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
                     self.measures[measure_name].set_cell_config(row, column, new_cell_config)
@@ -446,7 +446,7 @@ class MeasureManager(QtCore.QObject):
                 measure_parameters = measure_data_model.get_measure_parameters()
 
                 edit_parameters_dialog = EditMeasureParametersDialog(measure_parameters, self.settings,
-                                                                     self.interface_is_locked)
+                                                                     self.interface_is_locked, self.parent())
                 new_parameters = edit_parameters_dialog.exec_and_get()
                 if new_parameters is not None and new_parameters != measure_parameters:
                     bad_cells = measure_data_model.verify_cell_configs(new_parameters.signal_type)
@@ -494,7 +494,7 @@ class MeasureManager(QtCore.QObject):
     def open_meter_settings(self):
         if self.meter_type == MeasureManager.MeterType.AGILENT_3458A:
             edit_agilent_config_dialog = EditAgilentConfigDialog(self.agilent_config, self.settings,
-                                                                 self.interface_is_locked)
+                                                                 self.interface_is_locked, self.parent())
 
             new_config = edit_agilent_config_dialog.exec_and_get()
             if new_config is not None and new_config != self.agilent_config:

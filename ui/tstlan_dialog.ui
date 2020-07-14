@@ -21,6 +21,10 @@
   <property name="windowTitle">
    <string>Tstlan</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/icons.qrc">
+    <normaloff>:/icons/icons/tstlan.png</normaloff>:/icons/icons/tstlan.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>5</number>
@@ -169,6 +173,8 @@
   <tabstop>graphs_button</tabstop>
   <tabstop>name_filter_edit</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -18,6 +18,10 @@
   <property name="windowTitle">
    <string>Параметры Agilent3458A</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/icons.qrc">
+    <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">

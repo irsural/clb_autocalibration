@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/robot_2.png</file>
+    <file>icons/robot_1.png</file>
     <file>icons/tracker.png</file>
     <file>icons/add_file.png</file>
     <file>icons/graph_2.png</file>
