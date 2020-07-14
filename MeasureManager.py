@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from typing import Union, Dict
 from enum import IntEnum
 import logging
@@ -8,6 +7,7 @@ import os
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
+from irspy.built_in_extensions import OrderedDictInsert
 from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
@@ -49,7 +49,7 @@ class MeasureManager(QtCore.QObject):
         self.data_view = a_data_view
         self.data_view.verticalHeader().setHidden(True)
 
-        self.measures: Dict[str, MeasureDataModel] = OrderedDict()
+        self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
 
         self.rename_in_process = False
@@ -132,7 +132,7 @@ class MeasureManager(QtCore.QObject):
         new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
         measure_data_model = a_measure_data_model if a_measure_data_model else MeasureDataModel(new_name)
-        self.measures[new_name] = measure_data_model
+        self.measures.insert(row_index, new_name, measure_data_model)
         measure_data_model.data_save_state_changed.connect(self.set_measure_save_state)
 
         self.add_measure_in_table(row_index, new_name, measure_data_model.is_enabled())

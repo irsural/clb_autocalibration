@@ -134,7 +134,7 @@ class MeasureDataModel(QAbstractTableModel):
             "column_count": self.columnCount(),
             "enabled": self.__enabled,
             "cells": self.__serialize_cells_to_dict(),
-            "agilent_config": self.__measure_parameters.serialize_to_dict(),
+            "measure_parameters": self.__measure_parameters.serialize_to_dict(),
         }
         return data_dict
 
