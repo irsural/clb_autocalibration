@@ -118,14 +118,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.current_configuration_path = ""
 
+            self.measure_progress_bar_value = 0
+
             self.show()
 
-            self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
+            self.measure_manager = MeasureManager(self.ui.measures_table,
+                                                  self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
             self.measure_conductor = MeasureConductor(self.measure_manager, self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
-            self.measure_conductor.single_measure_done.connect(self.save_current_configuration)
+            self.measure_conductor.single_measure_started.connect(self.single_measure_started)
+            self.measure_conductor.single_measure_done.connect(self.single_measure_done)
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
@@ -208,7 +212,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.clb_list_changed.connect(source_mode_widget.update_clb_list)
         self.usb_status_changed.connect(source_mode_widget.update_clb_status)
         self.signal_enable_changed.connect(source_mode_widget.signal_enable_changed)
-        self.ui.source_mode_layout.addWidget(source_mode_widget)
+        # self.ui.source_mode_layout.addWidget(source_mode_widget)
         return source_mode_widget
 
     def lock_interface(self, a_lock: bool):
@@ -255,6 +259,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_conductor.tick()
         self.usb_driver.tick()
 
+        self.progress_bars_handling()
+
         if self.usb_driver.is_dev_list_changed():
             self.ui.clb_list_combobox.clear()
             for clb_name in self.usb_driver.get_dev_list():
@@ -283,8 +289,20 @@ class MainWindow(QtWidgets.QMainWindow):
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
 
-    def get_measure_iterator(self):
-        pass
+    def count_measure_length(self, a_iteration_type: MeasureManager.IterationType):
+        measure_iterator = self.measure_manager.get_measure_iterator(a_iteration_type)
+        seconds_count = 0
+        if measure_iterator is not None:
+            cell_position = measure_iterator.get()
+            while cell_position is not None:
+                cell_config = self.measure_manager.get_cell_config(*cell_position)
+                seconds_count += cell_config.measure_delay
+                seconds_count += cell_config.measure_time
+
+                measure_iterator.next()
+                cell_position = measure_iterator.get()
+
+        return seconds_count
 
     def start_measure(self, a_iteration_type: MeasureManager.IterationType):
         measure_iterator = self.measure_manager.get_measure_iterator(a_iteration_type)
@@ -293,7 +311,29 @@ class MainWindow(QtWidgets.QMainWindow):
             if measure_iterator.get() is not None:
                 if self.save_configuration():
                     self.lock_interface(True)
+                    self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type))
+
                     self.measure_conductor.start(measure_iterator)
+
+    def progress_bars_handling(self):
+        if self.measure_conductor.is_started():
+            time_passed = self.measure_conductor.get_current_cell_time_passed()
+            self.ui.curent_cell_progress_bar.setValue(time_passed)
+            self.ui.measure_progress_bar.setValue(self.measure_progress_bar_value + time_passed)
+
+    def single_measure_started(self):
+        self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration())
+
+    def single_measure_done(self):
+        self.ui.curent_cell_progress_bar.setValue(0)
+        self.measure_progress_bar_value = self.ui.measure_progress_bar.value()
+        self.save_current_configuration()
+
+    def measure_done(self):
+        self.ui.curent_cell_progress_bar.setValue(0)
+        self.ui.measure_progress_bar.setValue(0)
+        self.measure_progress_bar_value = 0
+        self.lock_interface(False)
 
     def start_all_measures_button_clicked(self, _):
         self.start_measure(MeasureManager.IterationType.START_ALL)
@@ -309,10 +349,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def stop_measure_button_clicked(self, _):
         self.measure_conductor.stop()
-        self.lock_interface(False)
-
-    def measure_done(self):
-        self.lock_interface(False)
 
     def toggle_correction(self, _):
         logging.debug("Не реализовано")
@@ -495,7 +531,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.measure_conductor = MeasureConductor(self.measure_manager, self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
-        self.measure_conductor.single_measure_done.connect(self.save_current_configuration)
+        self.measure_conductor.single_measure_done.connect(self.single_measure_done)
 
     def create_new_configuration(self):
         cancel_open = False
@@ -550,7 +586,7 @@ class MainWindow(QtWidgets.QMainWindow):
         msgbox.setText("Текущая конфигурация не сохранена. Выберите действие")
         save_button = msgbox.addButton("Сохранить", QtWidgets.QMessageBox.YesRole)
         no_save_button = msgbox.addButton("Не сохранять", QtWidgets.QMessageBox.AcceptRole)
-        cancel_button = msgbox.addButton("Отмена", QtWidgets.QMessageBox.AcceptRole)
+        _ = msgbox.addButton("Отмена", QtWidgets.QMessageBox.AcceptRole)
         msgbox.exec()
 
         if msgbox.clickedButton() == save_button:

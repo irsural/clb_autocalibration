@@ -112,6 +112,9 @@
            <height>0</height>
           </size>
          </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
          <property name="value">
           <number>1</number>
          </property>
@@ -149,6 +152,9 @@
            <height>0</height>
           </size>
          </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
          <property name="maximum">
           <number>9999</number>
          </property>
@@ -177,6 +183,9 @@
            <width>100</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="minimum">
+          <number>1</number>
          </property>
          <property name="maximum">
           <number>99999</number>
@@ -637,8 +646,8 @@ selection-background-color: rgb(170, 170, 255);</string>
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup_3"/>
  </buttongroups>
 </ui>

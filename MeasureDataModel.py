@@ -28,7 +28,7 @@ class CellData:
         self.__measured_values = a_init_values if a_init_values is not None else array('d')
         self.__measured_times = a_init_times if a_init_times is not None else array('d')
         self.__start_time_point = a_start_time_point if a_start_time_point is not None else perf_counter()
-        self.__average = metrology.MovingAverage(999)
+        self.__average = metrology.MovingAverage()
 
         if a_init_values:
             for value in self.__measured_values:

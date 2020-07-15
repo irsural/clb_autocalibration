@@ -51,8 +51,9 @@ class MeasureConductor(QtCore.QObject):
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
     }
 
-    all_measures_done = QtCore.pyqtSignal()
+    single_measure_started = QtCore.pyqtSignal()
     single_measure_done = QtCore.pyqtSignal()
+    all_measures_done = QtCore.pyqtSignal()
 
     def __init__(self, a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
@@ -68,6 +69,8 @@ class MeasureConductor(QtCore.QObject):
         self.calibrator_hold_ready_timer = utils.Timer(0)
         self.measure_duration_timer = utils.Timer(0)
 
+        self.__started = False
+
         self.__stage = MeasureConductor.Stage.REST
 
     def __del__(self):
@@ -78,15 +81,35 @@ class MeasureConductor(QtCore.QObject):
         self.current_cell_position = None
         self.current_measure_parameters = None
         self.current_config = None
+        self.__started = False
+        self.calibrator_hold_ready_timer.stop()
+        self.measure_duration_timer.stop()
+        self.all_measures_done.emit()
 
     def start(self, a_measure_iterator: MeasureIterator):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
         self.measure_iterator = a_measure_iterator
+        self.__started = True
         self.__stage = MeasureConductor.Stage.CONNECT_TO_METER
 
     def stop(self):
         self.reset()
         self.__stage = MeasureConductor.Stage.REST
+
+    def is_started(self):
+        return self.__started
+
+    def get_current_cell_time_passed(self):
+        if self.__started:
+            return self.calibrator_hold_ready_timer.time_passed() + self.measure_duration_timer.time_passed()
+        else:
+            return 0
+
+    def get_current_cell_time_duration(self):
+        if self.__started:
+            return self.current_config.measure_delay + self.current_config.measure_time
+        else:
+            return 1
 
     def tick(self):
         if self.__stage == MeasureConductor.Stage.REST:
@@ -116,6 +139,8 @@ class MeasureConductor(QtCore.QObject):
             self.current_measure_parameters = \
                 self.measure_manager.get_measure_parameters(self.current_cell_position.measure_name)
             self.current_config = self.measure_manager.get_cell_config(*self.current_cell_position)
+
+            self.single_measure_started.emit()
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
@@ -172,6 +197,9 @@ class MeasureConductor(QtCore.QObject):
             self.measure_iterator.next()
             cell_position = self.measure_iterator.get()
 
+            self.calibrator_hold_ready_timer.stop()
+            self.measure_duration_timer.stop()
+
             if cell_position is not None:
                 logging.debug("Следующее измерение")
                 self.__stage = MeasureConductor.Stage.GET_CONFIGS
@@ -179,5 +207,4 @@ class MeasureConductor(QtCore.QObject):
                 logging.debug("Измерение выполнено")
 
                 self.reset()
-                self.all_measures_done.emit()
                 self.__stage = MeasureConductor.Stage.REST
