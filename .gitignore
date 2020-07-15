@@ -11,5 +11,4 @@ icons_rc.py
 /Lib
 /Scripts
 /resources/py
-/configurations/test1
-/configurations/test2
+/configurations
