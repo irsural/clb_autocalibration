@@ -8,9 +8,9 @@ from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget,
 from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
 import irspy.clb.calibrator_constants as clb
-from irspy.dlls.ftdi_dll import FtdiControl
-import irspy.dlls.ftdi_dll as ftdi_dll
+from irspy.dlls.ftdi_control import FtdiControl
 import irspy.clb.clb_dll as clb_dll
+from irspy.dlls import mxsrlib_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
@@ -97,8 +97,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.set_up_logger()
 
-            self.ftdi_driver = ftdi_dll.set_up_driver("../irspy/dlls/ftdi_dll.dll")
-            self.ftdi = ftdi_dll.FtdiControl(self.ftdi_driver)
+            self.mxsrclib_dll = mxsrlib_dll.set_up_mxsrclib_dll("../irspy/dlls/mxsrclib_dll.dll")
+
+            self.ftdi_control = FtdiControl(self.mxsrclib_dll)
 
             self.clb_driver = clb_dll.set_up_driver("../irspy/clb/clb_driver_dll.dll")
 
@@ -629,8 +630,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 a_event.accept()
 
     def pa6_button_clicked(self, a_state):
-        result = self.ftdi.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
-        gpio_state = self.ftdi.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
+        result = self.ftdi_control.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
+        gpio_state = self.ftdi_control.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
 
     def reinit_button_clicked(self, _):
-        self.ftdi.reinit()
+        self.ftdi_control.reinit()

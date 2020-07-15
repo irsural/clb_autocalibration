@@ -1,10 +1,8 @@
-from typing import List, Iterable, Union
+from typing import List, Union
 from collections import OrderedDict
 from time import perf_counter
 from array import array
-from enum import IntEnum
 import logging
-import json
 import copy
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
