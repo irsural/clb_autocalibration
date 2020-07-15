@@ -93,6 +93,7 @@ class MeasureConductor(QtCore.QObject):
         self.__stage = MeasureConductor.Stage.CONNECT_TO_METER
 
     def stop(self):
+        self.measure_manager.finalize_measure(*self.current_cell_position)
         self.reset()
         self.__stage = MeasureConductor.Stage.REST
 
@@ -140,6 +141,7 @@ class MeasureConductor(QtCore.QObject):
                 self.measure_manager.get_measure_parameters(self.current_cell_position.measure_name)
             self.current_config = self.measure_manager.get_cell_config(*self.current_cell_position)
 
+            self.measure_manager.reset_measure(*self.current_cell_position)
             self.single_measure_started.emit()
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -173,6 +175,8 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.MEASURE_DONE:
             logging.debug("Измерение выполнено")
+            self.measure_manager.finalize_measure(*self.current_cell_position)
+
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:

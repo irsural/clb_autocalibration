@@ -9,6 +9,7 @@ from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
 import irspy.clb.calibrator_constants as clb
 from irspy.dlls.ftdi_control import FtdiControl
+from irspy.metrology import ImpulseFilter
 import irspy.clb.clb_dll as clb_dll
 from irspy.dlls import mxsrlib_dll
 from irspy.qt import qt_utils
@@ -98,6 +99,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.set_up_logger()
 
             self.mxsrclib_dll = mxsrlib_dll.set_up_mxsrclib_dll("../irspy/dlls/mxsrclib_dll.dll")
+            ImpulseFilter.init_mxsrlib_dll(self.mxsrclib_dll)
 
             self.ftdi_control = FtdiControl(self.mxsrclib_dll)
 

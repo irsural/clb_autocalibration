@@ -432,6 +432,9 @@ class MeasureManager(QtCore.QObject):
     def add_measured_value(self, a_name: str, a_row, a_column, a_value: float):
         self.measures[a_name].update_cell_with_value(a_row, a_column, a_value)
 
+    def finalize_measure(self, a_name: str, a_row, a_column):
+        self.measures[a_name].finalize_cell(a_row, a_column)
+
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:
             measure_name = self.measures_table.item(a_current.row(), MeasureManager.MeasureColumn.NAME).text()

@@ -9,17 +9,17 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QColor
 
-from irspy import utils
-from irspy import metrology
 from irspy.clb import calibrator_constants as clb
+from irspy import metrology
+from irspy import utils
 
 from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 
 
 class CellData:
-    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_start_time_point=None,
-                 a_config=None):
+    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_start_time_point=None, a_result=0.,
+                 a_have_result=False, a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
@@ -27,10 +27,10 @@ class CellData:
         self.__measured_times = a_init_times if a_init_times is not None else array('d')
         self.__start_time_point = a_start_time_point if a_start_time_point is not None else perf_counter()
         self.__average = metrology.MovingAverage()
+        self.__impulse_filter = metrology.ImpulseFilter()
 
-        if a_init_values:
-            for value in self.__measured_values:
-                self.__average.add(value)
+        self.__result = a_result
+        self.__have_result = a_have_result
 
         self.config = a_config if a_config is not None else CellConfig()
 
@@ -40,6 +40,8 @@ class CellData:
             "measured_values": utils.bytes_to_base64(self.__measured_values.tobytes()),
             "measured_times": utils.bytes_to_base64(self.__measured_times.tobytes()),
             "start_time_point": self.__start_time_point,
+            "result": self.__result,
+            "have_result": self.__have_result,
             "config": self.config.serialize_to_dict(),
         }
         return data_dict
@@ -56,6 +58,8 @@ class CellData:
                    a_init_values=init_values,
                    a_init_times=init_times,
                    a_start_time_point=float(a_data_dict["start_time_point"]),
+                   a_result=float(a_data_dict["result"]),
+                   a_have_result=bool(a_data_dict["have_result"]),
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
@@ -63,12 +67,15 @@ class CellData:
         self.__measured_values = array('d')
         self.__measured_times = array('d')
         self.__start_time_point = perf_counter()
+        self.__impulse_filter.clear()
+        self.__result = 0
+        self.__have_result = False
 
     def has_value(self):
-        return bool(self.__measured_values)
+        return self.__have_result
 
     def get_value(self):
-        return self.__average.get()
+        return self.__result
 
     def set_value(self, a_value: float):
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
@@ -79,6 +86,22 @@ class CellData:
         self.__measured_values.append(a_value)
         self.__measured_times.append(perf_counter() - self.__start_time_point)
         self.__average.add(a_value)
+        # До вызова self.finalize в __result хранится последнее добавленное значение
+        self.__have_result = True
+        self.__result = a_value
+
+    def finalize(self):
+        """
+        Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
+        """
+        if self.has_value():
+            if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
+                logging.info("Количество измеренных значений слишком мало для импульсного фильтра! "
+                             "Результат будет вычислен по среднему значению")
+                self.__result = self.__average.get()
+            else:
+                self.__impulse_filter.assign(self.__measured_values)
+                self.__result = self.__impulse_filter.get()
 
     def lock(self, a_lock: bool):
         self.__locked = a_lock
@@ -375,6 +398,11 @@ class MeasureDataModel(QAbstractTableModel):
 
     def update_cell_with_value(self, a_row, a_column, a_value: float):
         self.__cells[a_row][a_column].append_value(a_value)
+        self.set_save_state(False)
+        self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
+
+    def finalize_cell(self, a_row, a_column):
+        self.__cells[a_row][a_column].finalize()
         self.set_save_state(False)
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
