@@ -161,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
-            self.ui.correction_action.triggered.connect(self.toggle_correction)
+            # self.ui.correction_action.triggered.connect(self.toggle_correction)
             self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.save_as_action.triggered.connect(self.save_configuration_as)
             self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
@@ -260,11 +260,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.measure_manager.lock_interface(a_lock)
 
+    def gui_tick(self):
+        self.progress_bars_handling()
+
+        correction_enabled = not self.netvars.ui_correct_off.get()
+        correction_enabled_ui = self.ui.correction_action.isChecked()
+        if not correction_enabled == correction_enabled_ui:
+            self.ui.correction_action.setChecked(correction_enabled)
+
     def tick(self):
         self.measure_conductor.tick()
         self.usb_driver.tick()
-
-        self.progress_bars_handling()
+        self.gui_tick()
 
         if self.usb_driver.is_dev_list_changed():
             self.ui.clb_list_combobox.clear()
