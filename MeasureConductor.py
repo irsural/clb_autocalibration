@@ -6,11 +6,11 @@ import random
 
 from PyQt5 import QtCore
 
+from irspy.clb.network_variables import NetworkVariables, BufferedVariable, VariableInfo
+from irspy.clb import assist_functions as clb_assists
 from irspy.clb import calibrator_constants as clb
 from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
-from irspy.clb.network_variables import NetworkVariables, BufferedVariable, VariableInfo
-from irspy.clb import assist_functions as clb_assists
 from irspy.clb.clb_dll import ClbDrv
 from irspy import utils
 
@@ -161,6 +161,15 @@ class MeasureConductor(QtCore.QObject):
         else:
             return 1
 
+    def set_signal_type(self, a_signal_type: clb.SignalType) -> bool:
+        current_enabled = clb.signal_type_to_current_enabled[a_signal_type]
+        dc_enabled = clb.signal_type_to_dc_enabled[a_signal_type]
+
+        current_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.current_enabled, current_enabled)
+        dc_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.dc_enabled, dc_enabled)
+
+        return current_ok and dc_ok
+
     def tick(self):
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
@@ -221,23 +230,19 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_CALIBRATOR_CONFIG:
-
-            calibrator_ready = True # ######################################################################################
             # Чтобы не читать с калибратора с периодом основного тика программы
             if self.read_clb_variables_timer.check():
                 self.read_clb_variables_timer.start()
 
                 if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
-                    ready_list = []
+                    variables_ready = []
                     for variable in self.extra_variables:
                         ready = clb_assists.guaranteed_buffered_variable_set(variable.buffered_variable,
                                                                              variable.default_value)
-                        ready_list.append(ready)
+                        variables_ready.append(ready)
 
-                    calibrator_ready = all(ready_list)
-
-            if calibrator_ready:
-                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                    if not all(variables_ready): # #################################################################################
+                        self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -255,10 +260,32 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_CALIBRATOR_CONFIG:
+            # Чтобы не читать с калибратора с периодом основного тика программы
+            if self.read_clb_variables_timer.check():
+                self.read_clb_variables_timer.start()
 
-            self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
+                variables_ready = []
 
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                ready = self.set_signal_type(self.current_measure_parameters.signal_type)
+                variables_ready.append(ready)
+
+                ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reference_amplitude,
+                                                                     self.current_amplitude)
+                variables_ready.append(ready)
+
+                ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.frequency, self.current_frequency)
+                variables_ready.append(ready)
+
+                for variable in self.extra_variables:
+                    ready = clb_assists.guaranteed_buffered_variable_set(variable.buffered_variable,
+                                                                         variable.work_value)
+                    variables_ready.append(ready)
+
+                if all(variables_ready):
+                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True):
+                        # Сигнал включен, начинаем измерение
+                        self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
+                        self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.WAIT_CALIBRATOR_READY:
             if self.calibrator_hold_ready_timer.check():
