@@ -5,59 +5,68 @@ import random
 
 from PyQt5 import QtCore
 
+from irspy.clb import calibrator_constants as clb
+from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
+from irspy.clb.clb_dll import ClbDrv
 from irspy import utils
 
-from MeasureIterator import MeasureIterator
 from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
+from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
 
 
 class MeasureConductor(QtCore.QObject):
     class Stage(IntEnum):
         REST = 0
-        CONNECT_TO_METER = 1
-        CONNECT_TO_SCHEME = 2
-        CONNECT_TO_CALIBRATOR = 3
-        GET_CONFIGS = 4
-        SET_METER_CONFIG = 5
-        SET_SCHEME_CONFIG = 6
-        SET_CALIBRATOR_CONFIG = 7
-        WAIT_CALIBRATOR_READY = 8
-        MEASURE = 9
-        MEASURE_DONE = 10
-        RESET_METER_CONFIG = 11
-        RESET_SCHEME_CONFIG = 12
-        RESET_CALIBRATOR_CONFIG = 13
-        FLASH_TO_CALIBRATOR = 14
-        NEXT_MEASURE = 15
+        CONNECT_TO_CALIBRATOR = 1
+        CONNECT_TO_METER = 2
+        CONNECT_TO_SCHEME = 3
+        RESET_METER_CONFIG = 4
+        RESET_SCHEME_CONFIG = 5
+        RESET_CALIBRATOR_CONFIG = 6
+        GET_CONFIGS = 7
+        SET_METER_CONFIG = 8
+        SET_SCHEME_CONFIG = 9
+        SET_CALIBRATOR_CONFIG = 10
+        WAIT_CALIBRATOR_READY = 11
+        MEASURE = 12
+        FLASH_TO_CALIBRATOR = 13
+        NEXT_MEASURE = 14
+        MEASURE_DONE = 15
 
     NEXT_STAGE = {
         Stage.REST: Stage.REST,
+        Stage.CONNECT_TO_CALIBRATOR: Stage.CONNECT_TO_METER,
         Stage.CONNECT_TO_METER: Stage.CONNECT_TO_SCHEME,
-        Stage.CONNECT_TO_SCHEME: Stage.CONNECT_TO_CALIBRATOR,
-        Stage.CONNECT_TO_CALIBRATOR: Stage.GET_CONFIGS,
+        Stage.CONNECT_TO_SCHEME: Stage.RESET_METER_CONFIG,
+        Stage.RESET_METER_CONFIG: Stage.RESET_SCHEME_CONFIG,
+        Stage.RESET_SCHEME_CONFIG: Stage.RESET_CALIBRATOR_CONFIG,
+        # Stage.RESET_CALIBRATOR_CONFIG: Stage.GET_CONFIGS,
+        # Stage.RESET_CALIBRATOR_CONFIG: Stage.MEASURE_DONE,
         Stage.GET_CONFIGS: Stage.SET_METER_CONFIG,
         Stage.SET_METER_CONFIG: Stage.SET_SCHEME_CONFIG,
         Stage.SET_SCHEME_CONFIG: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
         Stage.WAIT_CALIBRATOR_READY: Stage.MEASURE,
-        Stage.MEASURE: Stage.MEASURE_DONE,
-        Stage.MEASURE_DONE: Stage.RESET_METER_CONFIG,
-        Stage.RESET_METER_CONFIG: Stage.RESET_SCHEME_CONFIG,
-        Stage.RESET_SCHEME_CONFIG: Stage.RESET_CALIBRATOR_CONFIG,
-        Stage.RESET_CALIBRATOR_CONFIG: Stage.FLASH_TO_CALIBRATOR,
+        # Stage.MEASURE: Stage.FLASH_TO_CALIBRATOR,
+        # Stage.MEASURE: Stage.NEXT_MEASURE,
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
+        Stage.NEXT_MEASURE: Stage.RESET_METER_CONFIG,
+        Stage.MEASURE_DONE: Stage.REST,
     }
 
     single_measure_started = QtCore.pyqtSignal()
     single_measure_done = QtCore.pyqtSignal()
     all_measures_done = QtCore.pyqtSignal()
 
-    def __init__(self, a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
+    def __init__(self, a_calibrator: ClbDrv, a_ftdi_control: FtdiControl, a_measure_manager: MeasureManager,
+                 a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
+        self.calibrator = a_calibrator
+        self.ftdi_control = a_ftdi_control
         self.settings = a_settings
         self.measure_manager = a_measure_manager
         self.measure_iterator: Union[None, MeasureIterator] = None
@@ -90,10 +99,11 @@ class MeasureConductor(QtCore.QObject):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
         self.measure_iterator = a_measure_iterator
         self.__started = True
-        self.__stage = MeasureConductor.Stage.CONNECT_TO_METER
+        self.__stage = MeasureConductor.Stage.CONNECT_TO_CALIBRATOR
 
     def stop(self):
-        self.measure_manager.finalize_measure(*self.current_cell_position)
+        if self.current_cell_position is not None:
+            self.measure_manager.finalize_measure(*self.current_cell_position)
         self.reset()
         self.__stage = MeasureConductor.Stage.REST
 
@@ -116,17 +126,40 @@ class MeasureConductor(QtCore.QObject):
         if self.__stage == MeasureConductor.Stage.REST:
             pass
 
+        elif self.__stage == MeasureConductor.Stage.CONNECT_TO_CALIBRATOR:
+            if self.calibrator.state == clb.State.DISCONNECTED: # #################################################################################
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            else:
+                logging.warning("Калибратор не подключен, измерение остановлено")
+
+                self.stop()
+
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_METER:
             logging.debug("Подключение к измерителю")
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
-            logging.debug("Подключение к схеме")
+            if not self.ftdi_control.reinit(): # #################################################################################
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            else:
+                logging.warning("Не удалось подключиться к схеме (FTDI), измерение остановлено")
+                self.stop()
+
+        elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
+            logging.debug("Сброс параметров измерителя")
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
-        elif self.__stage == MeasureConductor.Stage.CONNECT_TO_CALIBRATOR:
-            logging.debug("Подключение к калибратору")
+        elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
+            logging.debug("Сброс параметров схемы")
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == MeasureConductor.Stage.RESET_CALIBRATOR_CONFIG:
+            logging.debug("Сброс параметров калибратора")
+
+            if self.is_started():
+                self.__stage = MeasureConductor.Stage.GET_CONFIGS
+            else:
+                self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
         elif self.__stage == MeasureConductor.Stage.GET_CONFIGS:
             logging.debug("Получение конфигурации")
@@ -171,44 +204,33 @@ class MeasureConductor(QtCore.QObject):
             if not self.measure_duration_timer.check():
                 self.measure_manager.add_measured_value(*self.current_cell_position, random.random())
             else:
-                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                self.measure_manager.finalize_measure(*self.current_cell_position)
 
-        elif self.__stage == MeasureConductor.Stage.MEASURE_DONE:
-            logging.debug("Измерение выполнено")
-            self.measure_manager.finalize_measure(*self.current_cell_position)
+                # stop() чтобы таймеры возвращали верное значение time_passed()
+                self.calibrator_hold_ready_timer.stop()
+                self.measure_duration_timer.stop()
+                self.single_measure_done.emit()
 
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
-
-        elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
-            logging.debug("Сброс параметров измерителя")
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
-
-        elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
-            logging.debug("Сброс параметров схемы")
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
-
-        elif self.__stage == MeasureConductor.Stage.RESET_CALIBRATOR_CONFIG:
-            logging.debug("Сброс параметров калибратора")
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                if self.current_measure_parameters.flash_after_finish:
+                    self.__stage = MeasureConductor.Stage.FLASH_TO_CALIBRATOR
+                else:
+                    self.__stage = MeasureConductor.Stage.NEXT_MEASURE
 
         elif self.__stage == MeasureConductor.Stage.FLASH_TO_CALIBRATOR:
             logging.debug("Прошивка калибратора")
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.NEXT_MEASURE:
-            self.single_measure_done.emit()
-
+            logging.debug("Следующее измерение")
             self.measure_iterator.next()
             cell_position = self.measure_iterator.get()
 
-            self.calibrator_hold_ready_timer.stop()
-            self.measure_duration_timer.stop()
+            if cell_position is None:
+                self.__started = False
 
-            if cell_position is not None:
-                logging.debug("Следующее измерение")
-                self.__stage = MeasureConductor.Stage.GET_CONFIGS
-            else:
-                logging.debug("Измерение выполнено")
+            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
-                self.reset()
-                self.__stage = MeasureConductor.Stage.REST
+        elif self.__stage == MeasureConductor.Stage.MEASURE_DONE:
+            logging.debug("Измерение закончено")
+            self.reset()
+            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]

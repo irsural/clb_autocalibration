@@ -129,7 +129,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                                   self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
-            self.measure_conductor = MeasureConductor(self.measure_manager, self.settings)
+            self.measure_conductor = MeasureConductor(self.calibrator, self.ftdi_control, self.measure_manager,
+                                                      self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
             self.measure_conductor.single_measure_started.connect(self.single_measure_started)
             self.measure_conductor.single_measure_done.connect(self.single_measure_done)
@@ -532,7 +533,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def reset_measure_manager(self):
         self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
 
-        self.measure_conductor = MeasureConductor(self.measure_manager, self.settings)
+        self.measure_conductor = MeasureConductor(self.calibrator, self.ftdi_control, self.measure_manager,
+                                                  self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
         self.measure_conductor.single_measure_done.connect(self.single_measure_done)
 
@@ -634,6 +636,3 @@ class MainWindow(QtWidgets.QMainWindow):
     def pa6_button_clicked(self, a_state):
         result = self.ftdi_control.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
         gpio_state = self.ftdi_control.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)
-
-    def reinit_button_clicked(self, _):
-        self.ftdi_control.reinit()

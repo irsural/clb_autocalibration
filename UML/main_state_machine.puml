@@ -1,41 +1,30 @@
 @startuml
 
+state "Подключение к устройствам" as device_connect
+state "Сброс парамметров устройств" as reset_devices
+state "Установка параметров устройств" as set_devices
+
 state "Получение параметров ячейки" as get_cell_params
-state "Установка параметров пути" as set_way_params
-state "Соединение с измерителем" as agilent_connect
-state "Установка рабочих значений в калибратор" as calibrator_set_up
-state "Установка значений по-умолчанию в калибратор" as calibrator_reset
-state "Сброс параметров пути" as reset_way_params
 state "Ожидание выхода на режим" as wait_ready
 state "Измерение выходного значения калибратора" as measurement
-state "Сохранение результатов" as saving_results
+state "Рассчет параметров измерения" as calc_parameters
 state "Прошивка в калибратор" as flash_data
+state "Следующее измерение" as next_measure
 state "Окончание измерения" as measure_finish
 
 
-[*] --> get_cell_params
-get_cell_params --> set_way_params
-set_way_params: Установка параметров "Катушка" и\n"Делитель/Умножитель" через схему FTDI
-set_way_params --> agilent_connect
-agilent_connect --> calibrator_set_up
-calibrator_set_up: do / Выставление дополнительных параметров\n\tкалибратора в рабочие значения
-calibrator_set_up: do / Выставление основных параметров калибратора\n\tв рабочие значения
-calibrator_set_up --> wait_ready
-wait_ready --> wait_ready: Повторная попытка
+[*] --> device_connect
+device_connect --> reset_devices
+reset_devices --> get_cell_params
+get_cell_params --> set_devices
+set_devices --> wait_ready
 wait_ready --> measurement
-measurement: do / Снятие значение с измерителя
-measurement: do / Рассчет параметров (СКО / отклонение)
-measurement: do / Сохранение точек для графика
-measurement: do / Фильтрация выходного значения (Опционально)
-measurement --> saving_results
-saving_results --> get_cell_params: Переход к следующией точке
-saving_results --> calibrator_reset
-saving_results --> flash_data: Если последняя точка в измерении
-flash_data --> get_cell_params: Переход к следующией точке
-calibrator_reset --> reset_way_params
-calibrator_reset: do / Выставление основных параметров калибратора\n\tв значения по-умолчанию
-calibrator_reset: do / Выставление дополнительных параметров\n\tкалибратора в значения по-умолчанию
-reset_way_params --> measure_finish
+measurement --> calc_parameters
+calc_parameters --> flash_data
+calc_parameters --> next_measure
+flash_data --> next_measure
+next_measure --> reset_devices
+reset_devices --> measure_finish
 measure_finish --> [*]
 
 @enduml
