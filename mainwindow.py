@@ -541,8 +541,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def reset_measure_manager(self):
         self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
 
-        self.measure_conductor = MeasureConductor(self.calibrator, self.ftdi_control, self.measure_manager,
-                                                  self.settings)
+        self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
+                                                  self.measure_manager, self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
         self.measure_conductor.single_measure_done.connect(self.single_measure_done)
 
