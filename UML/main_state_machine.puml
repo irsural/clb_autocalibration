@@ -3,6 +3,7 @@
 state "Подключение к устройствам" as device_connect
 state "Сброс парамметров устройств" as reset_devices
 state "Установка параметров устройств" as set_devices
+state "Установка параметров калибратора" as set_calibrator
 
 state "Получение параметров ячейки" as get_cell_params
 state "Ожидание выхода на режим" as wait_ready
@@ -14,16 +15,22 @@ state "Окончание измерения" as measure_finish
 
 
 [*] --> device_connect
-device_connect --> reset_devices
-reset_devices --> get_cell_params
-get_cell_params --> set_devices
-set_devices --> wait_ready
+device_connect --> get_cell_params
+get_cell_params --> reset_devices
+reset_devices: В это состояние можно перейти почти из любого другого \
+\nсостояния, если пользователь нажмет кнопку СТОП
+reset_devices --> set_devices
+set_devices --> set_calibrator
+set_calibrator --> wait_ready
 wait_ready --> measurement
+wait_ready --> set_calibrator: "Ошибка калибратора"
 measurement --> calc_parameters
+measurement --> set_calibrator: "Ошибка калибратора"
 calc_parameters --> flash_data
 calc_parameters --> next_measure
 flash_data --> next_measure
 next_measure --> reset_devices
+next_measure --> get_cell_params
 reset_devices --> measure_finish
 measure_finish --> [*]
 
