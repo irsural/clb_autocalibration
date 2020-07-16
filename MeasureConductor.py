@@ -170,8 +170,12 @@ class MeasureConductor(QtCore.QObject):
             self.current_config = self.measure_manager.get_cell_config(*self.current_cell_position)
 
             self.extra_variables.clear()
-            # for extra_parameter in self.current_config.extra_parameters:
-            #     buffered_variable = BufferedVariable(VariableInfo(a_index=index, a_bit_index=bit_index, a_type=_type, a_name=name))
+            for extra_parameter in self.current_config.extra_parameters:
+                variable_info = VariableInfo(a_index=extra_parameter.index, a_bit_index=extra_parameter.bit_index,
+                                             a_type=extra_parameter.type)
+
+                self.extra_variables.append(BufferedVariable(a_variable_info=variable_info,
+                                                             a_calibrator=self.calibrator, a_buffer_delay_s=0))
 
             self.measure_manager.reset_measure(*self.current_cell_position)
             self.single_measure_started.emit()

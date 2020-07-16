@@ -141,7 +141,7 @@ class TstlanDialog(QtWidgets.QDialog):
         variable_info = self.get_variable_info_by_row(a_table_row)
 
         if a_graph_state:
-            variable = nv.BufferedVariable(variable_info, nv.BufferedVariable.Mode.R, self.calibrator)
+            variable = nv.BufferedVariable(variable_info, self.calibrator, nv.BufferedVariable.Mode.R)
 
             self.variables_to_graph[variable_info.name] = variable
             self.graphs_data[variable_info.name] = [], []
