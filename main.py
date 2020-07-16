@@ -7,12 +7,16 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore, QtGui
 
-from mainwindow import MainWindow
+from irspy.dlls import mxsrlib_dll
 from irspy.utils import exception_decorator_print
+
+from mainwindow import MainWindow
 
 
 @exception_decorator_print
 def main():
+    mxsrlib_dll.set_up_mxsrclib_dll("../irspy/dlls/mxsrclib_dll.dll")
+
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setFont(QtGui.QFont("MS Shell Dlg 2", 10))
