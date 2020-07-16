@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import abc
 
 from MeasureDataModel import MeasureDataModel
@@ -13,7 +13,7 @@ class MeasureIterator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get(self):
+    def get(self) -> Union[None, CellPosition]:
         pass
 
 

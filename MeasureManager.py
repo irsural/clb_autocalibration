@@ -225,6 +225,12 @@ class MeasureManager(QtCore.QObject):
         assert a_measure_name in self.measures, f"Не найдено измерение с именем {a_measure_name}"
         return self.measures[a_measure_name].get_measure_parameters()
 
+    def get_amplitude(self, a_measure_name: str, a_row: int) -> float:
+        return self.measures[a_measure_name].get_amplitude(a_row)
+
+    def get_frequency(self, a_measure_name: str, a_column: int) -> float:
+        return self.measures[a_measure_name].get_frequency(a_column)
+
     def open_cell_configuration(self):
         selected_index = self.__get_only_selected_cell()
         if selected_index:
