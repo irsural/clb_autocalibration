@@ -79,7 +79,7 @@ class CellConfig:
         Meter.VOLTS: "В",
     }
 
-    ExtraParameter = namedtuple("ExtraParameter", ["name", "index", "type", "work_value", "default_value"])
+    ExtraParameter = namedtuple("ExtraParameter", ["name", "index", "bit_index", "type", "work_value", "default_value"])
 
     def __init__(self):
         self.coefficient = 1
@@ -175,10 +175,11 @@ class EditCellConfigDialog(QtWidgets.QDialog):
     class ExtraParamsColumn(IntEnum):
         NAME = 0
         INDEX = 1
-        TYPE = 2
-        WORK_VALUE = 3
-        DEFAULT_VALUE = 4
-        COUNT = 5
+        BIT_INDEX = 2
+        TYPE = 3
+        WORK_VALUE = 4
+        DEFAULT_VALUE = 5
+        COUNT = 6
 
     def __init__(self, a_init_config: CellConfig, a_signal_type: clb.SignalType, a_settings: Settings,
                  a_lock_editing=False, a_parent=None):
@@ -310,7 +311,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         for extra_parameter in a_cell_config.extra_parameters:
             qt_utils.qtablewidget_append_row(self.ui.extra_variables_table, (
-                extra_parameter.name, utils.float_to_string(extra_parameter.index), extra_parameter.type,
+                extra_parameter.name, str(extra_parameter.index), str(extra_parameter.bit_index), extra_parameter.type,
                 utils.float_to_string(extra_parameter.work_value), utils.float_to_string(extra_parameter.default_value)
             ))
 
@@ -352,7 +353,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             for row in range(self.ui.extra_variables_table.rowCount()):
                 extra_parameters.append(CellConfig.ExtraParameter(
                     name=self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.NAME).text(),
-                    index=float(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.INDEX).text()),
+                    index=int(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.INDEX).text()),
+                    bit_index=int(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.BIT_INDEX).text()),
                     type=self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.TYPE).text(),
                     work_value=float(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.WORK_VALUE).text()),
                     default_value=float(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.DEFAULT_VALUE).text())

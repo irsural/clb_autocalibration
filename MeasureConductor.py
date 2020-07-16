@@ -1,3 +1,4 @@
+from collections import namedtuple
 from typing import Union
 from enum import IntEnum
 import logging
@@ -63,6 +64,8 @@ class MeasureConductor(QtCore.QObject):
     single_measure_started = QtCore.pyqtSignal()
     single_measure_done = QtCore.pyqtSignal()
     all_measures_done = QtCore.pyqtSignal()
+
+    ExtraVariable = namedtuple("ExtraVariable", ["buffered_variable", "work_value", "default_value"])
 
     def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_ftdi_control: FtdiControl,
                  a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
@@ -165,6 +168,10 @@ class MeasureConductor(QtCore.QObject):
             self.current_measure_parameters = \
                 self.measure_manager.get_measure_parameters(self.current_cell_position.measure_name)
             self.current_config = self.measure_manager.get_cell_config(*self.current_cell_position)
+
+            self.extra_variables.clear()
+            # for extra_parameter in self.current_config.extra_parameters:
+            #     buffered_variable = BufferedVariable(VariableInfo(a_index=index, a_bit_index=bit_index, a_type=_type, a_name=name))
 
             self.measure_manager.reset_measure(*self.current_cell_position)
             self.single_measure_started.emit()

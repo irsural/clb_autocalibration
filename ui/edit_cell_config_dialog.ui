@@ -270,7 +270,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -503,6 +503,11 @@ selection-background-color: rgb(170, 170, 255);</string>
            </column>
            <column>
             <property name="text">
+             <string>Инд. бита</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
              <string>Тип</string>
             </property>
            </column>
@@ -646,8 +651,8 @@ selection-background-color: rgb(170, 170, 255);</string>
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>
