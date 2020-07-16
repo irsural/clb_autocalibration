@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Union
+from typing import Union, List
 from enum import IntEnum
 import logging
 import random
@@ -19,6 +19,8 @@ from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
 
+
+ExtraVariable = namedtuple("ExtraVariable", ["buffered_variable", "work_value", "default_value"])
 
 class MeasureConductor(QtCore.QObject):
     class Stage(IntEnum):
@@ -65,8 +67,6 @@ class MeasureConductor(QtCore.QObject):
     single_measure_done = QtCore.pyqtSignal()
     all_measures_done = QtCore.pyqtSignal()
 
-    ExtraVariable = namedtuple("ExtraVariable", ["buffered_variable", "work_value", "default_value"])
-
     def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_ftdi_control: FtdiControl,
                  a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
@@ -82,7 +82,9 @@ class MeasureConductor(QtCore.QObject):
         self.current_measure_parameters: Union[None, MeasureParameters] = None
         self.current_config: Union[None, CellConfig] = None
 
-        self.extra_variables = []
+        self.read_clb_variables_timer = utils.Timer(1)
+        self.read_clb_variables_timer.start()
+        self.extra_variables: List[ExtraVariable] = []
 
         self.calibrator_hold_ready_timer = utils.Timer(0)
         self.measure_duration_timer = utils.Timer(0)
@@ -174,8 +176,13 @@ class MeasureConductor(QtCore.QObject):
                 variable_info = VariableInfo(a_index=extra_parameter.index, a_bit_index=extra_parameter.bit_index,
                                              a_type=extra_parameter.type)
 
-                self.extra_variables.append(BufferedVariable(a_variable_info=variable_info,
-                                                             a_calibrator=self.calibrator, a_buffer_delay_s=0))
+                buffered_variable = BufferedVariable(a_variable_info=variable_info, a_calibrator=self.calibrator,
+                                                     a_buffer_delay_s=0)
+
+                self.extra_variables.append(ExtraVariable(buffered_variable=buffered_variable,
+                                                          work_value=extra_parameter.work_value,
+                                                          default_value=extra_parameter.default_value))
+
 
             self.measure_manager.reset_measure(*self.current_cell_position)
             self.single_measure_started.emit()
@@ -193,12 +200,25 @@ class MeasureConductor(QtCore.QObject):
         elif self.__stage == MeasureConductor.Stage.RESET_CALIBRATOR_CONFIG:
             logging.debug("Сброс параметров калибратора")
 
-            # if clb_assists.guaranteed_buffered_variable_set()
+            calibrator_ready = True # ######################################################################################
+            # Чтобы не читать с калибратора с периодом основного тика программы
+            if self.read_clb_variables_timer.check():
+                self.read_clb_variables_timer.start()
 
-            if self.is_started():
-                self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
-            else:
-                self.__stage = MeasureConductor.Stage.MEASURE_DONE
+                if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
+                    ready_list = []
+                    for variable in self.extra_variables:
+                        ready = clb_assists.guaranteed_buffered_variable_set(variable.buffered_variable,
+                                                                             variable.default_value)
+                        ready_list.append(ready)
+
+                    calibrator_ready = all(ready_list)
+
+            if calibrator_ready:
+                if self.is_started():
+                    self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
+                else:
+                    self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
         elif self.__stage == MeasureConductor.Stage.SET_METER_CONFIG:
             logging.debug("Установка параметров измерителя")
