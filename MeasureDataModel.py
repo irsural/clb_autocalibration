@@ -105,6 +105,7 @@ class CellData:
         self.__result = 0
         self.__have_result = False
         self.__calculations.reset()
+        self.__calculated = False
 
     def has_value(self):
         return self.__have_result
