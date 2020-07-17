@@ -84,6 +84,7 @@ class CellData:
         self.__result = a_result
         self.__have_result = a_have_result
 
+        self.__weight = 0
         self.__calculations = a_calculations if a_calculations is not None else CellCalculations()
 
         self.config = a_config if a_config is not None else CellConfig()
@@ -180,6 +181,8 @@ class CellData:
             if a_data_type == CellData.GetDataType.DEVIATION:
                 if a_setpoint != 0:
                     self.__calculations.deviation = metrology.deviation_percents(self.__result, a_setpoint)
+                else:
+                    self.__calculations.deviation = 0
             else:
                 abs_average = abs(mean(self.__measured_values))
                 if abs_average > 0:
@@ -205,6 +208,28 @@ class CellData:
                             if a_data_type == CellData.GetDataType.STUDENT_999:
                                 self.__calculations.student_999 = sko_percents * \
                                     metrology.student_t_inverse_distribution_2x(0.999, len(self.__measured_values))
+                        else:
+                            self.__calculations.sko_percents = 0
+                            self.__calculations.student_95 = 0
+                            self.__calculations.student_99 = 0
+                            self.__calculations.student_999 = 0
+                else:
+                    self.__calculations.delta_2 = 0
+                    self.__calculations.sko_percents = 0
+                    self.__calculations.student_95 = 0
+                    self.__calculations.student_99 = 0
+                    self.__calculations.student_999 = 0
+
+    def set_weight(self, a_weight: float):
+        assert 0 <= a_weight <= 1, "Вес должен быть в интервале [0;1]"
+        self.__weight = a_weight
+
+    def get_weight(self) -> float:
+        """
+        Возвращает "Вес" текущего типа данных (который возвращается self.get_value()) от 0 до 1.
+        Работает правильно только для параметров из  CellCalculations
+        """
+        return self.__weight
 
     def lock(self, a_lock: bool):
         self.__locked = a_lock
@@ -222,12 +247,17 @@ class CellData:
 class MeasureDataModel(QAbstractTableModel):
     HEADER_ROW = 0
     HEADER_COLUMN = 0
+
     HEADER_COLOR = QColor(209, 230, 255)
     TABLE_COLOR = QColor(255, 255, 255)
     LOCK_COLOR = QColor(254, 255, 171)
     EQUAL_COLOR = QColor(142, 250, 151)
+    WEIGHT_COLOR_RGB = (255, 150, 0)
+
     HZ_UNITS = "Гц"
-    DATA_PRECISION = 15
+
+    DISPLAY_DATA_PRECISION = 9
+    EDIT_DATA_PRECISION = 15
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
@@ -450,15 +480,33 @@ class MeasureDataModel(QAbstractTableModel):
         return bad_cells
 
     def __calculate_cells_parameters(self, a_displayed_data: CellData.GetDataType):
+        cell_values = []
         for row, row_data in enumerate(self.__cells):
             for column, cell in enumerate(row_data):
                 if not self.__is_cell_header(row, column):
-                    setpoint = self.get_amplitude(row)
-                    self.__cells[row][column].calculate_parameters(setpoint, a_displayed_data)
+                    cell = self.__cells[row][column]
+                    if cell.has_value():
+                        setpoint = self.get_amplitude(row)
+                        cell.calculate_parameters(setpoint, a_displayed_data)
+                        cell_values.append(abs(cell.get_value(a_displayed_data)))
+
+        max_value = max(cell_values) if len(cell_values) else 0
+
+        for row, row_data in enumerate(self.__cells):
+            for column, cell in enumerate(row_data):
+                if not self.__is_cell_header(row, column):
+                    cell = self.__cells[row][column]
+                    value = abs(cell.get_value(a_displayed_data))
+                    if max_value != 0:
+                        weight = value / max_value
+                    else:
+                        weight = 0
+
+                    cell.set_weight(weight)
 
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.__displayed_data = a_displayed_data
-        if not self.__displayed_data == CellData.GetDataType.MEASURED:
+        if self.__displayed_data != CellData.GetDataType.MEASURED:
             self.__calculate_cells_parameters(self.__displayed_data)
 
         self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW + 1, MeasureDataModel.HEADER_COLUMN + 1),
@@ -476,15 +524,19 @@ class MeasureDataModel(QAbstractTableModel):
 
     def __get_cell_color(self, a_index: QtCore.QModelIndex):
         if self.__is_cell_header(a_index.row(), a_index.column()):
-            return MeasureDataModel.HEADER_COLOR
-        else:
+            color = MeasureDataModel.HEADER_COLOR
+        elif self.__displayed_data == CellData.GetDataType.MEASURED:
             color = MeasureDataModel.TABLE_COLOR
             if self.is_cell_locked(a_index.row(), a_index.column()):
                 color = MeasureDataModel.LOCK_COLOR
             if self.__show_equal_cells:
                 if self.__cells[a_index.row()][a_index.column()].is_marked_as_equal():
                     color = MeasureDataModel.EQUAL_COLOR
-            return color
+        else:
+            weight = self.__cells[a_index.row()][a_index.column()].get_weight()
+            color = QColor(*MeasureDataModel.WEIGHT_COLOR_RGB, weight * 255)
+
+        return color
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
@@ -513,9 +565,11 @@ class MeasureDataModel(QAbstractTableModel):
                 units = ""
 
             if role == Qt.DisplayRole:
-                value = utils.float_to_string(cell_data.get_value(displayed_data), a_precision=9)
+                value = utils.float_to_string(cell_data.get_value(displayed_data),
+                                              a_precision=MeasureDataModel.DISPLAY_DATA_PRECISION)
             else:
-                value = utils.float_to_string(cell_data.get_value(displayed_data), a_precision=MeasureDataModel.DATA_PRECISION)
+                value = utils.float_to_string(cell_data.get_value(displayed_data),
+                                              a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
 
             str_value = f"{value}{units}"
 
@@ -547,8 +601,8 @@ class MeasureDataModel(QAbstractTableModel):
             cell_data.reset()
         else:
             try:
-                float_value = utils.parse_input(value, a_precision=MeasureDataModel.DATA_PRECISION)
-                if float_value != cell_data.get_value():
+                float_value = utils.parse_input(value, a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
+                if float_value != cell_data.get_value() or not cell_data.has_value():
                     cell_data.set_value(float_value)
                 else:
                     result = False
