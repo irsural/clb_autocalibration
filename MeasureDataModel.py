@@ -178,8 +178,8 @@ class CellData:
 
         if self.has_value():
             if a_data_type == CellData.GetDataType.DEVIATION:
-                if a_setpoint > 0:
-                    self.__calculations.deviation = metrology.deviation_percents(a_setpoint, self.__result)
+                if a_setpoint != 0:
+                    self.__calculations.deviation = metrology.deviation_percents(self.__result, a_setpoint)
             else:
                 abs_average = abs(mean(self.__measured_values))
                 if abs_average > 0:
@@ -187,24 +187,24 @@ class CellData:
                     if a_data_type == CellData.GetDataType.DELTA_2:
                         self.__calculations.delta_2 = \
                             abs(max(self.__measured_values) - min(self.__measured_values)) / abs_average * 100 / 2
+                    else:
+                        if len(self.__measured_values) > 1:
 
-                    if len(self.__measured_values) > 1:
+                            sko_percents = stdev(self.__measured_values) / abs_average * 100
+                            if a_data_type == CellData.GetDataType.SKO_PERCENTS:
+                                self.__calculations.sko_percents = sko_percents
 
-                        sko_percents = stdev(self.__measured_values) / abs_average * 100
-                        if a_data_type == CellData.GetDataType.SKO_PERCENTS:
-                            self.__calculations.sko_percents = sko_percents
+                            if a_data_type == CellData.GetDataType.STUDENT_95:
+                                self.__calculations.student_95 = sko_percents * \
+                                    metrology.student_t_inverse_distribution_2x(0.95, len(self.__measured_values))
 
-                        if a_data_type == CellData.GetDataType.STUDENT_95:
-                            self.__calculations.student_95 = sko_percents * \
-                                metrology.student_t_inverse_distribution_2x(0.95, len(self.__measured_values))
+                            if a_data_type == CellData.GetDataType.STUDENT_99:
+                                self.__calculations.student_99 = sko_percents * \
+                                    metrology.student_t_inverse_distribution_2x(0.99, len(self.__measured_values))
 
-                        if a_data_type == CellData.GetDataType.STUDENT_99:
-                            self.__calculations.student_99 = sko_percents * \
-                                metrology.student_t_inverse_distribution_2x(0.99, len(self.__measured_values))
-
-                        if a_data_type == CellData.GetDataType.STUDENT_999:
-                            self.__calculations.student_999 = sko_percents * \
-                                metrology.student_t_inverse_distribution_2x(0.999, len(self.__measured_values))
+                            if a_data_type == CellData.GetDataType.STUDENT_999:
+                                self.__calculations.student_999 = sko_percents * \
+                                    metrology.student_t_inverse_distribution_2x(0.999, len(self.__measured_values))
 
     def lock(self, a_lock: bool):
         self.__locked = a_lock

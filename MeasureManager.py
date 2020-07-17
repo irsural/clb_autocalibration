@@ -367,19 +367,19 @@ class MeasureManager(QtCore.QObject):
                                            QtWidgets.QAbstractItemView.EditKeyPressed |
                                            QtWidgets.QAbstractItemView.AnyKeyPressed)
 
+        # Чтобы сбросился фокус с ячейки, если в ней открыт эдитор
+        self.data_view.setDisabled(True)
+        self.data_view.setDisabled(False)
+
     def lock_interface(self, a_lock: bool):
         for row in range(self.measures_table.rowCount()):
             enabled_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.ENABLE)
             enabled_button = qt_utils.unwrap_from_layout(enabled_widget)
             enabled_button.setDisabled(a_lock)
 
-            self.__lock_measure_table(a_lock)
+        self.__lock_measure_table(a_lock)
 
-            # Чтобы сбросился фокус с ячейки, если в ней открыт эдитор
-            self.data_view.setDisabled(True)
-            self.data_view.setDisabled(False)
-
-            self.interface_is_locked = a_lock
+        self.interface_is_locked = a_lock
 
     def get_measure_iterator(self, a_iteration_type: IterationType):
         pass_through_measures = a_iteration_type in (MeasureManager.IterationType.START_ALL,
@@ -549,8 +549,8 @@ class MeasureManager(QtCore.QObject):
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.displayed_data = a_displayed_data
         if self.current_data_model:
-            show_measured = self.displayed_data == CellData.GetDataType.MEASURED
-            self.__lock_measure_table(not show_measured)
+            lock_table = self.displayed_data != CellData.GetDataType.MEASURED or self.interface_is_locked
+            self.__lock_measure_table(lock_table)
 
             self.current_data_model.set_displayed_data(a_displayed_data)
 
