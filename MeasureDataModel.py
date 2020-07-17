@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import List, Union
+from typing import List, Union, Generator, Tuple
 from time import perf_counter
 from statistics import stdev, mean
 from enum import IntEnum
@@ -62,8 +62,9 @@ class CellData:
         self.__result = a_result
         self.__have_result = a_have_result
 
-        self.__weight = 0
         self.__calculations = a_calculations if a_calculations is not None else CellCalculations()
+        self.__calculated = False
+        self.__weight = 0
 
         self.config = a_config if a_config is not None else CellConfig()
 
@@ -154,18 +155,26 @@ class CellData:
         assert a_data_type != CellData.GetDataType.MEASURED, "MEASURED не нужно пересчитывать"
 
         if self.has_value():
+            self.__calculated = True
+
             if a_data_type == CellData.GetDataType.DEVIATION:
                 if a_setpoint != 0:
                     self.__calculations.deviation = metrology.deviation_percents(self.__result, a_setpoint)
                 else:
+                    self.__calculated = False
                     self.__calculations.reset()
             else:
                 abs_average = abs(mean(self.__measured_values))
                 if abs_average > 0:
 
                     if a_data_type == CellData.GetDataType.DELTA_2:
-                        self.__calculations.delta_2 = \
-                            abs(max(self.__measured_values) - min(self.__measured_values)) / abs_average * 100 / 2
+                        if len(self.__measured_values) > 1:
+                            self.__calculations.delta_2 = \
+                                abs(max(self.__measured_values) - min(self.__measured_values)) / abs_average * 100 / 2
+                        else:
+                            # В этом случае полудальта = 0
+                            self.__calculated = False
+                            self.__calculations.reset()
                     else:
                         if len(self.__measured_values) > 1:
 
@@ -185,9 +194,14 @@ class CellData:
                                 self.__calculations.student_999 = sko_percents * \
                                     metrology.student_t_inverse_distribution_2x(0.999, len(self.__measured_values))
                         else:
+                            self.__calculated = False
                             self.__calculations.reset()
                 else:
+                    self.__calculated = False
                     self.__calculations.reset()
+
+    def is_calculated(self):
+        return self.__calculated
 
     def set_weight(self, a_weight: float):
         assert 0 <= a_weight <= 1, "Вес должен быть в интервале [0;1]"
@@ -355,13 +369,19 @@ class MeasureDataModel(QAbstractTableModel):
             self.__cells[a_row][a_column].lock(a_lock)
             self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.BackgroundRole,))
 
+    def __get_cells_iterator(self) -> Generator[Tuple[int, int, CellData], None, None]:
+        for row, row_data in enumerate(self.__cells):
+            for column, cell in enumerate(row_data):
+                if not self.__is_cell_header(row, column):
+                    yield row, column, cell
+
     def __compare_cells(self):
         if self.__show_equal_cells:
-            for row, row_data in enumerate(self.__cells):
-                for column, cell in enumerate(row_data):
-                    is_equal = self.__cell_to_compare == cell.config
-                    cell.mark_as_equal(is_equal)
-            self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW, MeasureDataModel.HEADER_COLUMN),
+            for row, column, cell in self.__get_cells_iterator():
+                is_equal = self.__cell_to_compare == cell.config
+                cell.mark_as_equal(is_equal)
+
+            self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW + 1, MeasureDataModel.HEADER_COLUMN + 1),
                                   self.index(self.rowCount(), self.columnCount()), (QtCore.Qt.BackgroundRole,))
 
     def show_equal_cell_configs(self, a_enable: bool):
@@ -440,41 +460,37 @@ class MeasureDataModel(QAbstractTableModel):
 
     def verify_cell_configs(self, a_signal_type: clb.SignalType, a_reset_bad_cells=False):
         bad_cells = []
-        for row, row_data in enumerate(self.__cells):
-            for column, cell in enumerate(row_data):
-                if not self.__is_cell_header(row, column):
-                    if not cell.config.verify_scheme(a_signal_type):
-                        bad_cells.append((f"{self.get_amplitude(row)} {self.__signal_type_units}",
-                                         f"{self.get_frequency(column)} {MeasureDataModel.HZ_UNITS}"))
-                        if a_reset_bad_cells:
-                            cell.config.reset_scheme(a_signal_type)
-                            self.set_save_state(False)
+        for row, column, cell in self.__get_cells_iterator():
+            if not cell.config.verify_scheme(a_signal_type):
+                bad_cells.append((f"{self.get_amplitude(row)} {self.__signal_type_units}",
+                                 f"{self.get_frequency(column)} {MeasureDataModel.HZ_UNITS}"))
+                if a_reset_bad_cells:
+                    cell.config.reset_scheme(a_signal_type)
+                    self.set_save_state(False)
         return bad_cells
 
     def __calculate_cells_parameters(self, a_displayed_data: CellData.GetDataType):
         cell_values = []
-        for row, row_data in enumerate(self.__cells):
-            for column, cell in enumerate(row_data):
-                if not self.__is_cell_header(row, column):
-                    cell = self.__cells[row][column]
-                    if cell.has_value():
-                        setpoint = self.get_amplitude(row)
-                        cell.calculate_parameters(setpoint, a_displayed_data)
-                        cell_values.append(abs(cell.get_value(a_displayed_data)))
+        for row, column, cell in self.__get_cells_iterator():
+            if cell.has_value():
+                setpoint = self.get_amplitude(row)
+                cell.calculate_parameters(setpoint, a_displayed_data)
+                if cell.is_calculated():
+                    cell_values.append(abs(cell.get_value(a_displayed_data)))
 
         max_value = max(cell_values) if len(cell_values) else 0
+        min_value = min(cell_values) if len(cell_values) else 0
+        _range = max_value - min_value
 
-        for row, row_data in enumerate(self.__cells):
-            for column, cell in enumerate(row_data):
-                if not self.__is_cell_header(row, column):
-                    cell = self.__cells[row][column]
-                    value = abs(cell.get_value(a_displayed_data))
-                    if max_value != 0:
-                        weight = value / max_value
-                    else:
-                        weight = 0
+        for row, column, cell in self.__get_cells_iterator():
+            weight = 0
+            if cell.is_calculated() and len(cell_values) > 1:
+                value = abs(cell.get_value(a_displayed_data))
 
-                    cell.set_weight(weight)
+                if max_value != min_value:
+                    weight = (value - min_value) / _range
+
+            cell.set_weight(weight)
 
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.__displayed_data = a_displayed_data
