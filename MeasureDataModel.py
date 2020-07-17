@@ -28,28 +28,6 @@ class CellCalculations:
         self.student_99 = 0
         self.student_999 = 0
 
-    def serialize_to_dict(self):
-        data_dict = {
-            "deviation": self.deviation,
-            "delta_2": self.delta_2,
-            "sko_percents": self.sko_percents,
-            "student_95": self.student_95,
-            "student_99": self.student_99,
-            "student_999": self.student_999,
-        }
-        return data_dict
-
-    @classmethod
-    def from_dict(cls, a_data_dict: dict):
-        calcs = CellCalculations()
-        calcs.deviation = a_data_dict["deviation"]
-        calcs.delta_2 = a_data_dict["delta_2"]
-        calcs.sko_percents = a_data_dict["sko_percents"]
-        calcs.student_95 = a_data_dict["student_95"]
-        calcs.student_99 = a_data_dict["student_99"]
-        calcs.student_999 = a_data_dict["student_999"]
-        return calcs
-
     def reset(self):
         self.deviation = 0
         self.delta_2 = 0
@@ -97,7 +75,6 @@ class CellData:
             "start_time_point": self.__start_time_point,
             "result": self.__result,
             "have_result": self.__have_result,
-            # "calculations": self.__calculations.serialize_to_dict(),
             "config": self.config.serialize_to_dict(),
         }
         return data_dict
@@ -116,7 +93,6 @@ class CellData:
                    a_start_time_point=float(a_data_dict["start_time_point"]),
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
-                   # a_calculations=CellCalculations.from_dict(a_data_dict["calculations"]),
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
@@ -182,7 +158,7 @@ class CellData:
                 if a_setpoint != 0:
                     self.__calculations.deviation = metrology.deviation_percents(self.__result, a_setpoint)
                 else:
-                    self.__calculations.deviation = 0
+                    self.__calculations.reset()
             else:
                 abs_average = abs(mean(self.__measured_values))
                 if abs_average > 0:
@@ -209,16 +185,9 @@ class CellData:
                                 self.__calculations.student_999 = sko_percents * \
                                     metrology.student_t_inverse_distribution_2x(0.999, len(self.__measured_values))
                         else:
-                            self.__calculations.sko_percents = 0
-                            self.__calculations.student_95 = 0
-                            self.__calculations.student_99 = 0
-                            self.__calculations.student_999 = 0
+                            self.__calculations.reset()
                 else:
-                    self.__calculations.delta_2 = 0
-                    self.__calculations.sko_percents = 0
-                    self.__calculations.student_95 = 0
-                    self.__calculations.student_99 = 0
-                    self.__calculations.student_999 = 0
+                    self.__calculations.reset()
 
     def set_weight(self, a_weight: float):
         assert 0 <= a_weight <= 1, "Вес должен быть в интервале [0;1]"
@@ -252,7 +221,10 @@ class MeasureDataModel(QAbstractTableModel):
     TABLE_COLOR = QColor(255, 255, 255)
     LOCK_COLOR = QColor(254, 255, 171)
     EQUAL_COLOR = QColor(142, 250, 151)
-    WEIGHT_COLOR_RGB = (255, 150, 0)
+
+    WEIGHT_COLOR_R = 255
+    WEIGHT_COLOR_G = 150
+    WEIGHT_COLOR_B = 0
 
     HZ_UNITS = "Гц"
 
@@ -534,7 +506,11 @@ class MeasureDataModel(QAbstractTableModel):
                     color = MeasureDataModel.EQUAL_COLOR
         else:
             weight = self.__cells[a_index.row()][a_index.column()].get_weight()
-            color = QColor(*MeasureDataModel.WEIGHT_COLOR_RGB, weight * 255)
+            # Если использовать ARGB, то ломается прозрачность выделения ячеек
+            tint_factor = 1 - weight
+            g = int(MeasureDataModel.WEIGHT_COLOR_G + (255 - MeasureDataModel.WEIGHT_COLOR_G) * tint_factor)
+            b = int(MeasureDataModel.WEIGHT_COLOR_B + (255 - MeasureDataModel.WEIGHT_COLOR_B) * tint_factor)
+            color = QColor(MeasureDataModel.WEIGHT_COLOR_R, g, b)
 
         return color
 
