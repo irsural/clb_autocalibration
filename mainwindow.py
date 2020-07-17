@@ -19,6 +19,7 @@ from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
+from MeasureDataModel import CellData
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -30,6 +31,16 @@ class MainWindow(QtWidgets.QMainWindow):
         SAVE = 0
         DONT_SAVE = 1
         CANCEL = 2
+
+    displayed_data_to_text = {
+        CellData.GetDataType.MEASURED: "Измерено",
+        CellData.GetDataType.DEVIATION: "Отклонение, %",
+        CellData.GetDataType.DELTA_2: "Полудельта, %",
+        CellData.GetDataType.SKO_PERCENTS: "СКО, %",
+        CellData.GetDataType.STUDENT_95: "Доверительный интервал 0.95, %",
+        CellData.GetDataType.STUDENT_99: "Доверительный интервал 0.99, %",
+        CellData.GetDataType.STUDENT_999: "Доверительный интервал 0.999, %",
+    }
 
     def __init__(self):
         super().__init__()
@@ -93,6 +104,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.measures_table.objectName()))
             self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
+
+            for i in range(CellData.GetDataType.COUNT):
+                self.ui.displayed_data_type_combobox.addItem(MainWindow.displayed_data_to_text[i])
 
             self.set_up_logger()
 
@@ -190,6 +204,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
             self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
+
+            self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -482,6 +498,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_meter_settings(self):
         self.measure_manager.open_meter_settings()
+
+    def set_displayed_data(self, a_displayed_data: int):
+        self.measure_manager.set_displayed_data(CellData.GetDataType(a_displayed_data))
 
     def save_configuration(self):
         result = True

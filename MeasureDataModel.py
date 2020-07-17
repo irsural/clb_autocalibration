@@ -1,6 +1,8 @@
-from typing import List, Union
 from collections import OrderedDict
+from typing import List, Union
 from time import perf_counter
+from statistics import stdev, mean
+from enum import IntEnum
 from array import array
 import logging
 import copy
@@ -17,9 +19,59 @@ from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 
 
+class CellCalculations:
+    def __init__(self):
+        self.deviation = 0
+        self.delta_2 = 0
+        self.sko_percents = 0
+        self.student_95 = 0
+        self.student_99 = 0
+        self.student_999 = 0
+
+    def serialize_to_dict(self):
+        data_dict = {
+            "deviation": self.deviation,
+            "delta_2": self.delta_2,
+            "sko_percents": self.sko_percents,
+            "student_95": self.student_95,
+            "student_99": self.student_99,
+            "student_999": self.student_999,
+        }
+        return data_dict
+
+    @classmethod
+    def from_dict(cls, a_data_dict: dict):
+        calcs = CellCalculations()
+        calcs.deviation = a_data_dict["deviation"]
+        calcs.delta_2 = a_data_dict["delta_2"]
+        calcs.sko_percents = a_data_dict["sko_percents"]
+        calcs.student_95 = a_data_dict["student_95"]
+        calcs.student_99 = a_data_dict["student_99"]
+        calcs.student_999 = a_data_dict["student_999"]
+        return calcs
+
+    def reset(self):
+        self.deviation = 0
+        self.delta_2 = 0
+        self.sko_percents = 0
+        self.student_95 = 0
+        self.student_99 = 0
+        self.student_999 = 0
+
+
 class CellData:
+    class GetDataType(IntEnum):
+        MEASURED = 0
+        DEVIATION = 1
+        DELTA_2 = 2
+        SKO_PERCENTS = 3
+        STUDENT_95 = 4
+        STUDENT_99 = 5
+        STUDENT_999 = 6
+        COUNT = 7
+
     def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_start_time_point=None, a_result=0.,
-                 a_have_result=False, a_config=None):
+                 a_calculations=None, a_have_result=False, a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
@@ -32,6 +84,8 @@ class CellData:
         self.__result = a_result
         self.__have_result = a_have_result
 
+        self.__calculations = a_calculations if a_calculations is not None else CellCalculations()
+
         self.config = a_config if a_config is not None else CellConfig()
 
     def serialize_to_dict(self):
@@ -42,6 +96,7 @@ class CellData:
             "start_time_point": self.__start_time_point,
             "result": self.__result,
             "have_result": self.__have_result,
+            # "calculations": self.__calculations.serialize_to_dict(),
             "config": self.config.serialize_to_dict(),
         }
         return data_dict
@@ -60,6 +115,7 @@ class CellData:
                    a_start_time_point=float(a_data_dict["start_time_point"]),
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
+                   # a_calculations=CellCalculations.from_dict(a_data_dict["calculations"]),
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
@@ -70,12 +126,26 @@ class CellData:
         self.__impulse_filter.clear()
         self.__result = 0
         self.__have_result = False
+        self.__calculations.reset()
 
     def has_value(self):
         return self.__have_result
 
-    def get_value(self):
-        return self.__result
+    def get_value(self, a_data_type=GetDataType.MEASURED):
+        if a_data_type == CellData.GetDataType.MEASURED:
+            return self.__result
+        elif a_data_type == CellData.GetDataType.DEVIATION:
+            return self.__calculations.deviation
+        elif a_data_type == CellData.GetDataType.DELTA_2:
+            return self.__calculations.delta_2
+        elif a_data_type == CellData.GetDataType.SKO_PERCENTS:
+            return self.__calculations.sko_percents
+        elif a_data_type == CellData.GetDataType.STUDENT_95:
+            return self.__calculations.student_95
+        elif a_data_type == CellData.GetDataType.STUDENT_99:
+            return self.__calculations.student_99
+        elif a_data_type == CellData.GetDataType.STUDENT_999:
+            return self.__calculations.student_999
 
     def set_value(self, a_value: float):
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
@@ -103,6 +173,39 @@ class CellData:
                 self.__impulse_filter.assign(self.__measured_values)
                 self.__result = self.__impulse_filter.get()
 
+    def calculate_parameters(self, a_setpoint: float, a_data_type: GetDataType):
+        assert a_data_type != CellData.GetDataType.MEASURED, "MEASURED не нужно пересчитывать"
+
+        if self.has_value():
+            if a_data_type == CellData.GetDataType.DEVIATION:
+                if a_setpoint > 0:
+                    self.__calculations.deviation = metrology.deviation_percents(a_setpoint, self.__result)
+            else:
+                abs_average = abs(mean(self.__measured_values))
+                if abs_average > 0:
+
+                    if a_data_type == CellData.GetDataType.DELTA_2:
+                        self.__calculations.delta_2 = \
+                            abs(max(self.__measured_values) - min(self.__measured_values)) / abs_average * 100 / 2
+
+                    if len(self.__measured_values) > 1:
+
+                        sko_percents = stdev(self.__measured_values) / abs_average * 100
+                        if a_data_type == CellData.GetDataType.SKO_PERCENTS:
+                            self.__calculations.sko_percents = sko_percents
+
+                        if a_data_type == CellData.GetDataType.STUDENT_95:
+                            self.__calculations.student_95 = sko_percents * \
+                                metrology.student_t_inverse_distribution_2x(0.95, len(self.__measured_values))
+
+                        if a_data_type == CellData.GetDataType.STUDENT_99:
+                            self.__calculations.student_99 = sko_percents * \
+                                metrology.student_t_inverse_distribution_2x(0.99, len(self.__measured_values))
+
+                        if a_data_type == CellData.GetDataType.STUDENT_999:
+                            self.__calculations.student_999 = sko_percents * \
+                                metrology.student_t_inverse_distribution_2x(0.999, len(self.__measured_values))
+
     def lock(self, a_lock: bool):
         self.__locked = a_lock
 
@@ -124,6 +227,7 @@ class MeasureDataModel(QAbstractTableModel):
     LOCK_COLOR = QColor(254, 255, 171)
     EQUAL_COLOR = QColor(142, 250, 151)
     HZ_UNITS = "Гц"
+    DATA_PRECISION = 15
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
@@ -138,6 +242,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.__enabled = a_enabled
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
+        self.__displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
@@ -344,6 +449,21 @@ class MeasureDataModel(QAbstractTableModel):
                             self.set_save_state(False)
         return bad_cells
 
+    def __calculate_cells_parameters(self, a_displayed_data: CellData.GetDataType):
+        for row, row_data in enumerate(self.__cells):
+            for column, cell in enumerate(row_data):
+                if not self.__is_cell_header(row, column):
+                    setpoint = self.get_amplitude(row)
+                    self.__cells[row][column].calculate_parameters(setpoint, a_displayed_data)
+
+    def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
+        self.__displayed_data = a_displayed_data
+        if not self.__displayed_data == CellData.GetDataType.MEASURED:
+            self.__calculate_cells_parameters(self.__displayed_data)
+
+        self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW + 1, MeasureDataModel.HEADER_COLUMN + 1),
+                              self.index(self.rowCount(), self.columnCount()), (QtCore.Qt.DisplayRole,))
+
     def rowCount(self, parent=QModelIndex()):
         return len(self.__cells)
 
@@ -379,17 +499,27 @@ class MeasureDataModel(QAbstractTableModel):
                     index.row() == MeasureDataModel.HEADER_ROW and index.column() == MeasureDataModel.HEADER_COLUMN:
                 return ""
 
+            if index.row() == MeasureDataModel.HEADER_ROW:
+                displayed_data = CellData.GetDataType.MEASURED
+                units = " " + MeasureDataModel.HZ_UNITS
+            elif index.column() == MeasureDataModel.HEADER_COLUMN:
+                displayed_data = CellData.GetDataType.MEASURED
+                units = " " + self.__signal_type_units
+            elif self.__displayed_data == CellData.GetDataType.MEASURED:
+                displayed_data = self.__displayed_data
+                units = " " + CellConfig.meter_to_units[cell_data.config.meter]
             else:
-                if index.row() == MeasureDataModel.HEADER_ROW:
-                    units = MeasureDataModel.HZ_UNITS
-                elif index.column() == MeasureDataModel.HEADER_COLUMN:
-                    units = self.__signal_type_units
-                else:
-                    units = CellConfig.meter_to_units[cell_data.config.meter]
+                displayed_data = self.__displayed_data
+                units = ""
 
-                str_value = f"{utils.float_to_string(cell_data.get_value())} {units}"
+            if role == Qt.DisplayRole:
+                value = utils.float_to_string(cell_data.get_value(displayed_data), a_precision=9)
+            else:
+                value = utils.float_to_string(cell_data.get_value(displayed_data), a_precision=MeasureDataModel.DATA_PRECISION)
 
-                return str_value
+            str_value = f"{value}{units}"
+
+            return str_value
 
     def reset_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].reset()
@@ -417,7 +547,7 @@ class MeasureDataModel(QAbstractTableModel):
             cell_data.reset()
         else:
             try:
-                float_value = utils.parse_input(value)
+                float_value = utils.parse_input(value, a_precision=MeasureDataModel.DATA_PRECISION)
                 if float_value != cell_data.get_value():
                     cell_data.set_value(float_value)
                 else:

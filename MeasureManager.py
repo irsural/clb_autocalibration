@@ -16,7 +16,7 @@ from edit_agilent_config_dialog import EditAgilentConfigDialog, AgilentConfig
 from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
-from MeasureDataModel import MeasureDataModel
+from MeasureDataModel import MeasureDataModel, CellData
 
 
 class MeasureManager(QtCore.QObject):
@@ -64,6 +64,8 @@ class MeasureManager(QtCore.QObject):
         self.meter_type = self.settings.meter_type
         self.agilent_config: Union[None, AgilentConfig] = None
         self.set_meter(self.meter_type)
+
+        self.displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
         self.measures_table.currentItemChanged.connect(self.current_measure_changed)
 
@@ -356,19 +358,23 @@ class MeasureManager(QtCore.QObject):
                 value = QtWidgets.QApplication.clipboard().text()
                 self.current_data_model.setData(index, value)
 
+    def __lock_measure_table(self, a_lock: bool):
+        if a_lock:
+            self.data_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        else:
+            # noinspection PyTypeChecker
+            self.data_view.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked |
+                                           QtWidgets.QAbstractItemView.EditKeyPressed |
+                                           QtWidgets.QAbstractItemView.AnyKeyPressed)
+
     def lock_interface(self, a_lock: bool):
         for row in range(self.measures_table.rowCount()):
             enabled_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.ENABLE)
             enabled_button = qt_utils.unwrap_from_layout(enabled_widget)
             enabled_button.setDisabled(a_lock)
 
-            if a_lock:
-                self.data_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-            else:
-                # noinspection PyTypeChecker
-                self.data_view.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked |
-                                               QtWidgets.QAbstractItemView.EditKeyPressed |
-                                               QtWidgets.QAbstractItemView.AnyKeyPressed)
+            self.__lock_measure_table(a_lock)
+
             # Чтобы сбросился фокус с ячейки, если в ней открыт эдитор
             self.data_view.setDisabled(True)
             self.data_view.setDisabled(False)
@@ -447,6 +453,7 @@ class MeasureManager(QtCore.QObject):
             self.current_data_model = self.measures[measure_name]
             self.data_view.setModel(self.current_data_model)
             self.show_equal_cell_configs(self.show_equal_cells)
+            self.current_data_model.set_displayed_data(self.displayed_data)
         else:
             self.current_data_model = None
 
@@ -538,6 +545,14 @@ class MeasureManager(QtCore.QObject):
                 self.settings.agilent_port = self.agilent_config.port
         else:
             assert False, f"Не реализованный измеритель '{self.meter_type}'"
+
+    def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
+        self.displayed_data = a_displayed_data
+        if self.current_data_model:
+            show_measured = self.displayed_data == CellData.GetDataType.MEASURED
+            self.__lock_measure_table(not show_measured)
+
+            self.current_data_model.set_displayed_data(a_displayed_data)
 
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])

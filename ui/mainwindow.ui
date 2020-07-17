@@ -559,28 +559,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QComboBox" name="displayed_data_type_combobox">
-             <item>
-              <property name="text">
-               <string>Измерено</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>СКО</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Ошибка</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Доверительный интервал</string>
-              </property>
-             </item>
-            </widget>
+            <widget class="QComboBox" name="displayed_data_type_combobox"/>
            </item>
           </layout>
          </item>
@@ -598,8 +577,11 @@
             <string notr="true">selection-color: rgb(0, 0, 0);
 selection-background-color: rgb(170, 170, 255);</string>
            </property>
-           <attribute name="horizontalHeaderVisible">
+           <property name="wordWrap">
             <bool>false</bool>
+           </property>
+           <attribute name="horizontalHeaderVisible">
+            <bool>true</bool>
            </attribute>
            <attribute name="verticalHeaderVisible">
             <bool>false</bool>
