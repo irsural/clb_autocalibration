@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Iterable, Dict, List
+from typing import Iterable, Dict, List, Tuple
 from enum import IntEnum
 import logging
 
@@ -60,13 +60,13 @@ class SchemeControl:
     }
 
     # noinspection PyProtectedMember
-    CIRCUIT_TO_RELAYS: Dict[Circuit, List[BistableRelay]] = {
-        Circuit.K_V: [
+    CIRCUIT_TO_RELAYS: Dict[Circuit, Tuple[BistableRelay]] = {
+        Circuit.K_V: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_C10A: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_C10A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
                 reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
@@ -76,73 +76,73 @@ class SchemeControl:
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
                 reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_C1A: [
+        ),
+        Circuit.K_C1A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
                 reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
                 reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_C01A: [
+        ),
+        Circuit.K_C01A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
                 reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
                 reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_BP: [
+        ),
+        Circuit.K_BP: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_A: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_DIV650: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_DIV650: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_DIV500: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_DIV500: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_DIV350: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_DIV350: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_DIV200: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_DIV200: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_DIV55: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_DIV55: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_DIV40: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_DIV40: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_AMP30M: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_AMP30M: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
-        Circuit.K_AMP10M: [
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
+        Circuit.K_AMP10M: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0))
-        ],
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+        ),
     }
 
     class RelayState(IntEnum):
@@ -176,13 +176,12 @@ class SchemeControl:
         :return: None
         """
         for circuit in a_circuits:
-            for relays_list in SchemeControl.CIRCUIT_TO_RELAYS[circuit]:
-                for relay in relays_list:
-                    logging.debug(f"set scheme: {circuit.name}, state: {a_state.name}, relay: {relay}")
-                    if a_state == SchemeControl.RelayState.ON:
-                        self.__ftdi_control.set_pin(relay.set_pin, True)
-                    else:
-                        self.__ftdi_control.set_pin(relay.reset_pin, True)
+            for relay in SchemeControl.CIRCUIT_TO_RELAYS[circuit]:
+                logging.debug(f"set scheme: {circuit.name}, state: {a_state.name}, relay: {relay}")
+                if a_state == SchemeControl.RelayState.ON:
+                    self.__ftdi_control.set_pin(relay.set_pin, True)
+                else:
+                    self.__ftdi_control.set_pin(relay.reset_pin, True)
 
     def __unset_relays(self, a_circuits: Iterable[Circuit]):
         """
@@ -191,11 +190,10 @@ class SchemeControl:
         :return: None
         """
         for circuit in a_circuits:
-            for relays_list in SchemeControl.CIRCUIT_TO_RELAYS[circuit]:
-                for relay in relays_list:
-                    logging.debug(f"unset scheme: {circuit.name}, relay: {relay}")
-                    self.__ftdi_control.set_pin(relay.set_pin, False)
-                    self.__ftdi_control.set_pin(relay.reset_pin, False)
+            for relay in SchemeControl.CIRCUIT_TO_RELAYS[circuit]:
+                logging.debug(f"unset scheme: {circuit.name}, relay: {relay}")
+                self.__ftdi_control.set_pin(relay.set_pin, False)
+                self.__ftdi_control.set_pin(relay.reset_pin, False)
 
     def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
         self.__coil = CellConfig.Coil.NONE
@@ -217,7 +215,6 @@ class SchemeControl:
         return result
 
     def reset(self) -> bool:
-        return True
         self.__coil = CellConfig.Coil.NONE
         self.__divider = CellConfig.Divider.NONE
         self.__meter = CellConfig.Meter.AMPERES
