@@ -115,6 +115,7 @@ class MeasureConductor(QtCore.QObject):
 
         self.scheme_control = SchemeControl(self.ftdi_control)
         self.need_to_reset_scheme = True
+        self.need_to_set_scheme = True
 
         self.__started = False
 
@@ -269,6 +270,7 @@ class MeasureConductor(QtCore.QObject):
                         self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
                 elif not self.scheme_control.ready():  # ################################################################################# elif self.scheme....
+                    self.need_to_reset_scheme = True
                     self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
             else:
                 self.__stage = MeasureConductor.Stage.MEASURE_DONE
@@ -277,8 +279,17 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_SCHEME_CONFIG:
-
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            if self.need_to_set_scheme:
+                if self.scheme_control.set_up(a_coil=self.current_config.coil, a_divider=self.current_config.divider,
+                                              a_meter=self.current_config.meter):
+                    self.need_to_set_scheme = False
+                else:
+                    logging.warning("Не удалось сбросить схему (FTDI), измерение остановлено")
+                    self.stop()
+            else:
+                if self.scheme_control.ready():
+                    self.need_to_set_scheme = True
+                    self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_CALIBRATOR_CONFIG:
             # Чтобы не читать с калибратора с периодом основного тика программы

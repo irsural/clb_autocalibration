@@ -177,7 +177,6 @@ class SchemeControl:
         """
         for circuit in a_circuits:
             for relay in SchemeControl.CIRCUIT_TO_RELAYS[circuit]:
-                logging.debug(f"set scheme: {circuit.name}, state: {a_state.name}, relay: {relay}")
                 if a_state == SchemeControl.RelayState.ON:
                     self.__ftdi_control.set_pin(relay.set_pin, True)
                 else:
@@ -191,7 +190,6 @@ class SchemeControl:
         """
         for circuit in a_circuits:
             for relay in SchemeControl.CIRCUIT_TO_RELAYS[circuit]:
-                logging.debug(f"unset scheme: {circuit.name}, relay: {relay}")
                 self.__ftdi_control.set_pin(relay.set_pin, False)
                 self.__ftdi_control.set_pin(relay.reset_pin, False)
 
@@ -243,9 +241,11 @@ class SchemeControl:
             self.__set_relays_timer.stop()
 
             self.__unset_relays(SchemeControl.CIRCUIT_TO_RELAYS.keys())
-            self.__ftdi_control.write_changes()
 
-            self.__unset_relays_timer.start()
+            if self.__ftdi_control.write_changes():
+                self.__unset_relays_timer.start()
+            else:
+                logging.warning("Не удалось сбпросить реле в SchemeControl.tick()")
 
         if self.__unset_relays_timer.check():
             self.__unset_relays_timer.stop()
