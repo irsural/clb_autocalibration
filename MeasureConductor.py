@@ -18,6 +18,7 @@ from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
+from SchemeControl import SchemeControl
 
 
 ExtraVariable = namedtuple("ExtraVariable", ["buffered_variable", "work_value", "default_value"])
@@ -112,6 +113,9 @@ class MeasureConductor(QtCore.QObject):
         self.calibrator_hold_ready_timer = utils.Timer(0)
         self.measure_duration_timer = utils.Timer(0)
 
+        self.scheme_control = SchemeControl(self.ftdi_control)
+        self.need_to_reset_scheme = True
+
         self.__started = False
 
         self.__stage = MeasureConductor.Stage.REST
@@ -133,8 +137,11 @@ class MeasureConductor(QtCore.QObject):
         self.measure_duration_timer.stop()
         self.extra_variables.clear()
 
+        self.need_to_reset_scheme = True
+
     def start(self, a_measure_iterator: MeasureIterator):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
+        self.reset()
         self.measure_iterator = a_measure_iterator
         self.__started = True
         self.__stage = MeasureConductor.Stage.CONNECT_TO_CALIBRATOR
@@ -171,6 +178,8 @@ class MeasureConductor(QtCore.QObject):
         return current_ok and dc_ok
 
     def tick(self):
+        self.scheme_control.tick()
+
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
             logging.debug(MeasureConductor.STAGE_IN_MESSAGE[self.__stage])
@@ -189,7 +198,7 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
-            if not self.ftdi_control.reinit(): # ################################################################################# if self.ftdi....
+            if self.scheme_control.is_connected() or self.scheme_control.connect():
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
                 logging.warning("Не удалось подключиться к схеме (FTDI), измерение остановлено")
@@ -249,7 +258,18 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
             if self.is_started():
-                self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
+
+                if self.need_to_reset_scheme:
+                    if self.scheme_control.reset():
+                        self.need_to_reset_scheme = False
+                    else:
+                        logging.warning("Не удалось сбросить схему (FTDI), измерение остановлено")
+                        self.stop()
+                        # Иначе будет бесконечная рекурсия в автомате
+                        self.__stage = MeasureConductor.Stage.MEASURE_DONE
+
+                elif not self.scheme_control.ready():  # ################################################################################# elif self.scheme....
+                    self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
             else:
                 self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
@@ -257,6 +277,7 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_SCHEME_CONFIG:
+
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_CALIBRATOR_CONFIG:

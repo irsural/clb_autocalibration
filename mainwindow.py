@@ -334,18 +334,19 @@ class MainWindow(QtWidgets.QMainWindow):
             if measure_iterator.get() is not None:
                 if self.save_configuration():
                     self.lock_interface(True)
-                    self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type))
+                    self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type) * 1000)
 
                     self.measure_conductor.start(measure_iterator)
 
     def progress_bars_handling(self):
         if self.measure_conductor.is_started():
-            time_passed = self.measure_conductor.get_current_cell_time_passed()
+            # Все значения в прогресс барах умножены на 1000 для плавности, потому что они умеют только в целые
+            time_passed = self.measure_conductor.get_current_cell_time_passed() * 1000
             self.ui.curent_cell_progress_bar.setValue(time_passed)
             self.ui.measure_progress_bar.setValue(self.measure_progress_bar_value + time_passed)
 
     def single_measure_started(self):
-        self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration())
+        self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration() * 1000)
 
     def single_measure_done(self):
         self.ui.curent_cell_progress_bar.setValue(0)

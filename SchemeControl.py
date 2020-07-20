@@ -197,23 +197,40 @@ class SchemeControl:
                     self.__ftdi_control.set_pin(relay.set_pin, False)
                     self.__ftdi_control.set_pin(relay.reset_pin, False)
 
-    def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter):
-        self.__coil = a_coil
-        self.__divider = a_divider
-        self.__meter = a_meter
+    def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
+        self.__coil = CellConfig.Coil.NONE
+        self.__divider = CellConfig.Divider.NONE
+        self.__meter = CellConfig.Meter.AMPERES
         self.__ready = False
 
         # Переводим реле на всех цепях в состояние OFF
-        self.__set_relays(SchemeControl.CIRCUIT_TO_RELAYS.keys(), SchemeControl.RelayState.Off)
+        self.__set_relays(SchemeControl.CIRCUIT_TO_RELAYS.keys(), SchemeControl.RelayState.OFF)
         # Переводим реле на необходимых цепях в состояние ON
         self.__set_relays(SchemeControl.COIL_TO_CIRCUITS[a_coil], SchemeControl.RelayState.ON)
         self.__set_relays(SchemeControl.DIVIDER_TO_CIRCUITS[a_divider], SchemeControl.RelayState.ON)
         self.__set_relays(SchemeControl.METER_TO_CIRCUITS[a_meter], SchemeControl.RelayState.ON)
 
-        self.__ftdi_control.write_changes()
+        self.__unset_relays_timer.stop()
+        self.__set_relays_timer.start()
+
+        result = self.__ftdi_control.write_changes()
+        return result
+
+    def reset(self) -> bool:
+        return True
+        self.__coil = CellConfig.Coil.NONE
+        self.__divider = CellConfig.Divider.NONE
+        self.__meter = CellConfig.Meter.AMPERES
+        self.__ready = False
+
+        # Переводим реле на всех цепях в состояние OFF
+        self.__set_relays(SchemeControl.CIRCUIT_TO_RELAYS.keys(), SchemeControl.RelayState.OFF)
 
         self.__unset_relays_timer.stop()
         self.__set_relays_timer.start()
+
+        result = self.__ftdi_control.write_changes()
+        return result
 
     def get_coil(self):
         return self.__coil
@@ -230,6 +247,7 @@ class SchemeControl:
 
             self.__unset_relays(SchemeControl.CIRCUIT_TO_RELAYS.keys())
             self.__ftdi_control.write_changes()
+
             self.__unset_relays_timer.start()
 
         if self.__unset_relays_timer.check():
