@@ -147,6 +147,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
+            self.ui.lock_all_action.triggered.connect(self.lock_all_cells_button_clicked)
+            self.ui.unlock_all_action.triggered.connect(self.unlock_all_cells_button_clicked)
             self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
 
             self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
@@ -464,6 +466,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def unlock_cell_button_clicked(self):
         self.measure_manager.lock_selected_cells(False)
+
+    def lock_all_cells_button_clicked(self):
+        self.measure_manager.lock_all_cells(True)
+
+    def unlock_all_cells_button_clicked(self):
+        self.measure_manager.lock_all_cells(False)
 
     def add_row_button_clicked(self, _):
         self.measure_manager.add_row_to_current_measure()

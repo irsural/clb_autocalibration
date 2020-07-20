@@ -736,6 +736,8 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="lock_action"/>
    <addaction name="unlock_action"/>
+   <addaction name="lock_all_action"/>
+   <addaction name="unlock_all_action"/>
    <addaction name="show_equal_action"/>
    <addaction name="switch_to_active_cell_action"/>
   </widget>
@@ -1077,6 +1079,30 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="toolTip">
     <string>Переключаться на измеряемую ячейку</string>
+   </property>
+  </action>
+  <action name="lock_all_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/multi_lock.png</normaloff>:/icons/icons/multi_lock.png</iconset>
+   </property>
+   <property name="text">
+    <string>lock_all</string>
+   </property>
+   <property name="toolTip">
+    <string>Заблокировать все ячейки</string>
+   </property>
+  </action>
+  <action name="unlock_all_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/multi_unlock.png</normaloff>:/icons/icons/multi_unlock.png</iconset>
+   </property>
+   <property name="text">
+    <string>unlock_all</string>
+   </property>
+   <property name="toolTip">
+    <string>Разблокировать все ячейки</string>
    </property>
   </action>
  </widget>

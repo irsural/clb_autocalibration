@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/multi_lock.png</file>
+    <file>icons/multi_unlock.png</file>
     <file>icons/robot_2.png</file>
     <file>icons/robot_1.png</file>
     <file>icons/tracker.png</file>

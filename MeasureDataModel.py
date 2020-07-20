@@ -370,6 +370,18 @@ class MeasureDataModel(QAbstractTableModel):
             self.__cells[a_row][a_column].lock(a_lock)
             self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.BackgroundRole,))
 
+    def __first_cell_index(self) -> QModelIndex:
+        return self.index(MeasureDataModel.HEADER_ROW + 1, MeasureDataModel.HEADER_COLUMN + 1)
+
+    def __last_cell_index(self) -> QModelIndex:
+        return self.index(self.rowCount(), self.columnCount())
+
+    def lock_all_cells(self, a_lock):
+        for _, _, cell in self.__get_cells_iterator():
+            cell.lock(a_lock)
+
+        self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.DisplayRole,))
+
     def __get_cells_iterator(self) -> Generator[Tuple[int, int, CellData], None, None]:
         for row, row_data in enumerate(self.__cells):
             for column, cell in enumerate(row_data):
@@ -382,8 +394,7 @@ class MeasureDataModel(QAbstractTableModel):
                 is_equal = self.__cell_to_compare == cell.config
                 cell.mark_as_equal(is_equal)
 
-            self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW + 1, MeasureDataModel.HEADER_COLUMN + 1),
-                                  self.index(self.rowCount(), self.columnCount()), (QtCore.Qt.BackgroundRole,))
+            self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.BackgroundRole,))
 
     def show_equal_cell_configs(self, a_enable: bool):
         if not a_enable:
@@ -498,8 +509,7 @@ class MeasureDataModel(QAbstractTableModel):
         if self.__displayed_data != CellData.GetDataType.MEASURED:
             self.__calculate_cells_parameters(self.__displayed_data)
 
-        self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW + 1, MeasureDataModel.HEADER_COLUMN + 1),
-                              self.index(self.rowCount(), self.columnCount()), (QtCore.Qt.DisplayRole,))
+        self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.DisplayRole,))
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.__cells)

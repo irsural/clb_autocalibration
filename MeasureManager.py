@@ -255,6 +255,11 @@ class MeasureManager(QtCore.QObject):
             for cell in self.data_view.selectionModel().selectedIndexes():
                 self.current_data_model.lock_cell(cell.row(), cell.column(), a_lock)
 
+    def lock_all_cells(self, a_lock):
+        if self.current_data_model is not None:
+            for data_model in self.measures.values():
+                data_model.lock_all_cells(a_lock)
+
     def show_equal_cell_configs(self, a_enable: bool):
         self.show_equal_cells = a_enable
 
