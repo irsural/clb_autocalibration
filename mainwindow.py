@@ -112,7 +112,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ftdi_control = FtdiControl()
 
-            self.clb_driver = clb_dll.set_up_driver("../irspy/clb/clb_driver_dll.dll")
+            self.clb_driver = clb_dll.clb_dll
 
             modbus_registers_count = 700
             self.usb_driver = clb_dll.UsbDrv(self.clb_driver, modbus_registers_count * 2)

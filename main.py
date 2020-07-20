@@ -15,8 +15,6 @@ from mainwindow import MainWindow
 
 @exception_decorator_print
 def main():
-    mxsrlib_dll.set_up_mxsrclib_dll("../irspy/dlls/mxsrclib_dll.dll")
-
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setFont(QtGui.QFont("MS Shell Dlg 2", 10))

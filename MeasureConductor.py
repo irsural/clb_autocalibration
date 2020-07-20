@@ -302,7 +302,10 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.MEASURE:
             if not self.measure_duration_timer.check():
-                self.measure_manager.add_measured_value(*self.current_cell_position, random.uniform(0.49, 0.51))
+                lower_bound = utils.increase_by_percent(self.current_amplitude, 2)
+                upper_bound = utils.decrease_by_percent(self.current_amplitude, 2)
+                self.measure_manager.add_measured_value(*self.current_cell_position, random.uniform(lower_bound,
+                                                                                                    upper_bound))
             else:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
 
