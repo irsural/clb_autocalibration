@@ -7,7 +7,6 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore, QtGui
 
-from irspy.dlls import mxsrlib_dll
 from irspy.utils import exception_decorator_print
 
 from mainwindow import MainWindow
