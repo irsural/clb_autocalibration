@@ -245,7 +245,8 @@ class SchemeControl:
             if self.__ftdi_control.write_changes():
                 self.__unset_relays_timer.start()
             else:
-                logging.warning("Не удалось сбпросить реле в SchemeControl.tick()")
+                logging.warning("Не удалось сбпросить реле в SchemeControl.tick() (FTDI). "
+                                "Необходимо перезапустить измерение")
 
         if self.__unset_relays_timer.check():
             self.__unset_relays_timer.stop()

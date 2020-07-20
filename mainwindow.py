@@ -349,8 +349,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration() * 1000)
 
     def single_measure_done(self):
+        # "Переливаем" прогресс маленького прогресс бара в большой
+        self.measure_progress_bar_value += self.ui.curent_cell_progress_bar.maximum()
         self.ui.curent_cell_progress_bar.setValue(0)
-        self.measure_progress_bar_value = self.ui.measure_progress_bar.value()
         self.save_current_configuration()
 
     def measure_done(self):
@@ -655,7 +656,3 @@ class MainWindow(QtWidgets.QMainWindow):
                                             self.ui.measures_table.horizontalHeader().saveState())
                 self.settings.save_geometry(self.objectName(), self.saveGeometry())
                 a_event.accept()
-
-    def pa6_button_clicked(self, a_state):
-        result = self.ftdi_control.write_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6, a_state)
-        gpio_state = self.ftdi_control.read_gpio(FtdiControl.Channel.A, FtdiControl.Bus.D, FtdiControl.Pin._6)

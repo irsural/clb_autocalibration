@@ -258,22 +258,23 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
-            if self.is_started():
 
-                if self.need_to_reset_scheme:
-                    if self.scheme_control.reset():
-                        self.need_to_reset_scheme = False
-                    else:
-                        logging.warning("Не удалось сбросить схему (FTDI), измерение остановлено")
-                        self.stop()
-                        # Иначе будет бесконечная рекурсия в автомате
-                        self.__stage = MeasureConductor.Stage.MEASURE_DONE
+            if self.need_to_reset_scheme:
+                if self.scheme_control.reset():
+                    self.need_to_reset_scheme = False
+                else:
+                    logging.warning("Не удалось сбросить схему (FTDI), измерение остановлено")
+                    self.stop()
+                    # Иначе будет бесконечная рекурсия в автомате
+                    self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
-                elif not self.scheme_control.ready():  # ################################################################################# elif self.scheme....
-                    self.need_to_reset_scheme = True
+            elif not self.scheme_control.ready():  # ################################################################################# elif self.scheme....
+                self.need_to_reset_scheme = True
+
+                if self.is_started():
                     self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
-            else:
-                self.__stage = MeasureConductor.Stage.MEASURE_DONE
+                else:
+                    self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
         elif self.__stage == MeasureConductor.Stage.SET_METER_CONFIG:
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
