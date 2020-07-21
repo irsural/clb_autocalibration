@@ -572,9 +572,12 @@ class MeasureManager(QtCore.QObject):
     def __extract_z_x_graph(self, a_row: int) -> Tuple[List, List]:
         x = []
         y = []
+        amplitude = self.current_data_model.get_amplitude(a_row)
         for column in range(1, self.current_data_model.columnCount()):
             x.append(self.current_data_model.get_frequency(column))
-            y.append(self.current_data_model.get_cell_value(a_row, column))
+
+            normalized_y = self.current_data_model.get_cell_value(a_row, column) / amplitude
+            y.append(normalized_y)
 
         return x, y
 
@@ -583,7 +586,10 @@ class MeasureManager(QtCore.QObject):
         y = []
         for row in range(1, self.current_data_model.rowCount()):
             x.append(self.current_data_model.get_amplitude(row))
-            y.append(self.current_data_model.get_cell_value(row, a_column))
+
+            amplitude = self.current_data_model.get_amplitude(row)
+            normalized_y = self.current_data_model.get_cell_value(row, a_column) / amplitude
+            y.append(normalized_y)
 
         return x, y
 
