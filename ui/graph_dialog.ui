@@ -259,13 +259,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="topMargin">
-          <number>2</number>
-         </property>
-        </layout>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="horizontalLayoutWidget_3">

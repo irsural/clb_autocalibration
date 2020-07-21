@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple, Iterable
 import logging
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 import pyqtgraph
 
 from ui.py.graph_dialog import Ui_graph_dialog as GraphForm
@@ -42,14 +42,17 @@ class GraphDialog(QtWidgets.QDialog):
         self.ui.parameters_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.ui.parameters_table.objectName()))
 
-        self.ui.parameters_widget.setHidden(self.settings.graph_parameters_hidden)
-        if self.settings.graph_parameters_hidden:
-            self.ui.graph_parameters_button.setIcon(self.open_icon)
-        else:
-            self.ui.graph_parameters_button.setIcon(self.close_icon)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinMaxButtonsHint)
+
+        self.ui.parameters_widget.setHidden(True)
+        splitter_sizes = self.ui.graph_dialog_splitter.sizes()
+        self.ui.graph_dialog_splitter.setSizes([0, splitter_sizes[0] + splitter_sizes[1]])
+
         self.show()
 
         self.graph_widget = pyqtgraph.PlotWidget()
+        self.graph_widget.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred))
+        self.graph_widget.setSizeIncrement(1, 1)
         self.graph_widget.setBackground('w')
         self.graph_widget.showGrid(x=True, y=True)
         self.graph_widget.addLegend()
@@ -66,24 +69,21 @@ class GraphDialog(QtWidgets.QDialog):
         self.ui.graph_parameters_button.clicked.connect(self.show_graph_parameters)
 
     def show_graph_parameters(self, _):
-        parameters_hidden = self.ui.parameters_widget.isHidden()
-        now_parameters_hidden = not parameters_hidden
+        hide_parameters = not self.ui.parameters_widget.isHidden()
+        self.ui.parameters_widget.setHidden(hide_parameters)
 
-        self.ui.parameters_widget.setHidden(now_parameters_hidden)
-        self.settings.graph_parameters_hidden = int(now_parameters_hidden)
-
-        if parameters_hidden:
-            sizes = self.ui.graph_dialog_splitter.sizes()
-            size_left = self.settings.graph_parameters_splitter_size
-            self.ui.graph_dialog_splitter.setSizes([size_left, sizes[1] - size_left])
-
-            self.ui.graph_parameters_button.setIcon(self.close_icon)
-        else:
+        if hide_parameters:
             sizes = self.ui.graph_dialog_splitter.sizes()
             self.settings.graph_parameters_splitter_size = sizes[0]
             self.ui.graph_dialog_splitter.setSizes([0, sizes[0] + sizes[1]])
 
             self.ui.graph_parameters_button.setIcon(self.open_icon)
+        else:
+            sizes = self.ui.graph_dialog_splitter.sizes()
+            size_left = self.settings.graph_parameters_splitter_size
+            self.ui.graph_dialog_splitter.setSizes([size_left, sizes[1] - size_left])
+
+            self.ui.graph_parameters_button.setIcon(self.close_icon)
 
     def add_graph(self, a_graph_name):
         graph_number = len(self.graph_widget.listDataItems())
@@ -92,6 +92,9 @@ class GraphDialog(QtWidgets.QDialog):
         pg_item = pyqtgraph.PlotCurveItem(pen=pyqtgraph.mkPen(color=graph_color, width=2), name=a_graph_name)
         pg_item.setData(x=self.graphs_data[a_graph_name][0], y=self.graphs_data[a_graph_name][1], name=a_graph_name)
         self.graph_widget.addItem(pg_item)
+
+    def update_graph_parameters(self):
+        pass
 
     def __del__(self):
         print("graphs deleted")
