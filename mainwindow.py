@@ -136,6 +136,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.measure_progress_bar_value = 0
 
+            self.tstlan_dialog = None
+            self.graphs_dialog = None
+
             self.show()
 
             self.measure_manager = MeasureManager(self.ui.measures_table,
@@ -487,19 +490,23 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def open_tstlan(self, _):
         # noinspection PyTypeChecker
-        tstlan_dialog: QtWidgets.QDialog = self.findChild(QtWidgets.QDialog, "tstlan_dialog")
-        if not tstlan_dialog:
-            tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings, self)
-            tstlan_dialog.exec()
+        if self.tstlan_dialog is None:
+            self.tstlan_dialog = TstlanDialog(self.netvars, self.calibrator, self.settings)
+            self.tstlan_dialog.exec()
+            self.tstlan_dialog = None
         else:
-            tstlan_dialog.activateWindow()
+            self.tstlan_dialog.activateWindow()
 
     @utils.exception_decorator
     def open_graphs(self, _):
-        graphs_data = self.measure_manager.get_data_for_graphs()
-        if graphs_data:
-            graph_dialog = GraphDialog(graphs_data, self.settings)
-            graph_dialog.exec()
+        if self.graphs_dialog is None:
+            graphs_data = self.measure_manager.get_data_for_graphs()
+            if graphs_data:
+                self.graphs_dialog = GraphDialog(graphs_data, self.settings)
+                self.graphs_dialog.exec()
+                self.graphs_dialog = None
+        else:
+            self.graphs_dialog.activateWindow()
 
     @utils.exception_decorator
     def open_cell_graph(self, _):
