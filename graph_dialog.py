@@ -32,6 +32,9 @@ class GraphDialog(QtWidgets.QDialog):
         self.ui = GraphForm()
         self.ui.setupUi(self)
 
+        self.open_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/right.png"))
+        self.close_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/left.png"))
+
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
         self.ui.graph_dialog_splitter.restoreState(self.settings.get_last_geometry(
@@ -39,7 +42,11 @@ class GraphDialog(QtWidgets.QDialog):
         self.ui.parameters_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.ui.parameters_table.objectName()))
 
-        self.ui.parameters_widget.setHidden(True)
+        self.ui.parameters_widget.setHidden(self.settings.graph_parameters_hidden)
+        if self.settings.graph_parameters_hidden:
+            self.ui.graph_parameters_button.setIcon(self.open_icon)
+        else:
+            self.ui.graph_parameters_button.setIcon(self.close_icon)
         self.show()
 
         self.graph_widget = pyqtgraph.PlotWidget()
@@ -60,7 +67,23 @@ class GraphDialog(QtWidgets.QDialog):
 
     def show_graph_parameters(self, _):
         parameters_hidden = self.ui.parameters_widget.isHidden()
-        self.ui.parameters_widget.setHidden(not parameters_hidden)
+        now_parameters_hidden = not parameters_hidden
+
+        self.ui.parameters_widget.setHidden(now_parameters_hidden)
+        self.settings.graph_parameters_hidden = int(now_parameters_hidden)
+
+        if parameters_hidden:
+            sizes = self.ui.graph_dialog_splitter.sizes()
+            size_left = self.settings.graph_parameters_splitter_size
+            self.ui.graph_dialog_splitter.setSizes([size_left, sizes[1] - size_left])
+
+            self.ui.graph_parameters_button.setIcon(self.close_icon)
+        else:
+            sizes = self.ui.graph_dialog_splitter.sizes()
+            self.settings.graph_parameters_splitter_size = sizes[0]
+            self.ui.graph_dialog_splitter.setSizes([0, sizes[0] + sizes[1]])
+
+            self.ui.graph_parameters_button.setIcon(self.open_icon)
 
     def add_graph(self, a_graph_name):
         graph_number = len(self.graph_widget.listDataItems())

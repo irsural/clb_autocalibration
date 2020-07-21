@@ -90,6 +90,10 @@ class MainWindow(QtWidgets.QMainWindow):
                                       a_type=Settings.ValueType.INT, a_default=0),
                 Settings.VariableInfo(a_name="switch_to_active_cell", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="graph_parameters_hidden", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=0),
+                Settings.VariableInfo(a_name="graph_parameters_splitter_size", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=500),
             ])
 
             ini_ok = True
