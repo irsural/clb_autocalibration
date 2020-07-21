@@ -172,6 +172,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
+            self.ui.graphs_action.triggered.connect(self.open_graphs)
             # self.ui.correction_action.triggered.connect(self.toggle_correction)
             self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.save_as_action.triggered.connect(self.save_configuration_as)
@@ -496,6 +497,12 @@ class MainWindow(QtWidgets.QMainWindow):
             tstlan_dialog.exec()
         else:
             tstlan_dialog.activateWindow()
+
+    @utils.exception_decorator
+    def open_graphs(self, _):
+        graphs_data = self.measure_manager.get_data_for_graphs()
+        if graphs_data:
+            logging.debug(graphs_data)
 
     @utils.exception_decorator
     def open_settings(self, _):

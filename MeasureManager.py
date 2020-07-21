@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union, Dict, List, Tuple
 from enum import IntEnum
 import logging
 import copy
@@ -33,6 +33,11 @@ class MeasureManager(QtCore.QObject):
 
     class MeterType(IntEnum):
         AGILENT_3458A = 0
+
+    class GraphType(IntEnum):
+        NONE = 0
+        Z_X = 1
+        Z_Y = 2
 
     MEASURE_FILE_EXTENSION = "measure"
     MEASURES_ORDER_FILENAME = "measures_order.json"
@@ -429,7 +434,6 @@ class MeasureManager(QtCore.QObject):
         return iterator
 
     def set_active_cell(self, a_cell_pos: MeasureIterator.CellPosition):
-        logging.debug(a_cell_pos)
         name_item = None
         for row in range(self.measures_table.rowCount()):
             name_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME)
@@ -558,6 +562,72 @@ class MeasureManager(QtCore.QObject):
             self.__lock_measure_table(lock_table)
 
             self.current_data_model.set_displayed_data(a_displayed_data)
+
+    def __extract_z_x_graph(self, a_row: int) -> Tuple[List, List]:
+        x = []
+        y = []
+        for column in range(1, self.current_data_model.columnCount()):
+            x.append(self.current_data_model.get_cell_value(a_row, column))
+            y.append(self.current_data_model.get_frequency(column))
+
+        return x, y
+
+    def __extract_z_y_graph(self, a_column: int) -> Tuple[List, List]:
+        x = []
+        y = []
+        for row in range(1, self.current_data_model.rowCount()):
+            x.append(self.current_data_model.get_cell_value(row, a_column))
+            y.append(self.current_data_model.get_amplitude(row))
+
+        return x, y
+
+    def get_data_for_graphs(self) -> List[Tuple[List, List]]:
+        data = []
+        if self.current_data_model:
+            # Получаем все выделенные уникальные строки и колонки, за исключением хэдеров
+            selected_rows = list(set(index.row() for index in self.data_view.selectionModel().selectedIndexes()
+                                     if index.row() != 0))
+            selected_columns = list(set(index.column() for index in self.data_view.selectionModel().selectedIndexes()
+                                        if index.column() != 0))
+            # Удаляем строки и колонки хэдеры
+            if 0 in selected_rows:
+                assert False, "АШИПКА"
+            if 0 in selected_columns:
+                assert False, "АШИПКА"
+
+            if selected_rows and selected_columns:
+
+                graphs_type = MeasureManager.GraphType.NONE
+
+                if len(selected_rows) > 1 and len(selected_columns) > 1 or \
+                        len(selected_rows) == len(selected_columns) == 1:
+                    msgbox = QtWidgets.QMessageBox()
+                    msgbox.setWindowTitle("Выберите действие")
+                    msgbox.setText("Обнаружено выделение строк и столбцов. Выберите тип графика.")
+                    z_x_button = msgbox.addButton("Z(X)", QtWidgets.QMessageBox.YesRole)
+                    z_y_button = msgbox.addButton("Z(Y)", QtWidgets.QMessageBox.AcceptRole)
+                    _ = msgbox.addButton("Отмена", QtWidgets.QMessageBox.AcceptRole)
+                    msgbox.exec()
+
+                    if msgbox.clickedButton() == z_x_button:
+                        graphs_type = MeasureManager.GraphType.Z_X
+                    elif msgbox.clickedButton() == z_y_button:
+                        graphs_type = MeasureManager.GraphType.Z_Y
+                elif len(selected_rows) > 1:
+                    graphs_type = MeasureManager.GraphType.Z_X
+                elif len(selected_columns) > 1:
+                    graphs_type = MeasureManager.GraphType.Z_Y
+
+                if graphs_type == MeasureManager.GraphType.Z_X:
+                    data = [self.__extract_z_x_graph(row) for row in selected_rows]
+                elif graphs_type == MeasureManager.GraphType.Z_Y:
+                    data = [self.__extract_z_y_graph(column) for column in selected_columns]
+
+            else:
+                QtWidgets.QMessageBox.information(None, "Информация",
+                                                  f"Для построения графиков необходимо выделить соответствующие ячейки",
+                                                  QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+        return data
 
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])

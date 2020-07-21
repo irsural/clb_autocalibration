@@ -958,6 +958,9 @@ selection-background-color: rgb(170, 170, 255);</string>
      <pointsize>10</pointsize>
     </font>
    </property>
+   <property name="shortcut">
+    <string>G</string>
+   </property>
   </action>
   <action name="lock_action">
    <property name="icon">
@@ -975,6 +978,9 @@ selection-background-color: rgb(170, 170, 255);</string>
      <pointsize>10</pointsize>
     </font>
    </property>
+   <property name="shortcut">
+    <string>L</string>
+   </property>
   </action>
   <action name="unlock_action">
    <property name="icon">
@@ -991,6 +997,9 @@ selection-background-color: rgb(170, 170, 255);</string>
     <font>
      <pointsize>10</pointsize>
     </font>
+   </property>
+   <property name="shortcut">
+    <string>U</string>
    </property>
   </action>
   <action name="show_equal_action">
@@ -1065,6 +1074,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="toolTip">
     <string>Создать новую конфигурацию</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="switch_to_active_cell_action">
    <property name="checkable">
@@ -1092,6 +1104,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="toolTip">
     <string>Заблокировать все ячейки</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="unlock_all_action">
    <property name="icon">
@@ -1103,6 +1118,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="toolTip">
     <string>Разблокировать все ячейки</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
    </property>
   </action>
  </widget>

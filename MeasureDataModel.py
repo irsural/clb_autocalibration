@@ -541,6 +541,28 @@ class MeasureDataModel(QAbstractTableModel):
 
         return color
 
+    def get_cell_value(self, a_row: int, a_column: int) -> float:
+        """
+        Возвращает значение ячейки в зависимости от текущих self.__displayed_data. Если значение в ячейке
+        отсутствует, возвращает 0. Не возвращает значения хэдеров
+        :param a_row: Строка ячейки. a_row > 0
+        :param a_column: Колонка ячейки. a_column > 0
+        :return: Значение ячейки.
+        """
+        assert a_row < self.rowCount() and a_column < self.columnCount(), "Задан неверный индекс ячейки!"
+        assert not self.__is_cell_header(a_row, a_column), "Этой функцией нельзя получить значения из хэдеров"
+
+        cell = self.__cells[a_row][a_column]
+        cell_value = 0.
+        if self.__displayed_data == CellData.GetDataType.MEASURED:
+            if cell.has_value():
+                cell_value = cell.get_value(self.__displayed_data)
+        else:
+            if cell.is_calculated():
+                cell_value = cell.get_value(self.__displayed_data)
+
+        return cell_value
+
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
                 (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole):
