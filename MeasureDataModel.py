@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from typing import List, Union, Generator, Tuple
-from time import perf_counter
 from statistics import stdev, mean
 from enum import IntEnum
 from array import array
@@ -130,18 +129,12 @@ class CellData:
     def set_value(self, a_value: float):
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
         self.reset()
-        self.append_value(a_value)
+        self.append_value(a_value, 0.)
 
-    def append_value(self, a_value: float):
+    def append_value(self, a_value: float, a_time: float):
         # Получаем время здесь, чтобы была константная задержка получения времени
-        append_time = perf_counter()
-
         self.__measured_values.append(a_value)
-        if not self.__measured_times:
-            self.__start_time_point = append_time
-            self.__measured_times.append(0.)
-        else:
-            self.__measured_times.append(append_time - self.__start_time_point)
+        self.__measured_times.append(a_time)
 
         self.__average.add(a_value)
         # До вызова self.finalize в __result хранится последнее добавленное значение
@@ -622,8 +615,8 @@ class MeasureDataModel(QAbstractTableModel):
         self.set_save_state(False)
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
-    def update_cell_with_value(self, a_row, a_column, a_value: float):
-        self.__cells[a_row][a_column].append_value(a_value)
+    def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
+        self.__cells[a_row][a_column].append_value(a_value, a_time)
         self.set_save_state(False)
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 

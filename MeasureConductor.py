@@ -1,5 +1,6 @@
 from collections import namedtuple
 from typing import Union, List
+from time import  perf_counter
 from enum import IntEnum
 import logging
 import random
@@ -117,6 +118,8 @@ class MeasureConductor(QtCore.QObject):
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
 
+        self.start_time_point: Union[None, float] = None
+
         self.__started = False
 
         self.__stage = MeasureConductor.Stage.REST
@@ -139,6 +142,8 @@ class MeasureConductor(QtCore.QObject):
         self.extra_variables.clear()
 
         self.need_to_reset_scheme = True
+
+        self.start_time_point = None
 
     def start(self, a_measure_iterator: MeasureIterator):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
@@ -341,11 +346,21 @@ class MeasureConductor(QtCore.QObject):
             if not self.measure_duration_timer.check():
                 lower_bound = utils.increase_by_percent(self.current_amplitude, 2)
                 upper_bound = utils.decrease_by_percent(self.current_amplitude, 2)
-                self.measure_manager.add_measured_value(*self.current_cell_position, random.uniform(lower_bound,
-                                                                                                    upper_bound))
+
+                value = random.uniform(lower_bound, upper_bound)
+                time_of_measure = perf_counter()
+
+                if self.start_time_point is None:
+                    self.start_time_point = time_of_measure
+                    time = 0
+                else:
+                    time = time_of_measure - self.start_time_point
+
+                self.measure_manager.add_measured_value(*self.current_cell_position, value, time)
             else:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
 
+                self.start_time_point = None
                 # stop() чтобы таймеры возвращали верное значение time_passed()
                 self.calibrator_hold_ready_timer.stop()
                 self.measure_duration_timer.stop()

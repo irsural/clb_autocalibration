@@ -451,8 +451,8 @@ class MeasureManager(QtCore.QObject):
     def reset_measure(self, a_name: str, a_row, a_column):
         self.measures[a_name].reset_cell(a_row, a_column)
 
-    def add_measured_value(self, a_name: str, a_row, a_column, a_value: float):
-        self.measures[a_name].update_cell_with_value(a_row, a_column, a_value)
+    def add_measured_value(self, a_name: str, a_row, a_column, a_value: float, a_time: float):
+        self.measures[a_name].update_cell_with_value(a_row, a_column, a_value, a_time)
 
     def finalize_measure(self, a_name: str, a_row, a_column):
         self.measures[a_name].finalize_cell(a_row, a_column)
