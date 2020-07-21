@@ -1,4 +1,5 @@
 from typing import Union, Dict, List, Tuple
+from collections import OrderedDict
 from enum import IntEnum
 from array import array
 import logging
@@ -45,6 +46,8 @@ class MeasureManager(QtCore.QObject):
 
     SAVED_COLOR = QtCore.Qt.white
     UNSAVED_COLOR = QtGui.QColor(255, 235, 179)
+
+    new_value_measured = QtCore.pyqtSignal(float, float)
 
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
                  a_settings: Settings, a_parent=None):
@@ -453,6 +456,8 @@ class MeasureManager(QtCore.QObject):
 
     def add_measured_value(self, a_name: str, a_row, a_column, a_value: float, a_time: float):
         self.measures[a_name].update_cell_with_value(a_row, a_column, a_value, a_time)
+        # Используется для обновления графиков
+        self.new_value_measured.emit(a_value, a_time)
 
     def finalize_measure(self, a_name: str, a_row, a_column):
         self.measures[a_name].finalize_cell(a_row, a_column)
@@ -582,8 +587,8 @@ class MeasureManager(QtCore.QObject):
 
         return x, y
 
-    def get_data_for_graphs(self) -> List[Tuple[List, List]]:
-        data = []
+    def get_data_for_graphs(self) -> Dict[str, Tuple[List, List]]:
+        data = OrderedDict()
         if self.current_data_model:
             # Получаем все выделенные уникальные строки и колонки, за исключением хэдеров
             selected_rows = list(set(index.row() for index in self.data_view.selectionModel().selectedIndexes()
@@ -620,9 +625,13 @@ class MeasureManager(QtCore.QObject):
                     graphs_type = MeasureManager.GraphType.Z_Y
 
                 if graphs_type == MeasureManager.GraphType.Z_X:
-                    data = [self.__extract_z_x_graph(row) for row in selected_rows]
+                    for row in selected_rows:
+                        graph_name = self.current_data_model.get_amplitude_with_units(row)
+                        data[graph_name] = self.__extract_z_x_graph(row)
                 elif graphs_type == MeasureManager.GraphType.Z_Y:
-                    data = [self.__extract_z_y_graph(column) for column in selected_columns]
+                    for column in selected_columns:
+                        graph_name = self.current_data_model.get_frequency_with_units(column)
+                        data[graph_name] = self.__extract_z_y_graph(column)
 
             else:
                 QtWidgets.QMessageBox.information(None, "Информация",
@@ -630,19 +639,24 @@ class MeasureManager(QtCore.QObject):
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         return data
 
-    def get_cell_measurement_graph(self) -> List[Tuple[array, array]]:
-        graphs = []
+    def get_cell_measurement_graph(self) -> Dict[str, Tuple[array, array]]:
+        graphs = OrderedDict()
         if self.current_data_model:
             cell = self.__get_only_selected_cell()
             if cell:
                 measurement_graph = self.current_data_model.get_cell_measured_values(cell.row(), cell.column())
                 times = measurement_graph[1]
                 if times:
-                    cell_value = self.current_data_model.get_cell_value(cell.row(), cell.column(),
-                                                                        CellData.GetDataType.MEASURED)
-                    result_graph = ([cell_value, cell_value], [times[0], times[-1]])
+                    graph_values_name = f"Ячейка {self.current_data_model.get_amplitude_with_units(cell.row())}; " \
+                                        f"{self.current_data_model.get_frequency_with_units(cell.column())}"
 
-                    graphs = [measurement_graph, result_graph]
+                    measure_result = self.current_data_model.get_cell_value(cell.row(), cell.column(),
+                                                                            CellData.GetDataType.MEASURED)
+                    result_graph = ([measure_result, measure_result], [times[0], times[-1]])
+
+                    graphs[graph_values_name] = measurement_graph
+                    graphs["Результат"] = result_graph
+
         return graphs
 
     def is_saved(self):
