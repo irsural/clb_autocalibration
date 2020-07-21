@@ -100,12 +100,15 @@ class CellData:
         self.__average.reset()
         self.__measured_values = array('d')
         self.__measured_times = array('d')
-        self.__start_time_point = perf_counter()
+        self.__start_time_point = 0
         self.__impulse_filter.clear()
         self.__result = 0
         self.__have_result = False
         self.__calculations.reset()
         self.__calculated = False
+
+    def get_measured_values(self) -> Tuple[array, array]:
+        return self.__measured_values, self.__measured_times
 
     def has_value(self):
         return self.__have_result
@@ -130,10 +133,11 @@ class CellData:
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
         self.reset()
         self.append_value(a_value)
+        self.finalize()
 
     def append_value(self, a_value: float):
         self.__measured_values.append(a_value)
-        self.__measured_times.append(perf_counter() - self.__start_time_point)
+        self.__measured_times.append(perf_counter())
         self.__average.add(a_value)
         # До вызова self.finalize в __result хранится последнее добавленное значение
         self.__have_result = True
@@ -144,6 +148,9 @@ class CellData:
         Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
         """
         if self.has_value():
+            self.__start_time_point = self.__measured_times[0]
+            self.__measured_times = array('d', (time - self.__start_time_point for time in self.__measured_times))
+
             if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
                 logging.info("Количество измеренных значений слишком мало для импульсного фильтра! "
                              "Результат будет вычислен по среднему значению")
@@ -541,12 +548,13 @@ class MeasureDataModel(QAbstractTableModel):
 
         return color
 
-    def get_cell_value(self, a_row: int, a_column: int) -> float:
+    def get_cell_value(self, a_row: int, a_column: int, a_displayed_data=None) -> float:
         """
         Возвращает значение ячейки в зависимости от текущих self.__displayed_data. Если значение в ячейке
         отсутствует, возвращает 0. Не возвращает значения хэдеров
         :param a_row: Строка ячейки. a_row > 0
         :param a_column: Колонка ячейки. a_column > 0
+        :param a_displayed_data: Тип возвращаемых данных. Если не указан, то возвращается тот, который задан в модели
         :return: Значение ячейки.
         """
         assert a_row < self.rowCount() and a_column < self.columnCount(), "Задан неверный индекс ячейки!"
@@ -554,14 +562,21 @@ class MeasureDataModel(QAbstractTableModel):
 
         cell = self.__cells[a_row][a_column]
         cell_value = 0.
-        if self.__displayed_data == CellData.GetDataType.MEASURED:
+        displayed_data = a_displayed_data if a_displayed_data is not None else self.__displayed_data
+
+        if displayed_data == CellData.GetDataType.MEASURED:
             if cell.has_value():
-                cell_value = cell.get_value(self.__displayed_data)
+                cell_value = cell.get_value(displayed_data)
         else:
             if cell.is_calculated():
-                cell_value = cell.get_value(self.__displayed_data)
+                cell_value = cell.get_value(displayed_data)
 
         return cell_value
+
+    def get_cell_measured_values(self, a_row: int, a_column: int) -> Tuple[array, array]:
+        cell = self.__cells[a_row][a_column]
+        values, times = cell.get_measured_values()
+        return values, times
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \

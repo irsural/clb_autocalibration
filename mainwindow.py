@@ -197,7 +197,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.paste_cell_value_action.triggered.connect(self.paste_cell_value)
             self.ui.measure_data_view.addAction(self.ui.paste_cell_value_action)
 
-            self.ui.show_cell_graph_action.triggered.connect(self.show_cell_graph)
+            self.ui.show_cell_graph_action.triggered.connect(self.open_cell_graph)
             self.ui.measure_data_view.addAction(self.ui.show_cell_graph_action)
 
             self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
@@ -395,9 +395,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def paste_cell_value(self):
         self.measure_manager.paste_cell_value()
 
-    def show_cell_graph(self):
-        logging.debug("Не реализовано")
-
     def flash_table(self):
         logging.debug("Не реализовано")
 
@@ -501,6 +498,12 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def open_graphs(self, _):
         graphs_data = self.measure_manager.get_data_for_graphs()
+        if graphs_data:
+            logging.debug(graphs_data)
+
+    @utils.exception_decorator
+    def open_cell_graph(self, _):
+        graphs_data = self.measure_manager.get_cell_measurement_graph()
         if graphs_data:
             logging.debug(graphs_data)
 

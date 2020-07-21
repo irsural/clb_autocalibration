@@ -1,5 +1,6 @@
 from typing import Union, Dict, List, Tuple
 from enum import IntEnum
+from array import array
 import logging
 import copy
 import json
@@ -628,6 +629,21 @@ class MeasureManager(QtCore.QObject):
                                                   f"Для построения графиков необходимо выделить соответствующие ячейки",
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         return data
+
+    def get_cell_measurement_graph(self) -> List[Tuple[array, array]]:
+        graphs = []
+        if self.current_data_model:
+            cell = self.__get_only_selected_cell()
+            if cell:
+                measurement_graph = self.current_data_model.get_cell_measured_values(cell.row(), cell.column())
+                times = measurement_graph[1]
+                if times:
+                    cell_value = self.current_data_model.get_cell_value(cell.row(), cell.column(),
+                                                                        CellData.GetDataType.MEASURED)
+                    result_graph = ([cell_value, cell_value], [times[0], times[-1]])
+
+                    graphs = [measurement_graph, result_graph]
+        return graphs
 
     def is_saved(self):
         return all([data_model.is_saved() for data_model in self.measures.values()])
