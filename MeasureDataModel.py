@@ -48,14 +48,14 @@ class CellData:
         STUDENT_999 = 6
         COUNT = 7
 
-    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_start_time_point=None, a_result=0.,
-                 a_calculations=None, a_have_result=False, a_config=None):
+    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0., a_calculations=None,
+                 a_have_result=False, a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
         self.__measured_values = a_init_values if a_init_values is not None else array('d')
         self.__measured_times = a_init_times if a_init_times is not None else array('d')
-        self.__start_time_point = a_start_time_point if a_start_time_point is not None else perf_counter()
+        self.__start_time_point = 0
         self.__average = metrology.MovingAverage()
         self.__impulse_filter = metrology.ImpulseFilter()
 
@@ -73,7 +73,6 @@ class CellData:
             "locked": self.__locked,
             "measured_values": utils.bytes_to_base64(self.__measured_values.tobytes()),
             "measured_times": utils.bytes_to_base64(self.__measured_times.tobytes()),
-            "start_time_point": self.__start_time_point,
             "result": self.__result,
             "have_result": self.__have_result,
             "config": self.config.serialize_to_dict(),
@@ -91,7 +90,6 @@ class CellData:
         return cls(a_locked=bool(a_data_dict["locked"]),
                    a_init_values=init_values,
                    a_init_times=init_times,
-                   a_start_time_point=float(a_data_dict["start_time_point"]),
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
@@ -133,24 +131,28 @@ class CellData:
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
         self.reset()
         self.append_value(a_value)
-        self.finalize()
 
     def append_value(self, a_value: float):
+        # Получаем время здесь, чтобы была константная задержка получения времени
+        append_time = perf_counter()
+
         self.__measured_values.append(a_value)
-        self.__measured_times.append(perf_counter())
+        if not self.__measured_times:
+            self.__start_time_point = append_time
+            self.__measured_times.append(0.)
+        else:
+            self.__measured_times.append(append_time - self.__start_time_point)
+
         self.__average.add(a_value)
         # До вызова self.finalize в __result хранится последнее добавленное значение
-        self.__have_result = True
         self.__result = a_value
+        self.__have_result = True
 
     def finalize(self):
         """
         Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
         """
         if self.has_value():
-            self.__start_time_point = self.__measured_times[0]
-            self.__measured_times = array('d', (time - self.__start_time_point for time in self.__measured_times))
-
             if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
                 logging.info("Количество измеренных значений слишком мало для импульсного фильтра! "
                              "Результат будет вычислен по среднему значению")
