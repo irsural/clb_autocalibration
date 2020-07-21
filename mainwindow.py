@@ -7,8 +7,8 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
 from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
-import irspy.clb.calibrator_constants as clb
 from irspy.dlls.ftdi_control import FtdiControl
+import irspy.clb.calibrator_constants as clb
 import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
@@ -20,6 +20,7 @@ from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
+from graph_dialog import GraphDialog
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -98,8 +99,10 @@ class MainWindow(QtWidgets.QMainWindow):
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
             self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
-            self.ui.splitter.restoreState(self.settings.get_last_geometry(self.ui.splitter.objectName()))
-            self.ui.splitter_2.restoreState(self.settings.get_last_geometry(self.ui.splitter_2.objectName()))
+            self.ui.mainwindow_splitter.restoreState(self.settings.get_last_geometry(
+                self.ui.mainwindow_splitter.objectName()))
+            self.ui.mainwindow_splitter_2.restoreState(self.settings.get_last_geometry(
+                self.ui.mainwindow_splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
             self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
@@ -173,7 +176,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
             self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
             self.ui.graphs_action.triggered.connect(self.open_graphs)
-            # self.ui.correction_action.triggered.connect(self.toggle_correction)
             self.ui.save_action.triggered.connect(self.save_configuration)
             self.ui.save_as_action.triggered.connect(self.save_configuration_as)
             self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
@@ -380,9 +382,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def stop_measure_button_clicked(self, _):
         self.measure_conductor.stop()
 
-    def toggle_correction(self, _):
-        logging.debug("Не реализовано")
-
     def copy_cell_config(self):
         self.measure_manager.copy_cell_config()
 
@@ -499,13 +498,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_graphs(self, _):
         graphs_data = self.measure_manager.get_data_for_graphs()
         if graphs_data:
-            logging.debug(graphs_data)
+            graph_dialog = GraphDialog(graphs_data, self.settings)
+            graph_dialog.exec()
 
     @utils.exception_decorator
     def open_cell_graph(self, _):
         graphs_data = self.measure_manager.get_cell_measurement_graph()
         if graphs_data:
-            logging.debug(graphs_data)
+            graph_dialog = GraphDialog(graphs_data, self.settings)
+            graph_dialog.exec()
 
     @utils.exception_decorator
     def open_settings(self, _):
@@ -670,8 +671,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                 a_event.ignore()
             else:
-                self.settings.save_geometry(self.ui.splitter.objectName(), self.ui.splitter.saveState())
-                self.settings.save_geometry(self.ui.splitter_2.objectName(), self.ui.splitter_2.saveState())
+                self.settings.save_geometry(self.ui.mainwindow_splitter.objectName(),
+                                            self.ui.mainwindow_splitter.saveState())
+                self.settings.save_geometry(self.ui.mainwindow_splitter_2.objectName(),
+                                            self.ui.mainwindow_splitter_2.saveState())
                 self.settings.save_geometry(self.ui.measures_table.objectName(),
                                             self.ui.measures_table.horizontalHeader().saveState())
                 self.settings.save_geometry(self.objectName(), self.saveGeometry())

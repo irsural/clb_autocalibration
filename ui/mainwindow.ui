@@ -31,11 +31,11 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QSplitter" name="splitter_2">
+     <widget class="QSplitter" name="mainwindow_splitter_2">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QSplitter" name="splitter">
+      <widget class="QSplitter" name="mainwindow_splitter">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -900,7 +900,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <string>correction_action</string>
    </property>
    <property name="toolTip">
-    <string>Коррекция</string>
+    <string>Коррекция (статус)</string>
    </property>
    <property name="font">
     <font>

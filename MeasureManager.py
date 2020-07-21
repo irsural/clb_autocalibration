@@ -573,8 +573,8 @@ class MeasureManager(QtCore.QObject):
         x = []
         y = []
         for column in range(1, self.current_data_model.columnCount()):
-            x.append(self.current_data_model.get_cell_value(a_row, column))
-            y.append(self.current_data_model.get_frequency(column))
+            x.append(self.current_data_model.get_frequency(column))
+            y.append(self.current_data_model.get_cell_value(a_row, column))
 
         return x, y
 
@@ -582,8 +582,8 @@ class MeasureManager(QtCore.QObject):
         x = []
         y = []
         for row in range(1, self.current_data_model.rowCount()):
-            x.append(self.current_data_model.get_cell_value(row, a_column))
-            y.append(self.current_data_model.get_amplitude(row))
+            x.append(self.current_data_model.get_amplitude(row))
+            y.append(self.current_data_model.get_cell_value(row, a_column))
 
         return x, y
 
@@ -645,14 +645,14 @@ class MeasureManager(QtCore.QObject):
             cell = self.__get_only_selected_cell()
             if cell:
                 measurement_graph = self.current_data_model.get_cell_measured_values(cell.row(), cell.column())
-                times = measurement_graph[1]
+                times = measurement_graph[0]
                 if times:
                     graph_values_name = f"Ячейка {self.current_data_model.get_amplitude_with_units(cell.row())}; " \
                                         f"{self.current_data_model.get_frequency_with_units(cell.column())}"
 
                     measure_result = self.current_data_model.get_cell_value(cell.row(), cell.column(),
                                                                             CellData.GetDataType.MEASURED)
-                    result_graph = ([measure_result, measure_result], [times[0], times[-1]])
+                    result_graph = ([times[0], times[-1]], [measure_result, measure_result])
 
                     graphs[graph_values_name] = measurement_graph
                     graphs["Результат"] = result_graph

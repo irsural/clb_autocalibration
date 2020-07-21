@@ -105,7 +105,7 @@ class CellData:
         self.__calculated = False
 
     def get_measured_values(self) -> Tuple[array, array]:
-        return self.__measured_values, self.__measured_times
+        return self.__measured_times, self.__measured_values
 
     def has_value(self):
         return self.__have_result
@@ -570,8 +570,8 @@ class MeasureDataModel(QAbstractTableModel):
 
     def get_cell_measured_values(self, a_row: int, a_column: int) -> Tuple[array, array]:
         cell = self.__cells[a_row][a_column]
-        values, times = cell.get_measured_values()
-        return values, times
+        times, values = cell.get_measured_values()
+        return times, values
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \

@@ -70,7 +70,7 @@ class TstlanGraphDialog(QtWidgets.QDialog):
         del self.graph_items[a_graph_name]
 
     def __del__(self):
-        print("graphs deleted")
+        print("tstlan graphs deleted")
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
