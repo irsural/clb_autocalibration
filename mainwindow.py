@@ -247,6 +247,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.lock_action.setDisabled(a_lock)
         self.ui.unlock_action.setDisabled(a_lock)
+        self.ui.lock_all_action.setDisabled(a_lock)
+        self.ui.unlock_all_action.setDisabled(a_lock)
 
         self.ui.save_current_measure_button.setDisabled(a_lock)
 

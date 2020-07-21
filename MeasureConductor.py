@@ -234,10 +234,14 @@ class MeasureConductor(QtCore.QObject):
                                                           work_value=extra_parameter.work_value,
                                                           default_value=extra_parameter.default_value))
 
-            self.measure_manager.reset_measure(*self.current_cell_position)
-            self.single_measure_started.emit()
+            if self.current_config.verify_scheme(self.current_measure_parameters.signal_type):
 
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                self.measure_manager.reset_measure(*self.current_cell_position)
+                self.single_measure_started.emit()
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            else:
+                logging.critical("Ошибка в логике программы. Невалидная схема подключения ячейки")
+                self.stop()
 
         elif self.__stage == MeasureConductor.Stage.RESET_CALIBRATOR_CONFIG:
             # Чтобы не читать с калибратора с периодом основного тика программы
