@@ -1,4 +1,5 @@
 from typing import Dict, Tuple, Iterable
+from collections import OrderedDict
 from sys import float_info
 from enum import IntEnum
 import logging
@@ -135,8 +136,8 @@ class GraphDialog(QtWidgets.QDialog):
 
         self.ui.chart_layout.addWidget(self.graph_widget)
 
-        self.graph_items: Dict[str, pyqtgraph.PlotCurveItem] = {}
-        self.graphs_data = {name: (list(data_x), list(data_y)) for name, (data_x, data_y) in a_graph_data.items()}
+        self.graph_items: Dict[str, pyqtgraph.PlotCurveItem] = OrderedDict()
+        self.graphs_data = OrderedDict(((name, (list(data_x), list(data_y))) for name, (data_x, data_y) in a_graph_data.items()))
 
         for (data_x, data_y) in self.graphs_data.values():
             assert all(data_x[i] <= data_x[i + 1] for i in range(len(data_x) - 1)), \
@@ -151,6 +152,7 @@ class GraphDialog(QtWidgets.QDialog):
         self.ui.graph_parameters_button.clicked.connect(self.show_graph_parameters)
         self.ui.update_pparameters_button.clicked.connect(self.update_graph_parameters_button_pressed)
         self.ui.graphs_combobox.currentTextChanged.connect(self.change_parameters_graph)
+        self.ui.auto_update_checkbox.toggled.connect(self.auto_update_checkbox_toggled)
         self.graph_widget.sigRangeChanged.connect(self.update_graph_parameters)
 
     def fill_parameters_table(self):
@@ -189,6 +191,10 @@ class GraphDialog(QtWidgets.QDialog):
     def update_graph_parameters(self, _):
         if self.ui.auto_update_checkbox.isChecked():
             self.update_graph_parameters_button_pressed()
+
+    def auto_update_checkbox_toggled(self, a_enable):
+        if a_enable:
+            self.update_graph_parameters(None)
 
     def change_parameters_graph(self, _):
         self.update_graph_parameters(None)

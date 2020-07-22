@@ -294,8 +294,9 @@ class MeasureManager(QtCore.QObject):
 
     def remove_row_from_current_measure(self):
         if self.current_data_model is not None:
-            # Множество для сортировки и удаления дубликатов
+            # Множество для удаления дубликатов
             removing_rows = list(set(index.row() for index in self.data_view.selectionModel().selectedIndexes()))
+            removing_rows.sort()
             for row in reversed(removing_rows):
                 self.current_data_model.remove_row(row)
 
@@ -310,8 +311,9 @@ class MeasureManager(QtCore.QObject):
 
     def remove_column_from_current_measure(self):
         if self.current_data_model is not None:
-            # Множество для сортировки и удаления дубликатов
+            # Множество для удаления дубликатов
             removing_cols = list(set(index.column() for index in self.data_view.selectionModel().selectedIndexes()))
+            removing_cols.sort()
             for column in reversed(removing_cols):
                 self.current_data_model.remove_column(column)
 
@@ -599,13 +601,10 @@ class MeasureManager(QtCore.QObject):
             # Получаем все выделенные уникальные строки и колонки, за исключением хэдеров
             selected_rows = list(set(index.row() for index in self.data_view.selectionModel().selectedIndexes()
                                      if index.row() != 0))
+            selected_rows.sort()
             selected_columns = list(set(index.column() for index in self.data_view.selectionModel().selectedIndexes()
                                         if index.column() != 0))
-            # Удаляем строки и колонки хэдеры
-            if 0 in selected_rows:
-                assert False, "АШИПКА"
-            if 0 in selected_columns:
-                assert False, "АШИПКА"
+            selected_columns.sort()
 
             if selected_rows and selected_columns:
 
