@@ -1,4 +1,5 @@
 from typing import Dict, Tuple, Iterable
+from sys import float_info
 from enum import IntEnum
 import logging
 import bisect
@@ -15,10 +16,10 @@ import irspy.utils as utils
 class GraphParameters:
     def __init__(self):
         self.points_count = 0
-        self.x_min = 0
-        self.x_max = 0
-        self.y_min = 0
-        self.y_max = 0
+        self.x_min = float_info.max
+        self.x_max = float_info.min
+        self.y_min = float_info.max
+        self.y_max = float_info.min
         self.y_average = 0
         self.x_range = 0
         self.delta_2 = 0
@@ -30,10 +31,10 @@ class GraphParameters:
 
     def reset(self):
         self.points_count = 0
-        self.x_min = 0
-        self.x_max = 0
-        self.y_min = 0
-        self.y_max = 0
+        self.x_min = float_info.max
+        self.x_max = float_info.min
+        self.y_min = float_info.max
+        self.y_max = float_info.min
         self.y_average = 0
         self.x_range = 0
         self.delta_2 = 0
@@ -119,6 +120,7 @@ class GraphDialog(QtWidgets.QDialog):
         splitter_sizes = self.ui.graph_dialog_splitter.sizes()
         self.ui.graph_dialog_splitter.setSizes([0, splitter_sizes[0] + splitter_sizes[1]])
 
+        self.ui.auto_update_checkbox.setChecked(True)
         self.fill_parameters_table()
 
         self.show()
@@ -188,7 +190,6 @@ class GraphDialog(QtWidgets.QDialog):
             self.update_graph_parameters_button_pressed()
 
     def update_graph_parameters_button_pressed(self):
-        logging.debug("update")
         x_min, x_max = self.graph_widget.getAxis('bottom').range
         y_min, y_max = self.graph_widget.getAxis('left').range
 
@@ -213,15 +214,16 @@ class GraphDialog(QtWidgets.QDialog):
 
             data_y_in_range = []
             moving_sko = metrology.MovingSKO()
+
             for y in data_y[first_x_index:last_x_index]:
                 if y_min <= y <= y_max:
                     data_y_in_range.append(y)
 
                     if y > self.graph_parameters.y_max:
-                        self.graph_parameters.y_max = y_max
+                        self.graph_parameters.y_max = y
 
                     if y < self.graph_parameters.y_min:
-                        self.graph_parameters.y_min = y_min
+                        self.graph_parameters.y_min = y
 
                     moving_sko.add(y)
 
@@ -245,6 +247,14 @@ class GraphDialog(QtWidgets.QDialog):
 
                     self.graph_parameters.student_999 = self.graph_parameters.sko_percents * \
                         metrology.student_t_inverse_distribution_2x(0.999, len(data_y_in_range))
+            else:
+                self.graph_parameters.y_min = 0
+                self.graph_parameters.y_max = 0
+        else:
+            self.graph_parameters.x_min = 0
+            self.graph_parameters.x_max = 0
+            self.graph_parameters.y_min = 0
+            self.graph_parameters.y_max = 0
 
     def set_number_to_table(self, a_row: int, a_column: int, a_value: float):
         self.ui.parameters_table.item(a_row, a_column).setText(utils.float_to_string(a_value))
