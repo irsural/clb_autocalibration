@@ -120,14 +120,14 @@ class GraphDialog(QtWidgets.QDialog):
         splitter_sizes = self.ui.graph_dialog_splitter.sizes()
         self.ui.graph_dialog_splitter.setSizes([0, splitter_sizes[0] + splitter_sizes[1]])
 
-        self.ui.auto_update_checkbox.setChecked(True)
         self.fill_parameters_table()
 
         self.show()
 
         pyqtgraph.setConfigOption('leftButtonPan', False)
         self.graph_widget = pyqtgraph.PlotWidget()
-        self.graph_widget.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred))
+        self.graph_widget.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                                              QtWidgets.QSizePolicy.Preferred))
         self.graph_widget.setSizeIncrement(1, 1)
         self.graph_widget.setBackground('w')
         self.graph_widget.showGrid(x=True, y=True)
@@ -150,6 +150,7 @@ class GraphDialog(QtWidgets.QDialog):
 
         self.ui.graph_parameters_button.clicked.connect(self.show_graph_parameters)
         self.ui.update_pparameters_button.clicked.connect(self.update_graph_parameters_button_pressed)
+        self.ui.graphs_combobox.currentTextChanged.connect(self.change_parameters_graph)
         self.graph_widget.sigRangeChanged.connect(self.update_graph_parameters)
 
     def fill_parameters_table(self):
@@ -188,6 +189,9 @@ class GraphDialog(QtWidgets.QDialog):
     def update_graph_parameters(self, _):
         if self.ui.auto_update_checkbox.isChecked():
             self.update_graph_parameters_button_pressed()
+
+    def change_parameters_graph(self, _):
+        self.update_graph_parameters(None)
 
     def update_graph_parameters_button_pressed(self):
         x_min, x_max = self.graph_widget.getAxis('bottom').range
@@ -257,7 +261,7 @@ class GraphDialog(QtWidgets.QDialog):
             self.graph_parameters.y_max = 0
 
     def set_number_to_table(self, a_row: int, a_column: int, a_value: float):
-        self.ui.parameters_table.item(a_row, a_column).setText(utils.float_to_string(a_value))
+        self.ui.parameters_table.item(a_row, a_column).setText(utils.float_to_string(a_value, a_precision=15))
 
     def update_graph_parameters_table(self):
         column = GraphDialog.ParametersColumn.VALUE
