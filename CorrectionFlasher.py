@@ -1,18 +1,14 @@
 from enum import IntEnum
 import logging
 
-from PyQt5 import QtCore
-
 from irspy.dlls import mxsrlib_dll
 
 
-class CorrectionFlasher(QtCore.QObject):
+class CorrectionFlasher():
     class Action(IntEnum):
         NONE = 0
         READ = 1
         WRITE = 2
-
-    flash_verify_done = QtCore.pyqtSignal()
 
     class Stage(IntEnum):
         REST = 0
@@ -64,8 +60,10 @@ class CorrectionFlasher(QtCore.QObject):
         Stage.DONE: "Прошивка / верификация завершена",
     }
 
-    def __init__(self, a_parent=None):
-        super().__init__(a_parent)
+    def __init__(self):
+        super().__init__()
+
+        self.__started = False
 
         self.__action = CorrectionFlasher.Action.NONE
 
@@ -75,14 +73,20 @@ class CorrectionFlasher(QtCore.QObject):
     def start_flash(self):
         self.__action = CorrectionFlasher.Action.WRITE
         self.__stage = CorrectionFlasher.Stage.START
+        self.__started = True
 
     def start_verify(self):
         self.__action = CorrectionFlasher.Action.READ
         self.__stage = CorrectionFlasher.Stage.START
+        self.__started = True
 
     def stop(self):
         self.__action = CorrectionFlasher.Action.NONE
         self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
+        self.__started = False
+
+    def is_started(self):
+        return self.__started
 
     def tick(self):
         if self.__prev_stage != self.__stage:
@@ -140,6 +144,7 @@ class CorrectionFlasher(QtCore.QObject):
 
             elif self.__stage == CorrectionFlasher.Stage.DONE:
 
-                self.flash_verify_done.emit()
+                self.__action = CorrectionFlasher.Action.NONE
+                self.__started = False
 
                 self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]

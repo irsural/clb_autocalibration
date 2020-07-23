@@ -15,7 +15,6 @@ import irspy.utils as utils
 
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
-from CorrectionFlasher import CorrectionFlasher
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
@@ -148,14 +147,12 @@ class MainWindow(QtWidgets.QMainWindow):
                                                   self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
-            self.correction_flasher = CorrectionFlasher()
-            self.correction_flasher.flash_verify_done.connect(self.verify_flash_done)
-
             self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
                                                       self.measure_manager, self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
             self.measure_conductor.single_measure_started.connect(self.single_measure_started)
             self.measure_conductor.single_measure_done.connect(self.single_measure_done)
+            self.measure_conductor.verify_flash_done.connect(self.verify_flash_done)
 
             self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
             self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
@@ -308,7 +305,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.correction_action.setChecked(correction_enabled)
 
     def tick(self):
-        self.correction_flasher.tick()
         self.measure_conductor.tick()
         self.usb_driver.tick()
         self.gui_tick()
@@ -416,34 +412,54 @@ class MainWindow(QtWidgets.QMainWindow):
     def paste_cell_value(self):
         self.measure_manager.paste_cell_value()
 
+    def lock_gui_while_flash(self):
+        self.lock_interface(True)
+        self.ui.stop_flash_verify_action.setDisabled(False)
+
     def flash_table(self):
-        # self.correction_flasher.start_flash()
-        logging.debug("Прошить таблицу")
+        current_measure = self.measure_manager.get_current_measure()
+        if current_measure is not None:
+            self.lock_gui_while_flash()
+
+            self.measure_conductor.start_flash([current_measure], False)
 
     def flash_diapason_of_cell(self):
-        # self.correction_flasher.stop()
-        logging.debug("Прошить диапазон ячейки")
+        current_measure = self.measure_manager.get_current_measure()
+        if current_measure is not None:
+            self.lock_gui_while_flash()
+
+            self.measure_conductor.start_flash([current_measure], True)
 
     def verify_table(self):
-        logging.debug("Проверить таблицу")
+        current_measure = self.measure_manager.get_current_measure()
+        if current_measure is not None:
+            self.lock_gui_while_flash()
+
+            self.measure_conductor.start_verify([current_measure], False)
 
     def verify_diapason_of_cell(self):
-        logging.debug("Проверить диапазон ячейки")
+        current_measure = self.measure_manager.get_current_measure()
+        if current_measure is not None:
+            self.lock_gui_while_flash()
+
+            self.measure_conductor.start_verify([current_measure], True)
 
     def flash_all_button_clicked(self):
-        self.lock_interface(True)
-        self.ui.stop_flash_verify_action.setDisabled(False)
+        enabled_measures = self.measure_manager.get_enabled_measures()
+        if enabled_measures:
+            self.lock_gui_while_flash()
 
-        self.correction_flasher.start_flash()
+            self.measure_conductor.start_flash(enabled_measures, False)
 
     def verify_all_button_clicked(self):
-        self.lock_interface(True)
-        self.ui.stop_flash_verify_action.setDisabled(False)
+        enabled_measures = self.measure_manager.get_enabled_measures()
+        if enabled_measures:
+            self.lock_gui_while_flash()
 
-        self.correction_flasher.start_verify()
+            self.measure_conductor.start_verify(enabled_measures, False)
 
     def stop_flash_verify_button_clicked(self):
-        self.correction_flasher.stop()
+        self.measure_conductor.stop_flash_verify()
 
     def verify_flash_done(self):
         self.lock_interface(False)
@@ -637,7 +653,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
                                                   self.measure_manager, self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
+        self.measure_conductor.single_measure_started.connect(self.single_measure_started)
         self.measure_conductor.single_measure_done.connect(self.single_measure_done)
+        self.measure_conductor.verify_flash_done.connect(self.verify_flash_done)
 
     def create_new_configuration(self):
         cancel_open = False

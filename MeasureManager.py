@@ -397,6 +397,15 @@ class MeasureManager(QtCore.QObject):
 
         self.interface_is_locked = a_lock
 
+    def get_current_measure(self):
+        if self.current_data_model:
+            return self.current_data_model.get_name()
+        else:
+            return None
+
+    def get_enabled_measures(self) -> List[str]:
+        return [name for name in self.measures.keys() if self.measures[name].is_enabled()]
+
     def get_measure_iterator(self, a_iteration_type: IterationType):
         pass_through_measures = a_iteration_type in (MeasureManager.IterationType.START_ALL,
                                                      MeasureManager.IterationType.CONTINUE_ALL)

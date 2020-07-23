@@ -10,6 +10,7 @@ from PyQt5 import QtCore
 from irspy.clb.network_variables import NetworkVariables, BufferedVariable, VariableInfo
 from irspy.clb import assist_functions as clb_assists
 from irspy.clb import calibrator_constants as clb
+from CorrectionFlasher import CorrectionFlasher
 from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
@@ -89,6 +90,8 @@ class MeasureConductor(QtCore.QObject):
     single_measure_done = QtCore.pyqtSignal()
     all_measures_done = QtCore.pyqtSignal()
 
+    verify_flash_done = QtCore.pyqtSignal()
+
     def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_ftdi_control: FtdiControl,
                  a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
@@ -121,6 +124,9 @@ class MeasureConductor(QtCore.QObject):
         self.start_time_point: Union[None, float] = None
 
         self.__started = False
+
+        self.correction_flasher = CorrectionFlasher()
+        self.correction_flasher_started = False
 
         self.__stage = MeasureConductor.Stage.REST
         self.__prev_stage = self.__stage
@@ -185,6 +191,13 @@ class MeasureConductor(QtCore.QObject):
 
     def tick(self):
         self.scheme_control.tick()
+        self.correction_flasher.tick()
+
+        if self.correction_flasher_started != self.correction_flasher.is_started():
+            self.correction_flasher_started = self.correction_flasher.is_started()
+
+            if not self.correction_flasher_started:
+                self.verify_flash_done.emit()
 
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
@@ -388,3 +401,20 @@ class MeasureConductor(QtCore.QObject):
             self.reset()
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+    def start_flash(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
+        if len(a_measures_to_flash) > 1:
+            assert not a_flash_selected_cell, "Нельзя прошивать диапазон ячейки для нескольких измерений"
+
+        logging.debug(f"{a_measures_to_flash}, {a_flash_selected_cell}")
+        self.verify_flash_done.emit()
+
+    def start_verify(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
+        if len(a_measures_to_flash) > 1:
+            assert not a_flash_selected_cell, "Нельзя прошивать диапазон ячейки для нескольких измерений"
+
+        logging.debug(f"{a_measures_to_flash}, {a_flash_selected_cell}")
+        self.verify_flash_done.emit()
+
+    def stop_flash_verify(self):
+        self.correction_flasher.stop()
