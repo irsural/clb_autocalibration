@@ -70,13 +70,8 @@ class CorrectionFlasher():
         self.__stage = CorrectionFlasher.Stage.REST
         self.__prev_stage = CorrectionFlasher.Stage.REST
 
-    def start_flash(self):
-        self.__action = CorrectionFlasher.Action.WRITE
-        self.__stage = CorrectionFlasher.Stage.START
-        self.__started = True
-
-    def start_verify(self):
-        self.__action = CorrectionFlasher.Action.READ
+    def start(self, a_action_type: Action):
+        self.__action = a_action_type
         self.__stage = CorrectionFlasher.Stage.START
         self.__started = True
 

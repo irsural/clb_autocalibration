@@ -361,7 +361,13 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.lock_interface(True)
                     self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type) * 1000)
 
-                    self.measure_conductor.start(measure_iterator)
+                    if a_iteration_type in (MeasureManager.IterationType.START_ALL,
+                                            MeasureManager.IterationType.CONTINUE_ALL):
+                        auto_flash_to_calibrator = True
+                    else:
+                        auto_flash_to_calibrator = False
+
+                    self.measure_conductor.start(measure_iterator, auto_flash_to_calibrator)
 
     def progress_bars_handling(self):
         if self.measure_conductor.is_started():
@@ -415,6 +421,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def lock_gui_while_flash(self):
         self.lock_interface(True)
         self.ui.stop_flash_verify_action.setDisabled(False)
+        logging.debug("lock")
 
     def flash_table(self):
         current_measure = self.measure_manager.get_current_measure()

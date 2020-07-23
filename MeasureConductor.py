@@ -1,6 +1,6 @@
 from collections import namedtuple
 from typing import Union, List
-from time import  perf_counter
+from time import perf_counter
 from enum import IntEnum
 import logging
 import random
@@ -41,9 +41,10 @@ class MeasureConductor(QtCore.QObject):
         SET_CALIBRATOR_CONFIG = 10
         WAIT_CALIBRATOR_READY = 11
         MEASURE = 12
-        FLASH_TO_CALIBRATOR = 13
-        NEXT_MEASURE = 14
-        MEASURE_DONE = 15
+        START_FLASH = 13
+        FLASH_TO_CALIBRATOR = 14
+        NEXT_MEASURE = 15
+        MEASURE_DONE = 16
 
     STAGE_IN_MESSAGE = {
         Stage.REST: "Измерение не проводится",
@@ -59,7 +60,8 @@ class MeasureConductor(QtCore.QObject):
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим",
         Stage.MEASURE: "Измерение",
-        Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора",
+        Stage.START_FLASH: "Начало прошивки",
+        Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора.............................................................",
         Stage.NEXT_MEASURE: "Следующее измерение",
         Stage.MEASURE_DONE: "Измерение закончено",
     }
@@ -78,8 +80,9 @@ class MeasureConductor(QtCore.QObject):
         Stage.SET_SCHEME_CONFIG: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
         Stage.WAIT_CALIBRATOR_READY: Stage.MEASURE,
-        # Stage.MEASURE: Stage.FLASH_TO_CALIBRATOR,
+        # Stage.MEASURE: Stage.START_FLASH,
         # Stage.MEASURE: Stage.NEXT_MEASURE,
+        Stage.START_FLASH: Stage.FLASH_TO_CALIBRATOR,
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
         # Stage.NEXT_MEASURE: Stage.GET_CONFIGS,
         # Stage.NEXT_MEASURE: Stage.RESET_METER_CONFIG,
@@ -114,6 +117,9 @@ class MeasureConductor(QtCore.QObject):
         self.current_amplitude = 0
         self.current_frequency = clb.MIN_FREQUENCY
 
+        self.auto_flash_to_calibrator = False
+        self.flash_current_measure = False
+
         self.calibrator_hold_ready_timer = utils.Timer(0)
         self.measure_duration_timer = utils.Timer(0)
 
@@ -143,6 +149,9 @@ class MeasureConductor(QtCore.QObject):
         self.current_amplitude = 0
         self.current_frequency = clb.MIN_FREQUENCY
 
+        self.auto_flash_to_calibrator = False
+        self.flash_current_measure = False
+
         self.calibrator_hold_ready_timer.stop()
         self.measure_duration_timer.stop()
         self.extra_variables.clear()
@@ -151,10 +160,11 @@ class MeasureConductor(QtCore.QObject):
 
         self.start_time_point = None
 
-    def start(self, a_measure_iterator: MeasureIterator):
+    def start(self, a_measure_iterator: MeasureIterator, a_auto_flash_to_calibrator):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
         self.reset()
         self.measure_iterator = a_measure_iterator
+        self.auto_flash_to_calibrator = a_auto_flash_to_calibrator
         self.__started = True
         self.__stage = MeasureConductor.Stage.CONNECT_TO_CALIBRATOR
 
@@ -162,6 +172,9 @@ class MeasureConductor(QtCore.QObject):
         if self.is_started():
             if self.current_cell_position is not None:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
+
+            if self.correction_flasher.is_started():
+                self.correction_flasher.stop()
             self.__started = False
             self.__stage = MeasureConductor.Stage.RESET_METER_CONFIG
 
@@ -251,6 +264,9 @@ class MeasureConductor(QtCore.QObject):
                 self.extra_variables.append(ExtraVariable(buffered_variable=buffered_variable,
                                                           work_value=extra_parameter.work_value,
                                                           default_value=extra_parameter.default_value))
+
+            self.flash_current_measure = \
+                self.auto_flash_to_calibrator and self.measure_iterator.is_the_last_cell_in_table()
 
             if self.current_config.verify_scheme(self.current_measure_parameters.signal_type):
 
@@ -379,13 +395,18 @@ class MeasureConductor(QtCore.QObject):
                 self.measure_duration_timer.stop()
                 self.single_measure_done.emit()
 
-                if self.current_measure_parameters.flash_after_finish:
-                    self.__stage = MeasureConductor.Stage.FLASH_TO_CALIBRATOR
+                if self.flash_current_measure:
+                    self.__stage = MeasureConductor.Stage.START_FLASH
                 else:
                     self.__stage = MeasureConductor.Stage.NEXT_MEASURE
 
-        elif self.__stage == MeasureConductor.Stage.FLASH_TO_CALIBRATOR:
+        elif self.__stage == MeasureConductor.Stage.START_FLASH:
+            # self.correction_flasher.start()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == MeasureConductor.Stage.FLASH_TO_CALIBRATOR:
+            if not self.correction_flasher.is_started():
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.NEXT_MEASURE:
             self.measure_iterator.next()
@@ -403,18 +424,16 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
     def start_flash(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
-        if len(a_measures_to_flash) > 1:
-            assert not a_flash_selected_cell, "Нельзя прошивать диапазон ячейки для нескольких измерений"
-
-        logging.debug(f"{a_measures_to_flash}, {a_flash_selected_cell}")
-        self.verify_flash_done.emit()
+        self.get_data_to_flash_verify(a_measures_to_flash, a_flash_selected_cell)
+        self.correction_flasher.start(CorrectionFlasher.Action.WRITE)
 
     def start_verify(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
+        self.get_data_to_flash_verify(a_measures_to_flash, a_flash_selected_cell)
+        self.correction_flasher.start(CorrectionFlasher.Action.READ)
+
+    def get_data_to_flash_verify(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
         if len(a_measures_to_flash) > 1:
             assert not a_flash_selected_cell, "Нельзя прошивать диапазон ячейки для нескольких измерений"
-
-        logging.debug(f"{a_measures_to_flash}, {a_flash_selected_cell}")
-        self.verify_flash_done.emit()
 
     def stop_flash_verify(self):
         self.correction_flasher.stop()
