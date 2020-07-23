@@ -49,7 +49,6 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
             self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
 
         self.ip_address_regex = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
         self.com_regex = re.compile(r"(?i)com\d")
@@ -98,6 +97,4 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
-
         a_event.accept()

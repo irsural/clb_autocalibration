@@ -576,10 +576,13 @@ class MeasureManager(QtCore.QObject):
         y = []
         amplitude = self.current_data_model.get_amplitude(a_row)
         for column in range(1, self.current_data_model.columnCount()):
-            x.append(self.current_data_model.get_frequency(column))
+            x_val = self.current_data_model.get_frequency(column)
+            y_val = self.current_data_model.get_cell_value(a_row, column)
 
-            normalized_y = self.current_data_model.get_cell_value(a_row, column) / amplitude
-            y.append(normalized_y)
+            if amplitude and x_val and y_val is not None:
+                x.append(x_val)
+                normalized_y = y_val / amplitude
+                y.append(normalized_y)
 
         return x, y
 
@@ -587,11 +590,13 @@ class MeasureManager(QtCore.QObject):
         x = []
         y = []
         for row in range(1, self.current_data_model.rowCount()):
-            x.append(self.current_data_model.get_amplitude(row))
+            x_val = self.current_data_model.get_amplitude(row)
+            y_val = self.current_data_model.get_cell_value(row, a_column)
 
-            amplitude = self.current_data_model.get_amplitude(row)
-            normalized_y = self.current_data_model.get_cell_value(row, a_column) / amplitude
-            y.append(normalized_y)
+            if x_val and y_val is not None:
+                x.append(x_val)
+                normalized_y = y_val / x_val
+                y.append(normalized_y)
 
         return x, y
 
@@ -632,11 +637,15 @@ class MeasureManager(QtCore.QObject):
                 if graphs_type == MeasureManager.GraphType.Z_X:
                     for row in selected_rows:
                         graph_name = self.current_data_model.get_amplitude_with_units(row)
-                        data[graph_name] = self.__extract_z_x_graph(row)
+                        graph_data = self.__extract_z_x_graph(row)
+                        if graph_data[0]:
+                            data[graph_name] = graph_data
                 elif graphs_type == MeasureManager.GraphType.Z_Y:
                     for column in selected_columns:
                         graph_name = self.current_data_model.get_frequency_with_units(column)
-                        data[graph_name] = self.__extract_z_y_graph(column)
+                        graph_data = self.__extract_z_y_graph(column)
+                        if graph_data[0]:
+                            data[graph_name] = graph_data
 
             else:
                 QtWidgets.QMessageBox.information(None, "Информация",
