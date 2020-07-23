@@ -1,0 +1,28 @@
+@startuml
+
+state "Прошивка не осуществляется" as rest
+state "Начать прошивку / верификацию" as start_flash
+state "Определить поддиапазон" as get_sub_diapason
+
+state "Прошивка данных" as flash_data
+state "Верификация данных" as verify_data
+
+state "Ожидание записи / чтения eeprom" as wait_eeprom
+state "Следующий поддиапазон" as next_sub_diapason
+
+
+[*] --> rest
+rest --> rest
+rest --> start_flash
+start_flash --> get_sub_diapason
+get_sub_diapason --> rest: Диапазонов не осталось
+get_sub_diapason --> flash_data
+get_sub_diapason --> verify_data
+verify_data --> wait_eeprom
+flash_data --> wait_eeprom
+
+wait_eeprom --> next_sub_diapason
+next_sub_diapason --> get_sub_diapason
+get_sub_diapason --> [*]
+
+@enduml

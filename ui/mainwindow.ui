@@ -723,7 +723,8 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="correction_action"/>
    <addaction name="flash_all_action"/>
-   <addaction name="verify_action"/>
+   <addaction name="verify_all_action"/>
+   <addaction name="stop_flash_verify_action"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
@@ -925,13 +926,13 @@ selection-background-color: rgb(170, 170, 255);</string>
     </font>
    </property>
   </action>
-  <action name="verify_action">
+  <action name="verify_all_action">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
    </property>
    <property name="text">
-    <string>verify_action</string>
+    <string>verify_all</string>
    </property>
    <property name="toolTip">
     <string>Проверить все измерения</string>
@@ -1121,6 +1122,18 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="stop_flash_verify_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>stop_flash_verify</string>
+   </property>
+   <property name="toolTip">
+    <string>Остановить прошивку / верификацию</string>
    </property>
   </action>
  </widget>

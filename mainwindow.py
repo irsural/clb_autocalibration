@@ -15,6 +15,7 @@ import irspy.utils as utils
 
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
+from CorrectionFlasher import CorrectionFlasher
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
@@ -147,6 +148,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                                   self.ui.measure_data_view, self.settings, self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
+            self.correction_flasher = CorrectionFlasher()
+            self.correction_flasher.flash_verify_done.connect(self.verify_flash_done)
+
             self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
                                                       self.measure_manager, self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
@@ -172,6 +176,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.start_current_measure_button.clicked.connect(self.start_current_measure_button_clicked)
             self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
             self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
+
+            self.ui.flash_all_action.triggered.connect(self.flash_all_button_clicked)
+            self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
+            self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
 
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
             self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
@@ -242,6 +250,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return source_mode_widget
 
     def lock_interface(self, a_lock: bool):
+        self.ui.new_configuration_action.setDisabled(a_lock)
         self.ui.open_action.setDisabled(a_lock)
         self.ui.save_action.setDisabled(a_lock)
         self.ui.save_as_action.setDisabled(a_lock)
@@ -251,7 +260,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.correction_action.setDisabled(a_lock)
         self.ui.flash_all_action.setDisabled(a_lock)
-        self.ui.verify_action.setDisabled(a_lock)
+        self.ui.verify_all_action.setDisabled(a_lock)
+        self.ui.stop_flash_verify_action.setDisabled(a_lock)
 
         self.ui.lock_action.setDisabled(a_lock)
         self.ui.unlock_action.setDisabled(a_lock)
@@ -292,6 +302,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.correction_action.setChecked(correction_enabled)
 
     def tick(self):
+        self.correction_flasher.tick()
         self.measure_conductor.tick()
         self.usb_driver.tick()
         self.gui_tick()
@@ -400,10 +411,30 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.paste_cell_value()
 
     def flash_table(self):
-        logging.debug("Не реализовано")
+        # self.correction_flasher.start_flash()
+        pass
 
     def flash_diapason_of_cell(self):
-        logging.debug("Не реализовано")
+        # self.correction_flasher.stop()
+        pass
+
+    def flash_all_button_clicked(self):
+        self.lock_interface(True)
+        self.ui.stop_flash_verify_action.setDisabled(False)
+
+        self.correction_flasher.start_flash()
+
+    def verify_all_button_clicked(self):
+        self.lock_interface(True)
+        self.ui.stop_flash_verify_action.setDisabled(False)
+
+        self.correction_flasher.start_verify()
+
+    def stop_flash_verify_button_clicked(self):
+        self.correction_flasher.stop()
+
+    def verify_flash_done(self):
+        self.lock_interface(False)
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)
