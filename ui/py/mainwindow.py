@@ -444,6 +444,10 @@ class Ui_MainWindow(object):
         self.stop_flash_verify_action = QtWidgets.QAction(MainWindow)
         self.stop_flash_verify_action.setIcon(icon16)
         self.stop_flash_verify_action.setObjectName("stop_flash_verify_action")
+        self.verify_current_measure_action = QtWidgets.QAction(MainWindow)
+        self.verify_current_measure_action.setObjectName("verify_current_measure_action")
+        self.verify_diapason_of_cell_action = QtWidgets.QAction(MainWindow)
+        self.verify_diapason_of_cell_action.setObjectName("verify_diapason_of_cell_action")
         self.settings_menu.addAction(self.enter_settings_action)
         self.menu.addAction(self.action)
         self.menuBar.addAction(self.settings_menu.menuAction())
@@ -575,4 +579,6 @@ class Ui_MainWindow(object):
         self.unlock_all_action.setShortcut(_translate("MainWindow", "Ctrl+U"))
         self.stop_flash_verify_action.setText(_translate("MainWindow", "stop_flash_verify"))
         self.stop_flash_verify_action.setToolTip(_translate("MainWindow", "Остановить прошивку / верификацию"))
+        self.verify_current_measure_action.setText(_translate("MainWindow", "Верифицировать таблицу"))
+        self.verify_diapason_of_cell_action.setText(_translate("MainWindow", "Верифицировать диапазон ячейки"))
 import icons_rc

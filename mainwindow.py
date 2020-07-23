@@ -217,6 +217,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
             self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
+            self.ui.verify_current_measure_action.triggered.connect(self.verify_table)
+            self.ui.measure_data_view.addAction(self.ui.verify_current_measure_action)
+            self.ui.verify_diapason_of_cell_action.triggered.connect(self.verify_diapason_of_cell)
+            self.ui.measure_data_view.addAction(self.ui.verify_diapason_of_cell_action)
             self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
             self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
 
@@ -289,7 +293,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.paste_cell_value_action.setDisabled(a_lock)
         self.ui.paste_cell_config_action.setDisabled(a_lock)
         self.ui.flash_current_measure_action.setDisabled(a_lock)
+        self.ui.verify_current_measure_action.setDisabled(a_lock)
         self.ui.flash_diapason_of_cell_action.setDisabled(a_lock)
+        self.ui.verify_diapason_of_cell_action.setDisabled(a_lock)
 
         self.measure_manager.lock_interface(a_lock)
 
@@ -412,11 +418,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def flash_table(self):
         # self.correction_flasher.start_flash()
-        pass
+        logging.debug("Прошить таблицу")
 
     def flash_diapason_of_cell(self):
         # self.correction_flasher.stop()
-        pass
+        logging.debug("Прошить диапазон ячейки")
+
+    def verify_table(self):
+        logging.debug("Проверить таблицу")
+
+    def verify_diapason_of_cell(self):
+        logging.debug("Проверить диапазон ячейки")
 
     def flash_all_button_clicked(self):
         self.lock_interface(True)
@@ -450,8 +462,12 @@ class MainWindow(QtWidgets.QMainWindow):
         menu.insertSeparator(self.ui.show_cell_graph_action)
 
         menu.addAction(self.ui.flash_current_measure_action)
-        menu.addAction(self.ui.flash_diapason_of_cell_action)
+        menu.addAction(self.ui.verify_current_measure_action)
         menu.insertSeparator(self.ui.flash_current_measure_action)
+
+        menu.addAction(self.ui.flash_diapason_of_cell_action)
+        menu.addAction(self.ui.verify_diapason_of_cell_action)
+        menu.insertSeparator(self.ui.flash_diapason_of_cell_action)
 
         # add other required actions
         menu.popup(QtGui.QCursor.pos())

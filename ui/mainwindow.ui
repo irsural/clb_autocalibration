@@ -1136,6 +1136,16 @@ selection-background-color: rgb(170, 170, 255);</string>
     <string>Остановить прошивку / верификацию</string>
    </property>
   </action>
+  <action name="verify_current_measure_action">
+   <property name="text">
+    <string>Верифицировать таблицу</string>
+   </property>
+  </action>
+  <action name="verify_diapason_of_cell_action">
+   <property name="text">
+    <string>Верифицировать диапазон ячейки</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
