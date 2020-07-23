@@ -265,8 +265,9 @@ class MeasureConductor(QtCore.QObject):
                                                           work_value=extra_parameter.work_value,
                                                           default_value=extra_parameter.default_value))
 
-            self.flash_current_measure = \
-                self.auto_flash_to_calibrator and self.measure_iterator.is_the_last_cell_in_table()
+            self.flash_current_measure = self.auto_flash_to_calibrator and \
+                                         self.measure_iterator.is_the_last_cell_in_table() and \
+                                         self.current_measure_parameters.flash_after_finish
 
             if self.current_config.verify_scheme(self.current_measure_parameters.signal_type):
 
@@ -434,6 +435,14 @@ class MeasureConductor(QtCore.QObject):
     def get_data_to_flash_verify(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
         if len(a_measures_to_flash) > 1:
             assert not a_flash_selected_cell, "Нельзя прошивать диапазон ячейки для нескольких измерений"
+
+        for measure_name in a_measures_to_flash:
+            measure_params = self.measure_manager.get_measure_parameters(measure_name)
+            if measure_params.flash_after_finish:
+                pass
+            else:
+                logging.warning(f'Измерение "{measure_name}" не предназначено для прошивки и '
+                                f'прошито/верифицировано не будет')
 
     def stop_flash_verify(self):
         self.correction_flasher.stop()

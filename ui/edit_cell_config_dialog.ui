@@ -475,7 +475,46 @@
         <attribute name="title">
          <string>Дополнительные переменные</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="add_extra_param_button">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="remove_extra_param_button">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
          <item>
           <widget class="QTableWidget" name="extra_variables_table">
            <property name="styleSheet">
@@ -503,7 +542,8 @@ selection-background-color: rgb(170, 170, 255);</string>
            </column>
            <column>
             <property name="text">
-             <string>Инд. бита</string>
+             <string>Индекс
+бита</string>
             </property>
            </column>
            <column>
@@ -513,54 +553,17 @@ selection-background-color: rgb(170, 170, 255);</string>
            </column>
            <column>
             <property name="text">
-             <string>Рабоч. знач.</string>
+             <string>Рабочее
+значение</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Знач. по-умолч.</string>
+             <string>Значение
+по-умолчанию</string>
             </property>
            </column>
           </widget>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QPushButton" name="add_extra_param_button">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="remove_extra_param_button">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
          </item>
         </layout>
        </widget>
@@ -641,7 +644,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>ammeter_radio</tabstop>
   <tabstop>voltmeter_radio</tabstop>
   <tabstop>extra_variables_table</tabstop>
-  <tabstop>add_extra_param_button</tabstop>
   <tabstop>remove_extra_param_button</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>cancel_button</tabstop>
@@ -651,8 +653,8 @@ selection-background-color: rgb(170, 170, 255);</string>
  </resources>
  <connections/>
  <buttongroups>
+  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

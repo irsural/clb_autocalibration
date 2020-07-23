@@ -90,6 +90,52 @@
       </widget>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Таблица диапазонов прошивки</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="add_flash_table_row_button">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="remove_flash_table_row_button">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
         <widget class="QTableWidget" name="flash_table">
@@ -113,7 +159,8 @@ selection-background-color: rgb(170, 170, 255);</string>
          </column>
          <column>
           <property name="text">
-           <string>Н. индекса</string>
+           <string>Смещение
+в eeprom</string>
           </property>
          </column>
          <column>
@@ -123,54 +170,17 @@ selection-background-color: rgb(170, 170, 255);</string>
          </column>
          <column>
           <property name="text">
-           <string>Н. значения</string>
+           <string>Начальное
+значение</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>К. значения</string>
+           <string>Конечное
+значение</string>
           </property>
          </column>
         </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QPushButton" name="add_flash_table_row_button">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../resources/icons.qrc">
-             <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="remove_flash_table_row_button">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../resources/icons.qrc">
-             <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
        </item>
       </layout>
      </item>
@@ -220,8 +230,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>enable_correction_checkbox</tabstop>
   <tabstop>flash_after_finish_checkbox</tabstop>
   <tabstop>flash_table</tabstop>
-  <tabstop>add_flash_table_row_button</tabstop>
-  <tabstop>remove_flash_table_row_button</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>cancel_button</tabstop>
  </tabstops>
