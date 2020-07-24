@@ -8,7 +8,7 @@ from irspy.dlls import mxsrlib_dll
 from edit_measure_parameters_dialog import FlashTableRow
 
 
-class CorrectionFlasher():
+class CorrectionFlasher:
     class Action(IntEnum):
         NONE = 0
         READ = 1
@@ -16,23 +16,24 @@ class CorrectionFlasher():
 
     class Stage(IntEnum):
         REST = 0
-        START = 1
-        GET_DIAPASON = 2
-        CHECK_INPUT_DATA = 3
-        CONNECT_TO_EEPROM = 4
-        SET_EEPROM_PARAMS = 5
-        WAIT_EEPROM_READ = 6
-        VERIFY_DATA = 7
-        WRITE_TO_EEPROM = 8
-        WAIT_WRITE = 9
-        RESET_EEPROM = 10
-        NEXT_DIAPASON = 11
-        DONE = 12
+        # START = 1
+        GET_DIAPASON = 1
+        # CHECK_INPUT_DATA = 3
+        CONNECT_TO_EEPROM = 2
+        SET_EEPROM_PARAMS = 3
+        WAIT_EEPROM_READ = 4
+        VERIFY_DATA = 5
+        WRITE_TO_EEPROM = 6
+        WAIT_WRITE = 7
+        RESET_EEPROM = 8
+        NEXT_DIAPASON = 9
+        DONE = 10
 
     NEXT_STAGE = {
         Stage.REST: Stage.REST,
-        Stage.START: Stage.GET_DIAPASON,
-        Stage.GET_DIAPASON: Stage.CHECK_INPUT_DATA,
+        # Stage.START: Stage.GET_DIAPASON,
+        # Stage.START: Stage.GET_DIAPASON,
+        Stage.GET_DIAPASON: Stage.CONNECT_TO_EEPROM,
         # Stage.CHECK_INPUT_DATA: Stage.CONNECT_TO_EEPROM,
         # Stage.CHECK_INPUT_DATA: Stage.DONE,
         Stage.CONNECT_TO_EEPROM: Stage.SET_EEPROM_PARAMS,
@@ -50,9 +51,9 @@ class CorrectionFlasher():
 
     STAGE_IN_MESSAGE = {
         Stage.REST: "Прошивка / верефикация не проводится",
-        Stage.START: "Старт прошивки / верификации",
+        # Stage.START: "Старт прошивки / верификации",
         Stage.GET_DIAPASON: "Определение диапазона",
-        Stage.CHECK_INPUT_DATA: "Проверка входных данных",
+        # Stage.CHECK_INPUT_DATA: "Проверка входных данных",
         Stage.CONNECT_TO_EEPROM: "Подключение к eeprom",
         Stage.SET_EEPROM_PARAMS: "Установка параметров в eeprom",
         Stage.WAIT_EEPROM_READ: "Чтение eeprom...",
@@ -72,8 +73,12 @@ class CorrectionFlasher():
         self.__started = False
 
         self.__flash_data: List[CorrectionFlasher.FlashData] = []
+        self.__current_flash_data_idx = 0
+        self.__current_flash_data = None
 
         self.__action = CorrectionFlasher.Action.NONE
+
+        self.__funnel_client = mxsrlib_dll.FunnelClient()
 
         self.__stage = CorrectionFlasher.Stage.REST
         self.__prev_stage = CorrectionFlasher.Stage.REST
@@ -85,6 +90,8 @@ class CorrectionFlasher():
             data_ok = self.shrink_data_table(a_data_to_flash[0], a_amplitude_of_cell_to_flash)
 
         if data_ok and self.process_data_to_flash(a_data_to_flash):
+            self.__current_flash_data_idx = 0
+            self.__current_flash_data = None
             self.__action = a_action_type
             self.__stage = CorrectionFlasher.Stage.START
             self.__started = True
@@ -97,6 +104,8 @@ class CorrectionFlasher():
         self.__action = CorrectionFlasher.Action.NONE
         self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
         self.__flash_data.clear()
+        self.__current_flash_data_idx = 0
+        self.__current_flash_data = None
         self.__started = False
 
     def is_started(self):
@@ -238,24 +247,15 @@ class CorrectionFlasher():
     def tick(self):
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
-
             logging.debug(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
 
             if self.__stage == CorrectionFlasher.Stage.REST:
                 pass
 
-            elif self.__stage == CorrectionFlasher.Stage.START:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
             elif self.__stage == CorrectionFlasher.Stage.GET_DIAPASON:
+                self.__current_flash_data = self.__flash_data[self.__current_flash_data_idx]
+
                 self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.CHECK_INPUT_DATA:
-
-                if True:
-                    self.__stage = CorrectionFlasher.Stage.CONNECT_TO_EEPROM
-                else:
-                    self.__stage = CorrectionFlasher.Stage.DONE
 
             elif self.__stage == CorrectionFlasher.Stage.CONNECT_TO_EEPROM:
                 self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
