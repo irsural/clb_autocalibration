@@ -135,7 +135,6 @@ class CorrectionFlasher():
                     data_table.pop(row)
 
                 success = True
-                logging.debug(data_table)
                 assert len(data_table) > 1, "Должна остаться хотя бы одна строка с данными!"
             else:
                 logging.warning("В таблице обнаружены ячейки без значений.")
@@ -158,9 +157,9 @@ class CorrectionFlasher():
                 flash_data = self.__get_flash_data(flash_table, data_table)
                 if flash_data:
                     self.__flash_data += flash_data
-                    logging.debug("\n".join([str(data) for data in flash_data]))
                 else:
-                    logging.warning(f"Некоторые строки таблицы не входят ни в один из заданных диапазонов.")
+                    logging.warning("Некоторые строки таблицы не входят ни в один из заданных диапазонов, "
+                                    "либо входят в несколько диапазонов одновременно")
                     success = False
                     break
             else:
@@ -203,9 +202,11 @@ class CorrectionFlasher():
             if x_points:
                 flash_data.append(CorrectionFlasher.FlashData(eeprom_offset=flash_row.eeprom_offset, x_points=x_points,
                                                               y_points=y_points, coef_points=coef_points))
-            else:
-                flash_data.clear()
-                break
+
+        x_count = sum([len(f_data.x_points) for f_data in flash_data])
+        if x_count != len(a_data_table) - 1:
+            # Это значит, что некоторые амлитуды не вощли ни в один диапазон
+            flash_data.clear()
 
         return flash_data
 
