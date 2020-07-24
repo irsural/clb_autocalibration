@@ -1,3 +1,4 @@
+from collections import namedtuple
 from typing import List, Tuple, Union
 from enum import IntEnum
 import logging
@@ -63,10 +64,14 @@ class CorrectionFlasher():
         Stage.DONE: "Прошивка / верификация завершена",
     }
 
+    FlashData = namedtuple("FlashData", "eeprom_offset x_points y_points coef_points")
+
     def __init__(self):
         super().__init__()
 
         self.__started = False
+
+        self.__flash_data: List[CorrectionFlasher.FlashData] = []
 
         self.__action = CorrectionFlasher.Action.NONE
 
@@ -86,9 +91,12 @@ class CorrectionFlasher():
         else:
             logging.warning("Прошивка/верификация отменена.")
 
+        return self.is_started()
+
     def stop(self):
         self.__action = CorrectionFlasher.Action.NONE
         self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
+        self.__flash_data.clear()
         self.__started = False
 
     def is_started(self):
@@ -136,8 +144,70 @@ class CorrectionFlasher():
 
         return success
 
-    def process_data_to_flash(self, a_data_to_flash: List[Tuple]):
-        return False
+    def process_data_to_flash(self, a_data_to_flash: List[Tuple]) -> bool:
+        success = True
+        self.__flash_data.clear()
+
+        for data_to_flash in a_data_to_flash:
+            flash_table: List[FlashTableRow] = data_to_flash[0]
+            data_table: List[List] = data_to_flash[1]
+
+            have_empty_cells = self.__empty_cells_in_table(data_table)
+
+            if not have_empty_cells:
+                flash_data = self.__get_flash_data(flash_table, data_table)
+                if flash_data:
+                    self.__flash_data += flash_data
+                    logging.debug("\n".join([str(data) for data in flash_data]))
+                else:
+                    logging.warning(f"Некоторые строки таблицы не входят ни в один из заданных диапазонов.")
+                    success = False
+                    break
+            else:
+                logging.warning("В одной из таблиц обнаружены ячейки без значений, либо содержащие значение 0.")
+                success = False
+                break
+
+        return success
+
+    @staticmethod
+    def __empty_cells_in_table(a_data_table: List[List[Union[None, float]]]):
+        have_empty_cells = False
+        for row_idx, data_row in enumerate(a_data_table):
+            for col_idx, value in enumerate(data_row):
+                if not (row_idx == 0 and col_idx == 0):
+                    if value is None or value == 0:
+                        have_empty_cells = True
+                        break
+        return have_empty_cells
+
+    @staticmethod
+    def __get_flash_data(a_flash_table: List[FlashTableRow], a_data_table: List[List[Union[None, float]]]) -> List[FlashData]:
+        flash_data = []
+        amplitudes = [(row_idx, data_row[0]) for row_idx, data_row in enumerate(a_data_table) if row_idx != 0]
+
+        for flash_row in a_flash_table:
+            x_points = []
+            y_points = [value for col_idx, value in enumerate(a_data_table[0]) if col_idx != 0]
+            coef_points = []
+
+            for row_idx, amplitude in amplitudes:
+
+                if flash_row.start_value <= amplitude <= flash_row.end_value:
+                    x_points.append(amplitude)
+
+                    for col_idx, cell_value in enumerate(a_data_table[row_idx]):
+                        if col_idx != 0:
+                            # coef_points.append(cell_value)
+                            coef_points.append(cell_value / amplitude)
+            if x_points:
+                flash_data.append(CorrectionFlasher.FlashData(eeprom_offset=flash_row.eeprom_offset, x_points=x_points,
+                                                              y_points=y_points, coef_points=coef_points))
+            else:
+                flash_data.clear()
+                break
+
+        return flash_data
 
     def tick(self):
         if self.__prev_stage != self.__stage:
