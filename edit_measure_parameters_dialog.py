@@ -14,8 +14,10 @@ import irspy.utils as utils
 from ui.py.edit_measure_parameters_dialog import Ui_edit_measure_parameters_dialog as EditMeasureParametersForm
 
 
+FlashTableRow = namedtuple("FlashTableRow", ["number", "eeprom_offset", "size", "start_value", "end_value"])
+
+
 class MeasureParameters:
-    FlashTableRow = namedtuple("FlashTableRow", ["number", "index", "size", "value_number", "number_coef"])
 
     def __init__(self, a_signal_type=clb.SignalType.ACI, a_flash_after_finish=False, a_enable_correction=False,
                  a_flash_table=None):
@@ -23,7 +25,7 @@ class MeasureParameters:
         self.flash_after_finish = a_flash_after_finish
         self.enable_correction = a_enable_correction
 
-        self.flash_table: List[MeasureParameters.FlashTableRow] = a_flash_table if a_flash_table is not None else []
+        self.flash_table: List[FlashTableRow] = a_flash_table if a_flash_table is not None else []
 
     def __eq__(self, other):
         return other is not None and \
@@ -43,8 +45,7 @@ class MeasureParameters:
 
     @classmethod
     def from_dict(cls, a_data_dict: dict):
-        flash_table = [MeasureParameters.FlashTableRow(*flash_table_row)
-                       for flash_table_row in a_data_dict["flash_table"]]
+        flash_table = [FlashTableRow(*flash_table_row) for flash_table_row in a_data_dict["flash_table"]]
 
         return cls(a_signal_type=clb.SignalType(int(a_data_dict["signal_type"])),
                    a_flash_after_finish=bool(a_data_dict["flash_after_finish"]),
@@ -55,10 +56,10 @@ class MeasureParameters:
 class EditMeasureParametersDialog(QtWidgets.QDialog):
     class FlashColumn(IntEnum):
         NUMBER = 0
-        INDEX = 1
+        EEPROM_OFFSET = 1
         SIZE = 2
-        VALUE_NUMBER = 3
-        NUMBER_COEF = 4
+        START_VALUE = 3
+        END_VALUE = 4
         COUNT = 5
 
     def __init__(self, a_init_parameters: MeasureParameters, a_settings: Settings, a_lock_editing=False,
@@ -104,8 +105,8 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
 
         for flash_row in a_measure_parameters.flash_table:
             qt_utils.qtablewidget_append_row(self.ui.flash_table, (
-                str(flash_row.number), str(flash_row.index), str(flash_row.size),
-                utils.float_to_string(flash_row.value_number), utils.float_to_string(flash_row.number_coef)
+                str(flash_row.number), str(flash_row.eeprom_offset), str(flash_row.size),
+                utils.float_to_string(flash_row.start_value), utils.float_to_string(flash_row.end_value)
             ))
 
     def exec_and_get(self) -> Union[MeasureParameters, None]:
@@ -118,12 +119,12 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
         flash_table = []
         try:
             for row in range(self.ui.flash_table.rowCount()):
-                flash_table.append(MeasureParameters.FlashTableRow(
+                flash_table.append(FlashTableRow(
                     number=int(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.NUMBER).text()),
-                    index=int(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.INDEX).text()),
+                    eeprom_offset=int(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.EEPROM_OFFSET).text()),
                     size=int(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.SIZE).text()),
-                    value_number=float(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.VALUE_NUMBER).text()),
-                    number_coef=float(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.NUMBER_COEF).text())
+                    start_value=utils.parse_input(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.START_VALUE).text()),
+                    end_value=utils.parse_input(self.ui.flash_table.item(row, EditMeasureParametersDialog.FlashColumn.END_VALUE).text())
                 ))
 
             table_valid = True

@@ -546,14 +546,14 @@ class MeasureDataModel(QAbstractTableModel):
     def get_cell_value(self, a_row: int, a_column: int, a_displayed_data=None) -> Union[float, None]:
         """
         Возвращает значение ячейки в зависимости от текущих self.__displayed_data. Если значение в ячейке
-        отсутствует, возвращает None. Не возвращает значения хэдеров
-        :param a_row: Строка ячейки. a_row > 0
-        :param a_column: Колонка ячейки. a_column > 0
+        отсутствует, возвращает None.
+        :param a_row: Строка ячейки.
+        :param a_column: Колонка ячейки.
         :param a_displayed_data: Тип возвращаемых данных. Если не указан, то возвращается тот, который задан в модели
         :return: Значение ячейки или None.
         """
         assert a_row < self.rowCount() and a_column < self.columnCount(), "Задан неверный индекс ячейки!"
-        assert not self.__is_cell_header(a_row, a_column), "Этой функцией нельзя получить значения из хэдеров"
+        # assert not self.__is_cell_header(a_row, a_column), "Этой функцией нельзя получить значения из хэдеров"
 
         cell = self.__cells[a_row][a_column]
         cell_value = None

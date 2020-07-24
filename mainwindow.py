@@ -421,49 +421,50 @@ class MainWindow(QtWidgets.QMainWindow):
     def lock_gui_while_flash(self):
         self.lock_interface(True)
         self.ui.stop_flash_verify_action.setDisabled(False)
-        logging.debug("lock")
 
     def flash_table(self):
         current_measure = self.measure_manager.get_current_measure()
         if current_measure is not None:
-            self.lock_gui_while_flash()
-
-            self.measure_conductor.start_flash([current_measure], False)
+            if self.measure_conductor.start_flash([current_measure]):
+                self.lock_gui_while_flash()
 
     def flash_diapason_of_cell(self):
         current_measure = self.measure_manager.get_current_measure()
         if current_measure is not None:
-            self.lock_gui_while_flash()
+            selected_cell = self.measure_manager.get_only_selected_cell()
 
-            self.measure_conductor.start_flash([current_measure], True)
+            if selected_cell and selected_cell.row() != 0:
+                amplitude = self.measure_manager.get_amplitude(current_measure, selected_cell.row())
+                if self.measure_conductor.start_flash([current_measure], amplitude):
+                    self.lock_gui_while_flash()
 
     def verify_table(self):
         current_measure = self.measure_manager.get_current_measure()
         if current_measure is not None:
-            self.lock_gui_while_flash()
-
-            self.measure_conductor.start_verify([current_measure], False)
+            if self.measure_conductor.start_verify([current_measure]):
+                self.lock_gui_while_flash()
 
     def verify_diapason_of_cell(self):
         current_measure = self.measure_manager.get_current_measure()
         if current_measure is not None:
-            self.lock_gui_while_flash()
+            selected_cell = self.measure_manager.get_only_selected_cell()
 
-            self.measure_conductor.start_verify([current_measure], True)
+            if selected_cell and selected_cell.row() != 0:
+                amplitude = self.measure_manager.get_amplitude(current_measure, selected_cell.row())
+                if self.measure_conductor.start_verify([current_measure], amplitude):
+                    self.lock_gui_while_flash()
 
     def flash_all_button_clicked(self):
         enabled_measures = self.measure_manager.get_enabled_measures()
         if enabled_measures:
-            self.lock_gui_while_flash()
-
-            self.measure_conductor.start_flash(enabled_measures, False)
+            if self.measure_conductor.start_flash(enabled_measures):
+                self.lock_gui_while_flash()
 
     def verify_all_button_clicked(self):
         enabled_measures = self.measure_manager.get_enabled_measures()
         if enabled_measures:
-            self.lock_gui_while_flash()
-
-            self.measure_conductor.start_verify(enabled_measures, False)
+            if self.measure_conductor.start_verify(enabled_measures):
+                self.lock_gui_while_flash()
 
     def stop_flash_verify_button_clicked(self):
         self.measure_conductor.stop_flash_verify()

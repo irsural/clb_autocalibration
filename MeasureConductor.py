@@ -424,25 +424,35 @@ class MeasureConductor(QtCore.QObject):
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
-    def start_flash(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
-        self.get_data_to_flash_verify(a_measures_to_flash, a_flash_selected_cell)
-        self.correction_flasher.start(CorrectionFlasher.Action.WRITE)
+    def start_flash(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash=None):
+        data_to_flash = self.get_data_to_flash_verify(a_measures_to_flash, amplitude_of_cell_to_flash)
+        if data_to_flash:
+            return self.correction_flasher.start(data_to_flash, amplitude_of_cell_to_flash,
+                                                 CorrectionFlasher.Action.WRITE)
+        else:
+            return False
 
-    def start_verify(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
-        self.get_data_to_flash_verify(a_measures_to_flash, a_flash_selected_cell)
-        self.correction_flasher.start(CorrectionFlasher.Action.READ)
+    def start_verify(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash=None):
+        data_to_flash = self.get_data_to_flash_verify(a_measures_to_flash, amplitude_of_cell_to_flash)
+        if data_to_flash:
+            return self.correction_flasher.start(data_to_flash, amplitude_of_cell_to_flash,
+                                                 CorrectionFlasher.Action.READ)
+        else:
+            return False
 
-    def get_data_to_flash_verify(self, a_measures_to_flash: List[str], a_flash_selected_cell: bool):
+    def get_data_to_flash_verify(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash):
         if len(a_measures_to_flash) > 1:
-            assert not a_flash_selected_cell, "Нельзя прошивать диапазон ячейки для нескольких измерений"
+            assert amplitude_of_cell_to_flash is None, "Нельзя прошивать диапазон ячейки для нескольких измерений"
 
+        data_to_flash = []
         for measure_name in a_measures_to_flash:
             measure_params = self.measure_manager.get_measure_parameters(measure_name)
             if measure_params.flash_after_finish:
-                pass
+                data_to_flash.append((measure_params.flash_table, self.measure_manager.get_table_values(measure_name)))
             else:
                 logging.warning(f'Измерение "{measure_name}" не предназначено для прошивки и '
                                 f'прошито/верифицировано не будет')
+        return data_to_flash
 
     def stop_flash_verify(self):
         self.correction_flasher.stop()

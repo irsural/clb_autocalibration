@@ -356,8 +356,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                     index=int(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.INDEX).text()),
                     bit_index=int(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.BIT_INDEX).text()),
                     type=self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.TYPE).text(),
-                    work_value=float(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.WORK_VALUE).text()),
-                    default_value=float(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.DEFAULT_VALUE).text())
+                    work_value=utils.parse_input(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.WORK_VALUE).text()),
+                    default_value=utils.parse_input(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.DEFAULT_VALUE).text())
                 ))
             table_valid = True
         except ValueError:

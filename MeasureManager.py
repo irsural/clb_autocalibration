@@ -94,7 +94,7 @@ class MeasureManager(QtCore.QObject):
             new_name = f"{a_name_template}_{counter}"
         return new_name
 
-    def __get_only_selected_cell(self) -> Union[None, QtCore.QModelIndex]:
+    def get_only_selected_cell(self) -> Union[None, QtCore.QModelIndex]:
         selected_indexes = self.data_view.selectionModel().selectedIndexes()
         if len(selected_indexes) == 1:
             return selected_indexes[0]
@@ -242,8 +242,19 @@ class MeasureManager(QtCore.QObject):
     def get_frequency(self, a_measure_name: str, a_column: int) -> float:
         return self.measures[a_measure_name].get_frequency(a_column)
 
+    def get_table_values(self, a_measure_name) -> List[List[Union[None, float]]]:
+        data_model = self.measures[a_measure_name]
+        table = []
+        for row in range(data_model.rowCount()):
+            table_row = []
+            for column in range(data_model.columnCount()):
+                cell_value = data_model.get_cell_value(row, column, CellData.GetDataType.MEASURED)
+                table_row.append(cell_value)
+            table.append(table_row)
+        return table
+
     def open_cell_configuration(self):
-        selected_index = self.__get_only_selected_cell()
+        selected_index = self.get_only_selected_cell()
         if selected_index:
             row, column = selected_index.row(), selected_index.column()
             cell_config = self.current_data_model.get_cell_config(row, column)
@@ -319,7 +330,7 @@ class MeasureManager(QtCore.QObject):
 
     def copy_cell_config(self):
         if self.current_data_model is not None:
-            index = self.__get_only_selected_cell()
+            index = self.get_only_selected_cell()
             if index:
                 self.copied_cell_config = self.current_data_model.get_cell_config(index.row(), index.column())
 
@@ -361,7 +372,7 @@ class MeasureManager(QtCore.QObject):
 
     def copy_cell_value(self):
         if self.current_data_model is not None:
-            selected_index = self.__get_only_selected_cell()
+            selected_index = self.get_only_selected_cell()
             if selected_index:
                 value: str = self.current_data_model.data(selected_index)
                 if value:
@@ -429,7 +440,7 @@ class MeasureManager(QtCore.QObject):
     def __get_measure_iterator_from_current(self, a_pass_through_measures: bool):
         iterator = None
         if self.current_data_model:
-            selected_cells_idx = self.__get_only_selected_cell()
+            selected_cells_idx = self.get_only_selected_cell()
             if selected_cells_idx:
 
                 measure_models_list = []
@@ -665,7 +676,7 @@ class MeasureManager(QtCore.QObject):
     def get_cell_measurement_graph(self) -> Dict[str, Tuple[array, array]]:
         graphs = OrderedDict()
         if self.current_data_model:
-            cell = self.__get_only_selected_cell()
+            cell = self.get_only_selected_cell()
             if cell:
                 measurement_graph = self.current_data_model.get_cell_measured_values(cell.row(), cell.column())
                 times = measurement_graph[0]
