@@ -64,7 +64,7 @@ class CorrectionFlasher():
         Stage.DONE: "Прошивка / верификация завершена",
     }
 
-    FlashData = namedtuple("FlashData", "eeprom_offset x_points y_points coef_points")
+    FlashData = namedtuple("FlashData", "eeprom_offset free_space x_points y_points coef_points")
 
     def __init__(self):
         super().__init__()
@@ -155,8 +155,15 @@ class CorrectionFlasher():
 
             if not have_empty_cells:
                 flash_data = self.__get_flash_data(flash_table, data_table)
+
                 if flash_data:
-                    self.__flash_data += flash_data
+                    flash_data_ok = [self.__check_flash_data_size(f_data) for f_data in flash_data]
+                    if all(flash_data_ok):
+                        self.__flash_data += flash_data
+                    else:
+                        logging.warning("Размер некоторых данных превышает заданный размер памяти.")
+                        success = False
+                        break
                 else:
                     logging.warning("Некоторые строки таблицы не входят ни в один из заданных диапазонов, "
                                     "либо входят в несколько диапазонов одновременно")
@@ -200,7 +207,8 @@ class CorrectionFlasher():
                             # coef_points.append(cell_value)
                             coef_points.append(cell_value / amplitude)
             if x_points:
-                flash_data.append(CorrectionFlasher.FlashData(eeprom_offset=flash_row.eeprom_offset, x_points=x_points,
+                flash_data.append(CorrectionFlasher.FlashData(eeprom_offset=flash_row.eeprom_offset,
+                                                              free_space=flash_row.size, x_points=x_points,
                                                               y_points=y_points, coef_points=coef_points))
 
         x_count = sum([len(f_data.x_points) for f_data in flash_data])
@@ -209,6 +217,23 @@ class CorrectionFlasher():
             flash_data.clear()
 
         return flash_data
+
+    @staticmethod
+    def __check_flash_data_size(a_flash_data: FlashData) -> bool:
+        # uint32_t
+        size_of_ident = 4
+        size_of_size_x = 4
+        size_of_size_y = 4
+
+        # double
+        x_elem_size = 8
+        y_elem_size = 8
+        coef_elem_size = 8
+
+        need_space = size_of_ident + size_of_size_x + size_of_size_y + x_elem_size * len(a_flash_data.x_points) + \
+            y_elem_size * len(a_flash_data.y_points) + coef_elem_size * len(a_flash_data.coef_points)
+
+        return need_space <= a_flash_data.free_space
 
     def tick(self):
         if self.__prev_stage != self.__stage:

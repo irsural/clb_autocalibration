@@ -404,9 +404,10 @@ class MeasureManager(QtCore.QObject):
             enabled_button = qt_utils.unwrap_from_layout(enabled_widget)
             enabled_button.setDisabled(a_lock)
 
-        self.__lock_measure_table(a_lock)
-
         self.interface_is_locked = a_lock
+
+        lock_table = self.displayed_data != CellData.GetDataType.MEASURED or a_lock
+        self.__lock_measure_table(lock_table)
 
     def get_current_measure(self):
         if self.current_data_model:

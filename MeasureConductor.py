@@ -210,7 +210,9 @@ class MeasureConductor(QtCore.QObject):
             self.correction_flasher_started = self.correction_flasher.is_started()
 
             if not self.correction_flasher_started:
-                self.verify_flash_done.emit()
+                if not self.is_started():
+                    # Оповещает главное окно, когда прошивка запущена вручную
+                    self.verify_flash_done.emit()
 
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
