@@ -181,6 +181,12 @@ class MeasureConductor(QtCore.QObject):
     def is_started(self):
         return self.__started
 
+    def is_correction_flash_verify_started(self):
+        return self.correction_flasher.is_started()
+
+    def get_flash_progress(self) -> float:
+        return self.correction_flasher.get_progress()
+
     def get_current_cell_time_passed(self):
         if self.__started:
             return self.calibrator_hold_ready_timer.time_passed() + self.measure_duration_timer.time_passed()

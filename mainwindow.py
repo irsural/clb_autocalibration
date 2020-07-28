@@ -375,6 +375,8 @@ class MainWindow(QtWidgets.QMainWindow):
             time_passed = self.measure_conductor.get_current_cell_time_passed() * 1000
             self.ui.curent_cell_progress_bar.setValue(time_passed)
             self.ui.measure_progress_bar.setValue(self.measure_progress_bar_value + time_passed)
+        elif self.measure_conductor.is_correction_flash_verify_started():
+            self.ui.measure_progress_bar.setValue(self.measure_conductor.get_flash_progress() * 1000)
 
     def single_measure_started(self):
         self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration() * 1000)
@@ -421,6 +423,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def lock_gui_while_flash(self):
         self.lock_interface(True)
         self.ui.stop_flash_verify_action.setDisabled(False)
+
+        self.ui.measure_progress_bar.setMaximum(100 * 1000)
+        self.ui.measure_progress_bar.setValue(0)
 
     def flash_table(self):
         if self.calibrator.state == clb.State.STOPPED:
@@ -489,6 +494,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def verify_flash_done(self):
         self.lock_interface(False)
+        self.ui.measure_progress_bar.setMaximum(100 * 1000)
+        self.ui.measure_progress_bar.setValue(0)
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)
