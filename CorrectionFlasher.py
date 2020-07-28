@@ -1,5 +1,5 @@
-from collections import namedtuple
-from typing import List, Tuple, Union
+from collections import namedtuple, defaultdict
+from typing import List, Tuple, Union, Dict
 from array import array
 from enum import IntEnum
 import logging
@@ -86,7 +86,7 @@ class CorrectionFlasher:
         self.__progress = 0
 
         self.__save_instead_of_verify = False
-        self.__read_data = []
+        self.__read_data: Dict[str, List[Tuple[List, List, List]]] = defaultdict(list)
 
         self.__stage = CorrectionFlasher.Stage.REST
         self.__prev_stage = CorrectionFlasher.Stage.REST
@@ -100,7 +100,7 @@ class CorrectionFlasher:
         self.__metadata_are_read = False
         self.__progress = 0
         self.__save_instead_of_verify = False
-        self.__read_data = {}
+        self.__read_data = defaultdict(list)
 
     def start(self, a_data_to_flash: List[Tuple], a_amplitude_of_cell_to_flash, a_action_type: Action,
               a_clb_mxdata: int) -> bool:
@@ -119,15 +119,19 @@ class CorrectionFlasher:
 
         return self.is_started()
 
-    def start_read_by_flash_data(self, a_flash_data, a_clb_mxdata: int):
+    def start_read_by_flash_data(self, a_flash_data: List[FlashData], a_clb_mxdata: int):
         """
         Отличается от self.start() тем, что проверки входных данных не происходит и на вход подается сразу FlashData
         """
         self.reset()
+        self.__flash_data = a_flash_data
         self.__action = CorrectionFlasher.Action.READ
         self.__mxdata = a_clb_mxdata
         self.__save_instead_of_verify = True
         self.__started = True
+
+    def get_read_data(self) -> Dict[str, List[Tuple[List, List, List]]]:
+        return self.__read_data
 
     def stop(self):
         self.reset()
@@ -366,8 +370,9 @@ class CorrectionFlasher:
             coefs_points = self.__correct_map.coef_points
 
             if self.__save_instead_of_verify:
-                self.__read_data.append((self.__current_flash_data.diapason_name, self.__current_flash_data.x_points,
-                                         self.__current_flash_data.y_points, self.__current_flash_data.coef_points))
+                self.__read_data[self.__current_flash_data.diapason_name].append(
+                    (self.__correct_map.x_points, self.__correct_map.y_points, self.__correct_map.coef_points)
+                )
                 logging.info(f"Измерение {self.__current_flash_data.diapason_name}. Данные считаны.")
             else:
                 if x_points == list(self.__current_flash_data.x_points) and \

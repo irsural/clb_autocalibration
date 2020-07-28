@@ -450,6 +450,24 @@ class MeasureConductor(QtCore.QObject):
         else:
             return False
 
+    def start_read_correction_to_tables(self, a_measures_to_flash: List[str]):
+        flash_data_list = []
+        for measure_name in a_measures_to_flash:
+            measure_params = self.measure_manager.get_measure_parameters(measure_name)
+            if measure_params.flash_after_finish:
+                for flash_table_row in measure_params.flash_table:
+                    flash_data_list.append(CorrectionFlasher.FlashData(diapason_name=measure_name,
+                                                                       eeprom_offset=flash_table_row.eeprom_offset,
+                                                                       free_space=0, x_points=[], y_points=[],
+                                                                       coef_points=[]))
+            else:
+                logging.warning(f'Измерение "{measure_name}" не предназначено для прошивки и считано не будет')
+
+        self.correction_flasher.start_read_by_flash_data(flash_data_list, self.calibrator.get_mxdata_address())
+
+    def get_correction_tables(self):
+        return self.correction_flasher.get_read_data()
+
     def get_data_to_flash_verify(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash):
         if len(a_measures_to_flash) > 1:
             assert amplitude_of_cell_to_flash is None, "Нельзя прошивать диапазон ячейки для нескольких измерений"

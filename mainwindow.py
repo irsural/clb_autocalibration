@@ -144,6 +144,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tstlan_dialog = None
             self.graphs_dialog = None
 
+            self.open_correction_tables = False
+
             self.show()
 
             self.measure_manager = MeasureManager(self.ui.measures_table,
@@ -179,6 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.flash_all_action.triggered.connect(self.flash_all_button_clicked)
             self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
+            self.ui.read_correction_tables_action.triggered.connect(self.read_correction_tables_button_clicked)
             self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
 
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
@@ -499,6 +502,16 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
+    def read_correction_tables_button_clicked(self):
+        if self.calibrator.state == clb.State.STOPPED:
+            enabled_measures = self.measure_manager.get_enabled_measures()
+            if enabled_measures:
+                self.measure_conductor.start_read_correction_to_tables(enabled_measures)
+                self.lock_gui_while_flash()
+                self.open_correction_tables = True
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
+
     def stop_flash_verify_button_clicked(self):
         self.measure_conductor.stop_flash_verify()
 
@@ -509,6 +522,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.measure_progress_bar.setValue(0)
         self.ui.curent_cell_progress_bar.setHidden(True)
         self.ui.measure_progress_bar.setHidden(True)
+
+        if self.open_correction_tables:
+            self.open_correction_tables = False
+            logging.debug(self.measure_conductor.get_correction_tables())
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)
