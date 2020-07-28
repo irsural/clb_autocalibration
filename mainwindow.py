@@ -110,6 +110,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
+            self.ui.curent_cell_progress_bar.setHidden(True)
+            self.ui.measure_progress_bar.setHidden(True)
+
             for i in range(CellData.GetDataType.COUNT):
                 self.ui.displayed_data_type_combobox.addItem(MainWindow.displayed_data_to_text[i])
 
@@ -360,6 +363,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 if self.save_configuration():
                     self.lock_interface(True)
                     self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type) * 1000)
+                    self.ui.curent_cell_progress_bar.setHidden(False)
+                    self.ui.measure_progress_bar.setHidden(False)
 
                     if a_iteration_type in (MeasureManager.IterationType.START_ALL,
                                             MeasureManager.IterationType.CONTINUE_ALL):
@@ -393,6 +398,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_progress_bar_value = 0
         self.lock_interface(False)
 
+        self.ui.curent_cell_progress_bar.setHidden(True)
+        self.ui.measure_progress_bar.setHidden(True)
+
     def start_all_measures_button_clicked(self, _):
         self.start_measure(MeasureManager.IterationType.START_ALL)
 
@@ -424,6 +432,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lock_interface(True)
         self.ui.stop_flash_verify_action.setDisabled(False)
 
+        self.ui.curent_cell_progress_bar.setHidden(True)
+        self.ui.measure_progress_bar.setHidden(False)
         self.ui.measure_progress_bar.setMaximum(100 * 1000)
         self.ui.measure_progress_bar.setValue(0)
 
@@ -494,8 +504,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def verify_flash_done(self):
         self.lock_interface(False)
+
         self.ui.measure_progress_bar.setMaximum(100 * 1000)
         self.ui.measure_progress_bar.setValue(0)
+        self.ui.curent_cell_progress_bar.setHidden(True)
+        self.ui.measure_progress_bar.setHidden(True)
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)

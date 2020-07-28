@@ -85,6 +85,8 @@ class CorrectionFlasher:
 
         self.__progress = 0
 
+        # self.__read_data
+
         self.__stage = CorrectionFlasher.Stage.REST
         self.__prev_stage = CorrectionFlasher.Stage.REST
 
