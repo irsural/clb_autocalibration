@@ -49,17 +49,17 @@ class CorrectionFlasher:
     }
 
     STAGE_IN_MESSAGE = {
-        Stage.REST: "Прошивка / верефикация не проводится",
-        Stage.SET_UP_FUNNEL: "Создание воронки",
-        Stage.CONNECT_TO_FUNNEL: "Подключение к eeprom",
-        Stage.READ_WRITE_START: "Установка параметров в eeprom",
-        Stage.WAIT_EEPROM_READ_METADATA: "Чтение метаданных...",
+        # Stage.REST: "Прошивка / верефикация не проводится",
+        # Stage.SET_UP_FUNNEL: "Создание воронки",
+        # Stage.CONNECT_TO_FUNNEL: "Подключение к eeprom",
+        # Stage.READ_WRITE_START: "Установка параметров в eeprom",
+        # Stage.WAIT_EEPROM_READ_METADATA: "Чтение метаданных...",
         Stage.WAIT_EEPROM_READ_DATA: "Чтение данных...",
-        Stage.VERIFY_DATA: "Проверка данных",
-        Stage.WRITE_TO_EEPROM: "Запись в eeprom",
+        # Stage.VERIFY_DATA: "Проверка данных",
+        # Stage.WRITE_TO_EEPROM: "Запись в eeprom",
         Stage.WAIT_WRITE: "Ожидание записи...",
-        Stage.RESET_EEPROM: "Сброс eeprom",
-        Stage.NEXT_DIAPASON: "Следующий диапазон",
+        # Stage.RESET_EEPROM: "Сброс eeprom",
+        # Stage.NEXT_DIAPASON: "Следующий диапазон",
         Stage.DONE: "Прошивка / верификация завершена",
     }
 
@@ -271,7 +271,10 @@ class CorrectionFlasher:
     def tick(self):
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
-            logging.debug(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
+            try:
+                logging.debug(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
+            except KeyError:
+                pass
 
         if self.__stage == CorrectionFlasher.Stage.REST:
             pass
