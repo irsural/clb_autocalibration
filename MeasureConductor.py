@@ -430,7 +430,7 @@ class MeasureConductor(QtCore.QObject):
         data_to_flash = self.get_data_to_flash_verify(a_measures_to_flash, amplitude_of_cell_to_flash)
         if data_to_flash:
             return self.correction_flasher.start(data_to_flash, amplitude_of_cell_to_flash,
-                                                 CorrectionFlasher.Action.WRITE)
+                                                 CorrectionFlasher.Action.WRITE, self.calibrator.get_mxdata_address())
         else:
             return False
 
@@ -438,7 +438,7 @@ class MeasureConductor(QtCore.QObject):
         data_to_flash = self.get_data_to_flash_verify(a_measures_to_flash, amplitude_of_cell_to_flash)
         if data_to_flash:
             return self.correction_flasher.start(data_to_flash, amplitude_of_cell_to_flash,
-                                                 CorrectionFlasher.Action.READ)
+                                                 CorrectionFlasher.Action.READ, self.calibrator.get_mxdata_address())
         else:
             return False
 

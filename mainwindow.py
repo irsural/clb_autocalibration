@@ -423,48 +423,66 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.stop_flash_verify_action.setDisabled(False)
 
     def flash_table(self):
-        current_measure = self.measure_manager.get_current_measure()
-        if current_measure is not None:
-            if self.measure_conductor.start_flash([current_measure]):
-                self.lock_gui_while_flash()
+        if self.calibrator.state == clb.State.STOPPED:
+            current_measure = self.measure_manager.get_current_measure()
+            if current_measure is not None:
+                if self.measure_conductor.start_flash([current_measure]):
+                    self.lock_gui_while_flash()
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
     def flash_diapason_of_cell(self):
-        current_measure = self.measure_manager.get_current_measure()
-        if current_measure is not None:
-            selected_cell = self.measure_manager.get_only_selected_cell()
+        if self.calibrator.state == clb.State.STOPPED:
+            current_measure = self.measure_manager.get_current_measure()
+            if current_measure is not None:
+                selected_cell = self.measure_manager.get_only_selected_cell()
 
-            if selected_cell and selected_cell.row() != 0:
-                amplitude = self.measure_manager.get_amplitude(current_measure, selected_cell.row())
-                if self.measure_conductor.start_flash([current_measure], amplitude):
-                    self.lock_gui_while_flash()
+                if selected_cell and selected_cell.row() != 0:
+                    amplitude = self.measure_manager.get_amplitude(current_measure, selected_cell.row())
+                    if self.measure_conductor.start_flash([current_measure], amplitude):
+                        self.lock_gui_while_flash()
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
     def verify_table(self):
-        current_measure = self.measure_manager.get_current_measure()
-        if current_measure is not None:
-            if self.measure_conductor.start_verify([current_measure]):
-                self.lock_gui_while_flash()
+        if self.calibrator.state == clb.State.STOPPED:
+            current_measure = self.measure_manager.get_current_measure()
+            if current_measure is not None:
+                if self.measure_conductor.start_verify([current_measure]):
+                    self.lock_gui_while_flash()
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
     def verify_diapason_of_cell(self):
-        current_measure = self.measure_manager.get_current_measure()
-        if current_measure is not None:
-            selected_cell = self.measure_manager.get_only_selected_cell()
+        if self.calibrator.state == clb.State.STOPPED:
+            current_measure = self.measure_manager.get_current_measure()
+            if current_measure is not None:
+                selected_cell = self.measure_manager.get_only_selected_cell()
 
-            if selected_cell and selected_cell.row() != 0:
-                amplitude = self.measure_manager.get_amplitude(current_measure, selected_cell.row())
-                if self.measure_conductor.start_verify([current_measure], amplitude):
-                    self.lock_gui_while_flash()
+                if selected_cell and selected_cell.row() != 0:
+                    amplitude = self.measure_manager.get_amplitude(current_measure, selected_cell.row())
+                    if self.measure_conductor.start_verify([current_measure], amplitude):
+                        self.lock_gui_while_flash()
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
     def flash_all_button_clicked(self):
-        enabled_measures = self.measure_manager.get_enabled_measures()
-        if enabled_measures:
-            if self.measure_conductor.start_flash(enabled_measures):
-                self.lock_gui_while_flash()
+        if self.calibrator.state == clb.State.STOPPED:
+            enabled_measures = self.measure_manager.get_enabled_measures()
+            if enabled_measures:
+                if self.measure_conductor.start_flash(enabled_measures):
+                    self.lock_gui_while_flash()
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
     def verify_all_button_clicked(self):
-        enabled_measures = self.measure_manager.get_enabled_measures()
-        if enabled_measures:
-            if self.measure_conductor.start_verify(enabled_measures):
-                self.lock_gui_while_flash()
+        if self.calibrator.state == clb.State.STOPPED:
+            enabled_measures = self.measure_manager.get_enabled_measures()
+            if enabled_measures:
+                if self.measure_conductor.start_verify(enabled_measures):
+                    self.lock_gui_while_flash()
+        else:
+            logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
     def stop_flash_verify_button_clicked(self):
         self.measure_conductor.stop_flash_verify()

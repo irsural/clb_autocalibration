@@ -1,5 +1,6 @@
 from collections import namedtuple
 from typing import List, Tuple, Union
+from array import array
 from enum import IntEnum
 import logging
 
@@ -33,6 +34,7 @@ class CorrectionFlasher:
         Stage.REST: Stage.REST,
         # Stage.START: Stage.GET_DIAPASON,
         # Stage.START: Stage.GET_DIAPASON,
+        Stage.RESET_EEPROM: Stage.GET_DIAPASON,
         Stage.GET_DIAPASON: Stage.CONNECT_TO_EEPROM,
         # Stage.CHECK_INPUT_DATA: Stage.CONNECT_TO_EEPROM,
         # Stage.CHECK_INPUT_DATA: Stage.DONE,
@@ -40,11 +42,10 @@ class CorrectionFlasher:
         # Stage.SET_EEPROM_PARAMS: Stage.WAIT_EEPROM_READ,
         # Stage.SET_EEPROM_PARAMS: Stage.WRITE_TO_EEPROM,
         Stage.WAIT_EEPROM_READ: Stage.VERIFY_DATA,
-        Stage.VERIFY_DATA: Stage.RESET_EEPROM,
+        Stage.VERIFY_DATA: Stage.NEXT_DIAPASON,
         Stage.WRITE_TO_EEPROM: Stage.WAIT_WRITE,
-        Stage.WAIT_WRITE: Stage.RESET_EEPROM,
-        Stage.RESET_EEPROM: Stage.NEXT_DIAPASON,
-        # Stage.NEXT_DIAPASON: Stage.GET_DIAPASON,
+        Stage.WAIT_WRITE: Stage.NEXT_DIAPASON,
+        Stage.NEXT_DIAPASON: Stage.RESET_EEPROM,
         # Stage.NEXT_DIAPASON: Stage.DONE,
         Stage.DONE: Stage.REST
     }
@@ -65,6 +66,7 @@ class CorrectionFlasher:
         Stage.DONE: "Прошивка / верификация завершена",
     }
 
+    FUNNEL_MXDATA_OFFSET = 1044
     FlashData = namedtuple("FlashData", "eeprom_offset free_space x_points y_points coef_points")
 
     def __init__(self):
@@ -77,13 +79,16 @@ class CorrectionFlasher:
         self.__current_flash_data = None
 
         self.__action = CorrectionFlasher.Action.NONE
+        self.__mxdata = None
 
         self.__funnel_client = mxsrlib_dll.FunnelClient()
+        self.__correct_map = mxsrlib_dll.CorrectMap()
 
         self.__stage = CorrectionFlasher.Stage.REST
         self.__prev_stage = CorrectionFlasher.Stage.REST
 
-    def start(self, a_data_to_flash: List[Tuple], a_amplitude_of_cell_to_flash, a_action_type: Action) -> bool:
+    def start(self, a_data_to_flash: List[Tuple], a_amplitude_of_cell_to_flash, a_action_type: Action,
+              a_clb_mxdata: int) -> bool:
         data_ok = True
         if a_amplitude_of_cell_to_flash is not None:
             assert len(a_data_to_flash) == 1, "Для прошивки одного диапазона должна быть передана только одна таблица"
@@ -93,7 +98,8 @@ class CorrectionFlasher:
             self.__current_flash_data_idx = 0
             self.__current_flash_data = None
             self.__action = a_action_type
-            self.__stage = CorrectionFlasher.Stage.START
+            self.__mxdata = a_clb_mxdata
+            self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
             self.__started = True
         else:
             logging.warning("Прошивка/верификация отменена.")
@@ -106,6 +112,7 @@ class CorrectionFlasher:
         self.__flash_data.clear()
         self.__current_flash_data_idx = 0
         self.__current_flash_data = None
+        self.__mxdata = None
         self.__started = False
 
     def is_started(self):
@@ -166,7 +173,7 @@ class CorrectionFlasher:
                 flash_data = self.__get_flash_data(flash_table, data_table)
 
                 if flash_data:
-                    flash_data_ok = [self.__check_flash_data_size(f_data) for f_data in flash_data]
+                    flash_data_ok = [self.__get_flash_data_size(f_data) <= f_data.free_space for f_data in flash_data]
                     if all(flash_data_ok):
                         self.__flash_data += flash_data
                     else:
@@ -202,9 +209,10 @@ class CorrectionFlasher:
         amplitudes = [(row_idx, data_row[0]) for row_idx, data_row in enumerate(a_data_table) if row_idx != 0]
 
         for flash_row in a_flash_table:
-            x_points = []
-            y_points = [value for col_idx, value in enumerate(a_data_table[0]) if col_idx != 0]
-            coef_points = []
+            x_points = array('d')
+            y_points = array('d')
+            y_points.fromlist([value for col_idx, value in enumerate(a_data_table[0]) if col_idx != 0])
+            coef_points = array('d')
 
             for row_idx, amplitude in amplitudes:
 
@@ -228,7 +236,7 @@ class CorrectionFlasher:
         return flash_data
 
     @staticmethod
-    def __check_flash_data_size(a_flash_data: FlashData) -> bool:
+    def __get_flash_data_size(a_flash_data: FlashData) -> int:
         # uint32_t
         size_of_ident = 4
         size_of_size_x = 4
@@ -242,56 +250,83 @@ class CorrectionFlasher:
         need_space = size_of_ident + size_of_size_x + size_of_size_y + x_elem_size * len(a_flash_data.x_points) + \
             y_elem_size * len(a_flash_data.y_points) + coef_elem_size * len(a_flash_data.coef_points)
 
-        return need_space <= a_flash_data.free_space
+        return need_space
 
     def tick(self):
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
             logging.debug(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
 
-            if self.__stage == CorrectionFlasher.Stage.REST:
-                pass
+        if self.__stage == CorrectionFlasher.Stage.REST:
+            pass
 
-            elif self.__stage == CorrectionFlasher.Stage.GET_DIAPASON:
+        elif self.__stage == CorrectionFlasher.Stage.RESET_EEPROM:
+            self.__funnel_client.destroy()
+
+            if self.__started:
+                self.__stage = CorrectionFlasher.Stage.GET_DIAPASON
+            else:
+                self.__stage = CorrectionFlasher.Stage.DONE
+
+        elif self.__stage == CorrectionFlasher.Stage.GET_DIAPASON:
+            self.__current_flash_data = self.__flash_data[self.__current_flash_data_idx]
+
+            self.__funnel_client.create(self.__mxdata, CorrectionFlasher.FUNNEL_MXDATA_OFFSET,
+                                        self.__current_flash_data.eeprom_offset,
+                                        512)
+                                        # self.__get_flash_data_size(self.__current_flash_data))
+
+            self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == CorrectionFlasher.Stage.CONNECT_TO_EEPROM:
+            self.__funnel_client.tick()
+
+            if self.__funnel_client.connected():
+                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == CorrectionFlasher.Stage.SET_EEPROM_PARAMS:
+
+            if self.__action == CorrectionFlasher.Action.READ:
+                self.__funnel_client.reset_stat_read_complete()
+
+            if self.__action == CorrectionFlasher.Action.READ:
+                self.__stage = CorrectionFlasher.Stage.WAIT_EEPROM_READ
+            else:
+                self.__stage = CorrectionFlasher.Stage.WRITE_TO_EEPROM
+
+        elif self.__stage == CorrectionFlasher.Stage.WAIT_EEPROM_READ:
+            if not self.__funnel_client.is_read_complete():
+                self.__funnel_client.tick()
+            else:
+                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+                self.__correct_map.create()
+                self.__correct_map.connect(self.__funnel_client.get_address())
+
+                x_points = self.__correct_map.x_points
+                y_points = self.__correct_map.y_points
+                coefs_points = self.__correct_map.coef_points
+
+                logging.debug(f"{x_points}\n{y_points}\n{coefs_points}")
+
+        elif self.__stage == CorrectionFlasher.Stage.VERIFY_DATA:
+            self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == CorrectionFlasher.Stage.WRITE_TO_EEPROM:
+            self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == CorrectionFlasher.Stage.WAIT_WRITE:
+            self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == CorrectionFlasher.Stage.NEXT_DIAPASON:
+            if self.__current_flash_data_idx + 1 != len(self.__flash_data):
+                self.__current_flash_data_idx += 1
                 self.__current_flash_data = self.__flash_data[self.__current_flash_data_idx]
-
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.CONNECT_TO_EEPROM:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.SET_EEPROM_PARAMS:
-
-                if self.__action == CorrectionFlasher.Action.READ:
-                    self.__stage = CorrectionFlasher.Stage.WAIT_EEPROM_READ
-                else:
-                    self.__stage = CorrectionFlasher.Stage.WRITE_TO_EEPROM
-
-            elif self.__stage == CorrectionFlasher.Stage.WAIT_EEPROM_READ:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.VERIFY_DATA:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.WRITE_TO_EEPROM:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.WAIT_WRITE:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.RESET_EEPROM:
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
-
-            elif self.__stage == CorrectionFlasher.Stage.NEXT_DIAPASON:
-
-                if False:
-                    self.__stage = CorrectionFlasher.Stage.GET_DIAPASON
-                else:
-                    self.__stage = CorrectionFlasher.Stage.DONE
-
-            elif self.__stage == CorrectionFlasher.Stage.DONE:
-
+            else:
                 self.__action = CorrectionFlasher.Action.NONE
                 self.__started = False
 
-                self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+            self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == CorrectionFlasher.Stage.DONE:
+            self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
