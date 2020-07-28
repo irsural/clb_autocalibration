@@ -85,10 +85,22 @@ class CorrectionFlasher:
 
         self.__progress = 0
 
-        # self.__read_data
+        self.__save_instead_of_verify = False
+        self.__read_data = []
 
         self.__stage = CorrectionFlasher.Stage.REST
         self.__prev_stage = CorrectionFlasher.Stage.REST
+
+    def reset(self):
+        self.__current_flash_data_idx = 0
+        self.__current_flash_data = None
+        self.__action = CorrectionFlasher.Action.NONE
+        self.__mxdata = None
+        self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
+        self.__metadata_are_read = False
+        self.__progress = 0
+        self.__save_instead_of_verify = False
+        self.__read_data = {}
 
     def start(self, a_data_to_flash: List[Tuple], a_amplitude_of_cell_to_flash, a_action_type: Action,
               a_clb_mxdata: int) -> bool:
@@ -98,28 +110,28 @@ class CorrectionFlasher:
             data_ok = self.shrink_data_table(a_data_to_flash[0], a_amplitude_of_cell_to_flash)
 
         if data_ok and self.process_data_to_flash(a_data_to_flash):
-            self.__current_flash_data_idx = 0
-            self.__current_flash_data = None
+            self.reset()
             self.__action = a_action_type
             self.__mxdata = a_clb_mxdata
-            self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
-            self.__metadata_are_read = False
             self.__started = True
-            self.__progress = 0
         else:
             logging.warning("Прошивка/верификация отменена.")
 
         return self.is_started()
 
+    def start_read_by_flash_data(self, a_flash_data, a_clb_mxdata: int):
+        """
+        Отличается от self.start() тем, что проверки входных данных не происходит и на вход подается сразу FlashData
+        """
+        self.reset()
+        self.__action = CorrectionFlasher.Action.READ
+        self.__mxdata = a_clb_mxdata
+        self.__save_instead_of_verify = True
+        self.__started = True
+
     def stop(self):
-        self.__action = CorrectionFlasher.Action.NONE
-        self.__stage = CorrectionFlasher.Stage.RESET_EEPROM
+        self.reset()
         self.__flash_data.clear()
-        self.__current_flash_data_idx = 0
-        self.__current_flash_data = None
-        self.__mxdata = None
-        self.__metadata_are_read = False
-        self.__progress = 0
         self.__started = False
 
     def is_started(self):
@@ -353,12 +365,17 @@ class CorrectionFlasher:
             y_points = self.__correct_map.y_points
             coefs_points = self.__correct_map.coef_points
 
-            if x_points == list(self.__current_flash_data.x_points) and \
-                    y_points == list(self.__current_flash_data.y_points) and \
-                    coefs_points == list(self.__current_flash_data.coef_points):
-                logging.info("Данные в калибраторе соответствуют данным в таблице")
+            if self.__save_instead_of_verify:
+                self.__read_data.append((self.__current_flash_data.diapason_name, self.__current_flash_data.x_points,
+                                         self.__current_flash_data.y_points, self.__current_flash_data.coef_points))
+                logging.info(f"Измерение {self.__current_flash_data.diapason_name}. Данные считаны.")
             else:
-                logging.warning("ВНИМАНИЕ! Данные в калибраторе отличаются от данных в таблице")
+                if x_points == list(self.__current_flash_data.x_points) and \
+                        y_points == list(self.__current_flash_data.y_points) and \
+                        coefs_points == list(self.__current_flash_data.coef_points):
+                    logging.info("Данные в калибраторе соответствуют данным в таблице")
+                else:
+                    logging.warning("ВНИМАНИЕ! Данные в калибраторе отличаются от данных в таблице")
 
             self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
 

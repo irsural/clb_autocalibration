@@ -271,7 +271,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
-          <number>7</number>
+          <number>2</number>
          </property>
          <property name="leftMargin">
           <number>7</number>
@@ -280,7 +280,7 @@
           <number>7</number>
          </property>
          <property name="bottomMargin">
-          <number>7</number>
+          <number>1</number>
          </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -724,6 +724,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="correction_action"/>
    <addaction name="flash_all_action"/>
    <addaction name="verify_all_action"/>
+   <addaction name="read_correction_tables_action"/>
    <addaction name="stop_flash_verify_action"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
@@ -1050,16 +1051,28 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
   </action>
   <action name="show_cell_graph_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
+   </property>
    <property name="text">
     <string>График измерения</string>
    </property>
   </action>
   <action name="flash_current_measure_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/memory.png</normaloff>:/icons/icons/memory.png</iconset>
+   </property>
    <property name="text">
     <string>Прошить таблицу</string>
    </property>
   </action>
   <action name="flash_diapason_of_cell_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/memory.png</normaloff>:/icons/icons/memory.png</iconset>
+   </property>
    <property name="text">
     <string>Прошить диапазон ячейки</string>
    </property>
@@ -1137,13 +1150,33 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
   </action>
   <action name="verify_current_measure_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
+   </property>
    <property name="text">
     <string>Верифицировать таблицу</string>
    </property>
   </action>
   <action name="verify_diapason_of_cell_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
+   </property>
    <property name="text">
     <string>Верифицировать диапазон ячейки</string>
+   </property>
+  </action>
+  <action name="read_correction_tables_action">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/table_check.png</normaloff>:/icons/icons/table_check.png</iconset>
+   </property>
+   <property name="text">
+    <string>read_correction_tables</string>
+   </property>
+   <property name="toolTip">
+    <string>Считать коррекцию в виде таблиц</string>
    </property>
   </action>
  </widget>
