@@ -351,7 +351,12 @@ class CorrectionFlasher:
             y_points = self.__correct_map.y_points
             coefs_points = self.__correct_map.coef_points
 
-            logging.debug(f"{x_points}\n{y_points}\n{coefs_points}")
+            if x_points == list(self.__current_flash_data.x_points) and \
+                    y_points == list(self.__current_flash_data.y_points) and \
+                    coefs_points == list(self.__current_flash_data.coef_points):
+                logging.info("Данные в калибраторе соответствуют данным в таблице")
+            else:
+                logging.warning("ВНИМАНИЕ! Данные в калибраторе отличаются от данных в таблице")
 
             self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
 
