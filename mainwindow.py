@@ -13,6 +13,7 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
+from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from source_mode_window import SourceModeWidget
 from MeasureConductor import MeasureConductor
@@ -515,6 +516,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def stop_flash_verify_button_clicked(self):
         self.measure_conductor.stop_flash_verify()
 
+    @utils.exception_decorator
     def verify_flash_done(self):
         self.lock_interface(False)
 
@@ -525,7 +527,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.open_correction_tables:
             self.open_correction_tables = False
-            logging.debug(self.measure_conductor.get_correction_tables())
+            correction_tables = self.measure_conductor.get_correction_tables()
+            if correction_tables:
+                correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.exec()
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)

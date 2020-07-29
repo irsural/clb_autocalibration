@@ -149,9 +149,7 @@ class MeasureManager(QtCore.QObject):
                     new_name = self.__get_allowable_name(names_before_changing, new_name)
 
                     try:
-                        logging.debug("start_rename")
                         self.__rename_measure(row, changing_name, new_name, a_folder)
-                        logging.debug("renamed")
                     except OSError:
                         QtWidgets.QMessageBox.critical(None, "Ошибка", f'Не удалось переименовать измерение '
                                                                        f'"{changing_name}" в "{new_name}"',

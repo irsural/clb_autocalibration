@@ -370,8 +370,13 @@ class CorrectionFlasher:
             coefs_points = self.__correct_map.coef_points
 
             if self.__save_instead_of_verify:
+                real_coefs = []
+                for num, coef in enumerate(self.__correct_map.coef_points):
+                    y = self.__correct_map.y_points[num // (len(self.__correct_map.x_points))]
+                    real_coefs.append(y * coef)
+
                 self.__read_data[self.__current_flash_data.diapason_name].append(
-                    (self.__correct_map.x_points, self.__correct_map.y_points, self.__correct_map.coef_points)
+                    (self.__correct_map.x_points, self.__correct_map.y_points, real_coefs)
                 )
                 logging.info(f"Измерение {self.__current_flash_data.diapason_name}. Данные считаны.")
             else:
