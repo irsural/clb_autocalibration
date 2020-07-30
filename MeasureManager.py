@@ -59,6 +59,17 @@ class MeasureManager(QtCore.QObject):
         self.__parent = a_parent
         self.measures_table = a_measures_table
         self.measures_table.setRowCount(0)
+
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.SETTINGS, 70)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.ENABLE, 50)
+
+        self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.NAME,
+                                                                       QtWidgets.QHeaderView.Stretch)
+        self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.ENABLE,
+                                                                       QtWidgets.QHeaderView.Fixed)
+        self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.SETTINGS,
+                                                                       QtWidgets.QHeaderView.Fixed)
+
         self.data_view = a_data_view
         self.data_view.setModel(None)
 

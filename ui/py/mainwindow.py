@@ -131,7 +131,7 @@ class Ui_MainWindow(object):
         self.measures_table.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.measures_table.setHorizontalHeaderItem(2, item)
-        self.measures_table.horizontalHeader().setStretchLastSection(True)
+        self.measures_table.horizontalHeader().setStretchLastSection(False)
         self.measures_table.verticalHeader().setVisible(False)
         self.verticalLayout.addWidget(self.measures_table)
         self.groupBox = QtWidgets.QGroupBox(self.mainwindow_splitter)
