@@ -426,5 +426,6 @@ class CorrectionFlasher:
         elif self.__stage == CorrectionFlasher.Stage.DONE:
             self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
 
-    def get_progress(self) -> float:
-        return self.__progress
+    def get_progress(self) -> Tuple[float, float]:
+        full_progress = (self.__current_flash_data_idx * 100 + self.__progress) / len(self.__flash_data)
+        return self.__progress, full_progress

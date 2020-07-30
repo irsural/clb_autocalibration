@@ -31,9 +31,6 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
         self.correction_table_models = OrderedDict()
         self.fill_correction_tables(a_correction_tables)
 
-        # if self.correction_table_models:
-        #     self.change_table(self.ui.table_names_list.item(0).text())
-
         self.ui.table_names_list.currentTextChanged.connect(self.change_table)
 
         self.show()

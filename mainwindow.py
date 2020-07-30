@@ -111,8 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
-            self.ui.curent_cell_progress_bar.setHidden(True)
-            self.ui.measure_progress_bar.setHidden(True)
+            self.ui.progress_bar_widget.setHidden(True)
 
             for i in range(CellData.GetDataType.COUNT):
                 self.ui.displayed_data_type_combobox.addItem(MainWindow.displayed_data_to_text[i])
@@ -301,6 +300,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.flash_diapason_of_cell_action.setDisabled(a_lock)
         self.ui.verify_diapason_of_cell_action.setDisabled(a_lock)
 
+        self.ui.progress_bar_widget.setHidden(not a_lock)
+
         self.measure_manager.lock_interface(a_lock)
 
     def gui_tick(self):
@@ -367,8 +368,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 if self.save_configuration():
                     self.lock_interface(True)
                     self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type) * 1000)
-                    self.ui.curent_cell_progress_bar.setHidden(False)
-                    self.ui.measure_progress_bar.setHidden(False)
 
                     if a_iteration_type in (MeasureManager.IterationType.START_ALL,
                                             MeasureManager.IterationType.CONTINUE_ALL):
@@ -385,7 +384,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.curent_cell_progress_bar.setValue(time_passed)
             self.ui.measure_progress_bar.setValue(self.measure_progress_bar_value + time_passed)
         elif self.measure_conductor.is_correction_flash_verify_started():
-            self.ui.measure_progress_bar.setValue(self.measure_conductor.get_flash_progress() * 1000)
+            current, full = self.measure_conductor.get_flash_progress()
+            self.ui.curent_cell_progress_bar.setValue(current * 1000)
+            self.ui.measure_progress_bar.setValue(full * 1000)
 
     def single_measure_started(self):
         self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration() * 1000)
@@ -401,9 +402,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.measure_progress_bar.setValue(0)
         self.measure_progress_bar_value = 0
         self.lock_interface(False)
-
-        self.ui.curent_cell_progress_bar.setHidden(True)
-        self.ui.measure_progress_bar.setHidden(True)
 
     def start_all_measures_button_clicked(self, _):
         self.start_measure(MeasureManager.IterationType.START_ALL)
@@ -436,10 +434,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lock_interface(True)
         self.ui.stop_flash_verify_action.setDisabled(False)
 
-        self.ui.curent_cell_progress_bar.setHidden(True)
-        self.ui.measure_progress_bar.setHidden(False)
         self.ui.measure_progress_bar.setMaximum(100 * 1000)
-        self.ui.measure_progress_bar.setValue(0)
+        # self.ui.measure_progress_bar.setValue(0)
+        self.ui.curent_cell_progress_bar.setMaximum(100 * 1000)
+        # self.ui.curent_cell_progress_bar.setValue(0)
 
     def flash_table(self):
         if self.calibrator.state == clb.State.STOPPED:
@@ -520,10 +518,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def verify_flash_done(self):
         self.lock_interface(False)
 
-        self.ui.measure_progress_bar.setMaximum(100 * 1000)
         self.ui.measure_progress_bar.setValue(0)
-        self.ui.curent_cell_progress_bar.setHidden(True)
-        self.ui.measure_progress_bar.setHidden(True)
+        self.ui.curent_cell_progress_bar.setValue(0)
 
         if self.open_correction_tables:
             self.open_correction_tables = False

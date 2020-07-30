@@ -1,5 +1,5 @@
+from typing import Union, List, Tuple
 from collections import namedtuple
-from typing import Union, List
 from time import perf_counter
 from enum import IntEnum
 import logging
@@ -184,7 +184,7 @@ class MeasureConductor(QtCore.QObject):
     def is_correction_flash_verify_started(self):
         return self.correction_flasher.is_started()
 
-    def get_flash_progress(self) -> float:
+    def get_flash_progress(self) -> Tuple[float, float]:
         return self.correction_flasher.get_progress()
 
     def get_current_cell_time_passed(self):
@@ -228,7 +228,7 @@ class MeasureConductor(QtCore.QObject):
             pass
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_CALIBRATOR:
-            if self.calibrator.state != clb.State.DISCONNECTED: # ############################################################ if not self.calibr....
+            if self.calibrator.state == clb.State.DISCONNECTED: # ############################################################ if not self.calibr....
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
                 logging.warning("Калибратор не подключен, измерение остановлено")
@@ -298,7 +298,7 @@ class MeasureConductor(QtCore.QObject):
                                                                              variable.default_value)
                         variables_ready.append(ready)
 
-                    if all(variables_ready): # ################################################################################# if all....
+                    if not all(variables_ready): # ################################################################################# if all....
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
@@ -365,8 +365,8 @@ class MeasureConductor(QtCore.QObject):
                                                                          variable.work_value)
                     variables_ready.append(ready)
 
-                if all(variables_ready): # ###################################################################################### if all....
-                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True): # ############################### True вместо False
+                if not all(variables_ready): # ###################################################################################### if all....
+                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False): # ############################### True вместо False
                         # Сигнал включен, начинаем измерение
                         self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
