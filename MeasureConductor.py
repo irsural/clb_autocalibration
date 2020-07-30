@@ -134,6 +134,8 @@ class MeasureConductor(QtCore.QObject):
 
         self.start_time_point: Union[None, float] = None
 
+        self.next_error_index = 0
+
         self.__started = False
 
         self.correction_flasher = CorrectionFlasher()
@@ -214,21 +216,21 @@ class MeasureConductor(QtCore.QObject):
 
         return current_ok and dc_ok
 
-    def __retry(self, a_retry):
-        if a_retry:
-            self.current_try += 1
-            if self.current_try < self.current_config.retry_count:
-                logging.warning(f"Произошел сбой. Попытка:{self.current_try}/{self.current_config.retry_count}")
+    def __retry(self):
+        self.current_try += 1
+        if self.current_try < self.current_config.retry_count:
+            logging.warning(f"Произошел сбой. Попытка:{self.current_try}/{self.current_config.retry_count}")
 
-                self.start_time_point = None
-                # stop() чтобы таймеры возвращали верное значение time_passed()
-                self.calibrator_hold_ready_timer.stop()
-                self.measure_duration_timer.stop()
+            self.start_time_point = None
+            # stop() чтобы таймеры возвращали верное значение time_passed()
+            self.calibrator_hold_ready_timer.stop()
+            self.measure_duration_timer.stop()
 
-                self.__stage = MeasureConductor.Stage.ERRORS_OUTPUT
-            else:
-                logging.warning(f"Произошел сбой. Попытки закончились. Измерение прервано.")
-                self.stop()
+            self.next_error_index = 0
+            self.__stage = MeasureConductor.Stage.ERRORS_OUTPUT
+        else:
+            logging.warning(f"Произошел сбой. Попытки закончились. Измерение прервано.")
+            self.stop()
 
     def tick(self):
         self.scheme_control.tick()
@@ -395,20 +397,22 @@ class MeasureConductor(QtCore.QObject):
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.WAIT_CALIBRATOR_READY:
-            # self.__retry(self.calibrator.state == clb.State.STOPPED or self.calibrator.has_errors())
+            if self.calibrator.state == clb.State.STOPPED or self.netvars.error_occurred.get():
+                self.__retry()
 
-            if not self.calibrator_hold_ready_timer.check():
+            elif not self.calibrator_hold_ready_timer.check():
                 if self.calibrator.state == clb.State.READY: # ################################################################# if not self.calib....
-                    logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
+                    # logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
                     self.calibrator_hold_ready_timer.start()
             else:
                 self.measure_duration_timer.start(self.current_config.measure_time)
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.MEASURE:
-            # self.__retry(self.calibrator.state == clb.State.STOPPED or self.calibrator.has_errors())
+            if self.calibrator.state == clb.State.STOPPED or self.netvars.error_occurred.get():
+                self.__retry()
 
-            if not self.measure_duration_timer.check():
+            elif not self.measure_duration_timer.check():
                 lower_bound = utils.increase_by_percent(self.current_amplitude, 2)
                 upper_bound = utils.decrease_by_percent(self.current_amplitude, 2)
 
@@ -438,9 +442,26 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.ERRORS_OUTPUT:
             if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
-                # errors_output
-                pass
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                errors_output_done = True
+                if self.netvars.error_count.get() > 0:
+                    errors_output_done = False
+
+                    error_index = self.netvars.error_index.get()
+                    error_count = self.netvars.error_count.get()
+
+                    if self.next_error_index == error_index:
+                        error_code = self.netvars.error_code.get()
+                        logging.warning(f"Ошибка №{error_index + 1}: "
+                                        f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
+
+                        next_error_index = error_index + 1
+                        if next_error_index < error_count:
+                            self.next_error_index = next_error_index
+                            self.netvars.error_index.set(next_error_index)
+
+                if errors_output_done:
+                    self.netvars.clear_error_occurred_status.set(1)
+                    self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.START_FLASH:
             if not self.start_flash([self.current_cell_position.measure_name]):
