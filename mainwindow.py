@@ -1,6 +1,7 @@
 from os import system as os_system
 from enum import IntEnum
 import logging
+import json
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -183,6 +184,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
             self.ui.read_correction_tables_action.triggered.connect(self.read_correction_tables_button_clicked)
             self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
+            self.ui.get_correction_tables_from_file_action.triggered.connect(self.open_correction_tables_from_file)
 
             self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
             self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
@@ -527,6 +529,17 @@ class MainWindow(QtWidgets.QMainWindow):
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
                 correct_tables_dialog.exec()
+
+    @utils.exception_decorator
+    def open_correction_tables_from_file(self, _):
+        tables_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Открыть таблицы коррекции", "",
+                                                                   "Таблицы коррекции (*.ct)")
+        with open(tables_filename, "r") as tables_file:
+            correction_tables = json.loads(tables_file.read())
+
+        if correction_tables:
+            correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+            correct_tables_dialog.exec()
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)

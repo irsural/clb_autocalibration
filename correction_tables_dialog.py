@@ -2,6 +2,7 @@ from typing import Dict, Tuple, List
 from collections import OrderedDict
 from enum import IntEnum
 import logging
+import json
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -13,6 +14,7 @@ from CorrectionTableModel import CorrectionTableModel
 
 
 class CorrectionTablesDialog(QtWidgets.QDialog):
+    save_tables_to_file = QtCore.pyqtSignal(dict)
 
     def __init__(self, a_correction_tables: Dict[str, List[Tuple[List, List, List]]], a_settings: Settings,
                  a_parent=None):
@@ -28,10 +30,12 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
 
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinMaxButtonsHint)
 
+        self.correction_tables = a_correction_tables
         self.correction_table_models = OrderedDict()
         self.fill_correction_tables(a_correction_tables)
 
         self.ui.table_names_list.currentTextChanged.connect(self.change_table)
+        self.ui.save_to_file_button.clicked.connect(self.save_tables_to_file_button_clicked)
 
         self.show()
 
@@ -52,6 +56,12 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
 
     def change_table(self, a_name):
         self.ui.correction_table_view.setModel(self.correction_table_models[a_name])
+
+    def save_tables_to_file_button_clicked(self, _):
+        save_filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Сохранить таблицы коррекции", "",
+                                                                 "Таблицы коррекции (*.ct)")
+        with open(save_filename, "w") as tables_file:
+            tables_file.write(json.dumps(self.correction_tables, ensure_ascii=False, indent=4))
 
     def __del__(self):
         print("CorrectionTables deleted")

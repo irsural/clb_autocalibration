@@ -695,21 +695,63 @@ selection-background-color: rgb(170, 170, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1104</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
    <widget class="QMenu" name="settings_menu">
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
     <property name="title">
      <string>Настройки</string>
     </property>
     <addaction name="enter_settings_action"/>
    </widget>
    <widget class="QMenu" name="menu">
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
     <property name="title">
      <string>Справка</string>
     </property>
     <addaction name="action"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Таблицы коррекции</string>
+    </property>
+    <addaction name="get_correction_tables_from_file_action"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="new_configuration_action"/>
+    <addaction name="open_action"/>
+    <addaction name="save_action"/>
+    <addaction name="save_as_action"/>
+   </widget>
+   <addaction name="menu_3"/>
+   <addaction name="menu_2"/>
    <addaction name="settings_menu"/>
    <addaction name="menu"/>
   </widget>
@@ -775,10 +817,20 @@ selection-background-color: rgb(170, 170, 255);</string>
    <property name="text">
     <string>Настройки...</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
   </action>
   <action name="action">
    <property name="text">
     <string>О программе</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
    </property>
   </action>
   <action name="open_tstlan_action">
@@ -807,7 +859,7 @@ selection-background-color: rgb(170, 170, 255);</string>
      <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
    </property>
    <property name="text">
-    <string>save</string>
+    <string>Сохранить</string>
    </property>
    <property name="iconText">
     <string>save</string>
@@ -817,7 +869,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>8</pointsize>
     </font>
    </property>
    <property name="shortcut">
@@ -830,14 +882,14 @@ selection-background-color: rgb(170, 170, 255);</string>
      <normaloff>:/icons/icons/open.png</normaloff>:/icons/icons/open.png</iconset>
    </property>
    <property name="text">
-    <string>open_action</string>
+    <string>Открыть</string>
    </property>
    <property name="toolTip">
     <string>Открыть конфигурацию</string>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>8</pointsize>
     </font>
    </property>
    <property name="shortcut">
@@ -850,7 +902,7 @@ selection-background-color: rgb(170, 170, 255);</string>
      <normaloff>:/icons/icons/save_as.png</normaloff>:/icons/icons/save_as.png</iconset>
    </property>
    <property name="text">
-    <string>save_as_action</string>
+    <string>Сохранить как...</string>
    </property>
    <property name="iconText">
     <string>save_as_action</string>
@@ -860,7 +912,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>8</pointsize>
     </font>
    </property>
    <property name="shortcut">
@@ -1106,10 +1158,15 @@ selection-background-color: rgb(170, 170, 255);</string>
      <normaloff>:/icons/icons/add_file.png</normaloff>:/icons/icons/add_file.png</iconset>
    </property>
    <property name="text">
-    <string>new_configuration</string>
+    <string>Новая конфигурация</string>
    </property>
    <property name="toolTip">
     <string>Создать новую конфигурацию</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -1200,6 +1257,16 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="toolTip">
     <string>Считать коррекцию в виде таблиц</string>
+   </property>
+  </action>
+  <action name="get_correction_tables_from_file_action">
+   <property name="text">
+    <string>Загрузить из файла</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
    </property>
   </action>
  </widget>
