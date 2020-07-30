@@ -263,6 +263,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.__cell_to_compare: Union[None, CellConfig] = None
         self.__displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
+        self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
     def __serialize_cells_to_dict(self):
@@ -331,6 +332,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.verify_cell_configs(self.__measure_parameters.signal_type, True)
         self.set_save_state(False)
 
+        self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
         self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW, MeasureDataModel.HEADER_COLUMN),
                               self.index(self.rowCount(), MeasureDataModel.HEADER_COLUMN), (QtCore.Qt.DisplayRole,))
@@ -588,7 +590,10 @@ class MeasureDataModel(QAbstractTableModel):
 
             if index.row() == MeasureDataModel.HEADER_ROW:
                 displayed_data = CellData.GetDataType.MEASURED
-                units = " " + MeasureDataModel.HZ_UNITS
+                if self.__signal_type_is_ac:
+                    units = " " + MeasureDataModel.HZ_UNITS
+                else:
+                    units = ""
             elif index.column() == MeasureDataModel.HEADER_COLUMN:
                 displayed_data = CellData.GetDataType.MEASURED
                 units = " " + self.__signal_type_units

@@ -353,8 +353,9 @@ class MeasureConductor(QtCore.QObject):
                                                                      self.current_amplitude)
                 variables_ready.append(ready)
 
-                ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.frequency, self.current_frequency)
-                variables_ready.append(ready)
+                if clb.is_ac_signal[self.current_measure_parameters.signal_type]:
+                    ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.frequency, self.current_frequency)
+                    variables_ready.append(ready)
 
                 enable_correction = self.current_measure_parameters.enable_correction
                 ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.ui_correct_off, not enable_correction)
