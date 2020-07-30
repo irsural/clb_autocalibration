@@ -691,7 +691,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if config_dir:
             config_filename = f"{config_dir}"
             if self.save_configuration_by_name(config_filename):
-                # self.open_configuration_by_name(config_filename)
+                self.open_configuration_by_name(config_filename)
                 pass
             else:
                 result = False

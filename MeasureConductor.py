@@ -41,10 +41,11 @@ class MeasureConductor(QtCore.QObject):
         SET_CALIBRATOR_CONFIG = 10
         WAIT_CALIBRATOR_READY = 11
         MEASURE = 12
-        START_FLASH = 13
-        FLASH_TO_CALIBRATOR = 14
-        NEXT_MEASURE = 15
-        MEASURE_DONE = 16
+        ERRORS_OUTPUT = 13
+        START_FLASH = 15
+        FLASH_TO_CALIBRATOR = 15
+        NEXT_MEASURE = 16
+        MEASURE_DONE = 17
 
     STAGE_IN_MESSAGE = {
         Stage.REST: "Измерение не проводится",
@@ -60,6 +61,7 @@ class MeasureConductor(QtCore.QObject):
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим",
         Stage.MEASURE: "Измерение",
+        Stage.ERRORS_OUTPUT: "Вывод ошибок",
         Stage.START_FLASH: "Начало прошивки",
         Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора.............................................................",
         Stage.NEXT_MEASURE: "Следующее измерение",
@@ -82,6 +84,8 @@ class MeasureConductor(QtCore.QObject):
         Stage.WAIT_CALIBRATOR_READY: Stage.MEASURE,
         # Stage.MEASURE: Stage.START_FLASH,
         # Stage.MEASURE: Stage.NEXT_MEASURE,
+        # Stage.MEASURE: Stage.ERRORS_OUTPUT,
+        Stage.ERRORS_OUTPUT: Stage.SET_CALIBRATOR_CONFIG,
         Stage.START_FLASH: Stage.FLASH_TO_CALIBRATOR,
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
         # Stage.NEXT_MEASURE: Stage.GET_CONFIGS,
@@ -116,6 +120,7 @@ class MeasureConductor(QtCore.QObject):
 
         self.current_amplitude = 0
         self.current_frequency = clb.MIN_FREQUENCY
+        self.current_try = 0
 
         self.auto_flash_to_calibrator = False
         self.flash_current_measure = False
@@ -148,6 +153,7 @@ class MeasureConductor(QtCore.QObject):
         self.__started = False
         self.current_amplitude = 0
         self.current_frequency = clb.MIN_FREQUENCY
+        self.current_try = 0
 
         self.auto_flash_to_calibrator = False
         self.flash_current_measure = False
@@ -207,6 +213,22 @@ class MeasureConductor(QtCore.QObject):
         dc_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.dc_enabled, dc_enabled)
 
         return current_ok and dc_ok
+
+    def __retry(self, a_retry):
+        if a_retry:
+            self.current_try += 1
+            if self.current_try < self.current_config.retry_count:
+                logging.warning(f"Произошел сбой. Попытка:{self.current_try}/{self.current_config.retry_count}")
+
+                self.start_time_point = None
+                # stop() чтобы таймеры возвращали верное значение time_passed()
+                self.calibrator_hold_ready_timer.stop()
+                self.measure_duration_timer.stop()
+
+                self.__stage = MeasureConductor.Stage.ERRORS_OUTPUT
+            else:
+                logging.warning(f"Произошел сбой. Попытки закончились. Измерение прервано.")
+                self.stop()
 
     def tick(self):
         self.scheme_control.tick()
@@ -373,16 +395,19 @@ class MeasureConductor(QtCore.QObject):
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.WAIT_CALIBRATOR_READY:
+            # self.__retry(self.calibrator.state == clb.State.STOPPED or self.calibrator.has_errors())
+
             if not self.calibrator_hold_ready_timer.check():
-                pass
-                # if self.calibrator.state != clb.State.READY: # ################################################################# if not self.calib....
-                #     logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
-                #     self.calibrator_hold_ready_timer.start()
+                if self.calibrator.state == clb.State.READY: # ################################################################# if not self.calib....
+                    logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
+                    self.calibrator_hold_ready_timer.start()
             else:
                 self.measure_duration_timer.start(self.current_config.measure_time)
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.MEASURE:
+            # self.__retry(self.calibrator.state == clb.State.STOPPED or self.calibrator.has_errors())
+
             if not self.measure_duration_timer.check():
                 lower_bound = utils.increase_by_percent(self.current_amplitude, 2)
                 upper_bound = utils.decrease_by_percent(self.current_amplitude, 2)
@@ -410,6 +435,12 @@ class MeasureConductor(QtCore.QObject):
                     self.__stage = MeasureConductor.Stage.START_FLASH
                 else:
                     self.__stage = MeasureConductor.Stage.NEXT_MEASURE
+
+        elif self.__stage == MeasureConductor.Stage.ERRORS_OUTPUT:
+            if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
+                # errors_output
+                pass
+            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.START_FLASH:
             if not self.start_flash([self.current_cell_position.measure_name]):

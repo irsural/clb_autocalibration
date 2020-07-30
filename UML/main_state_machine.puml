@@ -12,6 +12,7 @@ state "Рассчет параметров измерения" as calc_parameter
 state "Прошивка в калибратор" as flash_data
 state "Следующее измерение" as next_measure
 state "Окончание измерения" as measure_finish
+state "Вывод ошибок" as errors_output
 
 
 [*] --> device_connect
@@ -22,10 +23,12 @@ reset_devices: В это состояние можно перейти почти
 reset_devices --> set_devices
 set_devices --> set_calibrator
 set_calibrator --> wait_ready
+set_calibrator --> errors_output: "Ошибка калиб."
 wait_ready --> measurement
-wait_ready --> set_calibrator: "Ошибка калибратора"
+wait_ready --> errors_output: "Ошибка калиб."
 measurement --> calc_parameters
-measurement --> set_calibrator: "Ошибка калибратора"
+measurement --> errors_output: "Ошибка калиб."
+errors_output --> set_calibrator
 calc_parameters --> flash_data
 calc_parameters --> next_measure
 flash_data --> next_measure
