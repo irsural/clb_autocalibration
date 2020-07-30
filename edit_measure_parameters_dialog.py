@@ -74,7 +74,11 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
             self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
+        try:
+            size = self.settings.get_last_geometry(self.objectName()).split(";")
+            self.resize(int(size[0]), int(size[1]))
+        except ValueError:
+            pass
         self.ui.flash_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
             self.ui.flash_table.objectName()))
         self.ui.flash_table.setItemDelegate(TransparentPainterForWidget(self.ui.flash_table, "#d4d4ff"))
@@ -163,6 +167,8 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.ui.flash_table.objectName(),
                                     self.ui.flash_table.horizontalHeader().saveState())
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
+
+        size = f"{self.size().width()};{self.size().height()}"
+        self.settings.save_geometry(self.objectName(), bytes(size, encoding='cp1251'))
 
         a_event.accept()

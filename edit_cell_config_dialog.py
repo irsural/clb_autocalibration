@@ -202,7 +202,11 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                                                                                     self.__allowed_extra_param_types))
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
+        try:
+            size = self.settings.get_last_geometry(self.objectName()).split(";")
+            self.resize(int(size[0]), int(size[1]))
+        except ValueError:
+            pass
         self.ui.extra_variables_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
             self.ui.extra_variables_table.objectName()))
 
@@ -407,6 +411,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.ui.extra_variables_table.objectName(),
                                     self.ui.extra_variables_table.horizontalHeader().saveState())
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
+
+        size = f"{self.size().width()};{self.size().height()}"
+        self.settings.save_geometry(self.objectName(), bytes(size, encoding='cp1251'))
 
         a_event.accept()
