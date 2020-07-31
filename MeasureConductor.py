@@ -89,7 +89,7 @@ class MeasureConductor(QtCore.QObject):
         Stage.START_FLASH: Stage.FLASH_TO_CALIBRATOR,
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
         # Stage.NEXT_MEASURE: Stage.GET_CONFIGS,
-        # Stage.NEXT_MEASURE: Stage.RESET_METER_CONFIG,
+        # Stage.NEXT_MEASURE: Stage.RESET_CALIBRATOR_CONFIG,
         Stage.MEASURE_DONE: Stage.REST,
     }
 
@@ -135,6 +135,7 @@ class MeasureConductor(QtCore.QObject):
         self.start_time_point: Union[None, float] = None
 
         self.next_error_index = 0
+        self.wait_error_clear_timer = utils.Timer(2)
 
         self.__started = False
 
@@ -184,7 +185,7 @@ class MeasureConductor(QtCore.QObject):
             if self.correction_flasher.is_started():
                 self.correction_flasher.stop()
             self.__started = False
-            self.__stage = MeasureConductor.Stage.RESET_METER_CONFIG
+            self.__stage = MeasureConductor.Stage.RESET_CALIBRATOR_CONFIG
 
     def is_started(self):
         return self.__started
@@ -227,9 +228,11 @@ class MeasureConductor(QtCore.QObject):
             self.measure_duration_timer.stop()
 
             self.next_error_index = 0
+            self.wait_error_clear_timer.stop()
             self.__stage = MeasureConductor.Stage.ERRORS_OUTPUT
         else:
-            logging.warning(f"Произошел сбой. Попытки закончились. Измерение прервано.")
+            logging.warning(f"Произошел сбой. Попытка:{self.current_try}/{self.current_config.retry_count}. "
+                            f"Попытки закончились. Измерение прервано.")
             self.stop()
 
     def tick(self):
@@ -252,7 +255,7 @@ class MeasureConductor(QtCore.QObject):
             pass
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_CALIBRATOR:
-            if self.calibrator.state == clb.State.DISCONNECTED: # ############################################################ if not self.calibr....
+            if self.calibrator.state != clb.State.DISCONNECTED: # ############################################################ if not self.calibr....
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
                 logging.warning("Калибратор не подключен, измерение остановлено")
@@ -284,6 +287,7 @@ class MeasureConductor(QtCore.QObject):
                                                                         self.current_cell_position.row)
             self.current_frequency = self.measure_manager.get_frequency(self.current_cell_position.measure_name,
                                                                         self.current_cell_position.column)
+            self.current_try = 0
 
             self.extra_variables.clear()
             for extra_parameter in self.current_config.extra_parameters:
@@ -322,7 +326,7 @@ class MeasureConductor(QtCore.QObject):
                                                                              variable.default_value)
                         variables_ready.append(ready)
 
-                    if not all(variables_ready): # ################################################################################# if all....
+                    if all(variables_ready): # ################################################################################# if all....
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
@@ -339,7 +343,7 @@ class MeasureConductor(QtCore.QObject):
                     # Иначе будет бесконечная рекурсия в автомате
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
-            elif not self.scheme_control.ready():  # ################################################################################# elif self.scheme....
+            elif self.scheme_control.ready():  # ################################################################################# elif self.scheme....
                 self.need_to_reset_scheme = True
 
                 if self.is_started():
@@ -364,6 +368,9 @@ class MeasureConductor(QtCore.QObject):
                     self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_CALIBRATOR_CONFIG:
+            if self.netvars.error_occurred.get():
+                self.__retry()
+
             # Чтобы не читать с калибратора с периодом основного тика программы
             if self.read_clb_variables_timer.check():
                 self.read_clb_variables_timer.start()
@@ -390,8 +397,8 @@ class MeasureConductor(QtCore.QObject):
                                                                          variable.work_value)
                     variables_ready.append(ready)
 
-                if not all(variables_ready): # ###################################################################################### if all....
-                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False): # ############################### True вместо False
+                if all(variables_ready): # ###################################################################################### if all....
+                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True): # ############################### True вместо False
                         # Сигнал включен, начинаем измерение
                         self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -401,7 +408,7 @@ class MeasureConductor(QtCore.QObject):
                 self.__retry()
 
             elif not self.calibrator_hold_ready_timer.check():
-                if self.calibrator.state == clb.State.READY: # ################################################################# if not self.calib....
+                if self.calibrator.state != clb.State.READY: # ################################################################# if not self.calib....
                     # logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
                     self.calibrator_hold_ready_timer.start()
             else:
@@ -442,25 +449,32 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.ERRORS_OUTPUT:
             if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
-                errors_output_done = True
-                if self.netvars.error_count.get() > 0:
-                    errors_output_done = False
+                errors_output_done = False
+                if not self.wait_error_clear_timer.started():
+                    if self.netvars.error_count.get() > 0:
+                        error_index = self.netvars.error_index.get()
+                        error_count = self.netvars.error_count.get()
 
-                    error_index = self.netvars.error_index.get()
-                    error_count = self.netvars.error_count.get()
+                        if self.next_error_index == error_index:
+                            error_code = self.netvars.error_code.get()
+                            logging.warning(f"Ошибка №{error_index + 1}: "
+                                            f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
 
-                    if self.next_error_index == error_index:
-                        error_code = self.netvars.error_code.get()
-                        logging.warning(f"Ошибка №{error_index + 1}: "
-                                        f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
-
-                        next_error_index = error_index + 1
-                        if next_error_index < error_count:
-                            self.next_error_index = next_error_index
-                            self.netvars.error_index.set(next_error_index)
+                            next_error_index = error_index + 1
+                            if next_error_index < error_count:
+                                self.next_error_index = next_error_index
+                                self.netvars.error_index.set(next_error_index)
+                            else:
+                                errors_output_done = True
+                    else:
+                        errors_output_done = True
 
                 if errors_output_done:
+                    self.next_error_index = 0
                     self.netvars.clear_error_occurred_status.set(1)
+                    self.wait_error_clear_timer.start()
+
+                if self.wait_error_clear_timer.check():
                     self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.START_FLASH:
