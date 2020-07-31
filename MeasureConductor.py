@@ -530,7 +530,7 @@ class MeasureConductor(QtCore.QObject):
             else:
                 logging.warning(f'Измерение "{measure_name}" не предназначено для прошивки и считано не будет')
 
-        self.correction_flasher.start_read_by_flash_data(flash_data_list, self.calibrator.get_mxdata_address())
+        return self.correction_flasher.start_read_by_flash_data(flash_data_list, self.calibrator.get_mxdata_address())
 
     def get_correction_tables(self):
         return self.correction_flasher.get_read_data()

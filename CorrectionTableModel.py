@@ -53,6 +53,7 @@ class CorrectionTableModel(QAbstractTableModel):
 
         return color
 
+    @utils.exception_decorator
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
                 (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole):

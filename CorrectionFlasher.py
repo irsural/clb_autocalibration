@@ -123,12 +123,14 @@ class CorrectionFlasher:
         """
         Отличается от self.start() тем, что проверки входных данных не происходит и на вход подается сразу FlashData
         """
-        self.reset()
-        self.__flash_data = a_flash_data
-        self.__action = CorrectionFlasher.Action.READ
-        self.__mxdata = a_clb_mxdata
-        self.__save_instead_of_verify = True
-        self.__started = True
+        if a_flash_data:
+            self.reset()
+            self.__flash_data = a_flash_data
+            self.__action = CorrectionFlasher.Action.READ
+            self.__mxdata = a_clb_mxdata
+            self.__save_instead_of_verify = True
+            self.__started = True
+        return self.is_started()
 
     def get_read_data(self) -> Dict[str, List[Tuple[List, List, List]]]:
         return self.__read_data
@@ -360,7 +362,7 @@ class CorrectionFlasher:
                 self.__progress = (data_size - self.__funnel_client.get_read_size()) / data_size * 100
                 self.__progress = utils.bound(self.__progress, 0., 100.)
             else:
-                self.__progress = 0
+                self.__progress = 100
                 self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
 
         elif self.__stage == CorrectionFlasher.Stage.VERIFY_DATA:
@@ -410,10 +412,11 @@ class CorrectionFlasher:
                 data_size = self.__funnel_client.data_size()
                 self.__progress = (data_size - write_remain_bytes) / data_size * 100
             else:
-                self.__progress = 0
+                self.__progress = 100
                 self.__stage = CorrectionFlasher.NEXT_STAGE[self.__stage]
 
         elif self.__stage == CorrectionFlasher.Stage.NEXT_DIAPASON:
+            self.__progress = 0
             if self.__current_flash_data_idx + 1 != len(self.__flash_data):
                 self.__current_flash_data_idx += 1
                 self.__current_flash_data = self.__flash_data[self.__current_flash_data_idx]

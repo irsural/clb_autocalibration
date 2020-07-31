@@ -507,9 +507,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.calibrator.state == clb.State.STOPPED:
             enabled_measures = self.measure_manager.get_enabled_measures()
             if enabled_measures:
-                self.measure_conductor.start_read_correction_to_tables(enabled_measures)
-                self.lock_gui_while_flash()
-                self.open_correction_tables = True
+                if self.measure_conductor.start_read_correction_to_tables(enabled_measures):
+                    self.lock_gui_while_flash()
+                    self.open_correction_tables = True
         else:
             logging.error("Калибратор не подключен, либо не находится в состоянии покоя")
 
