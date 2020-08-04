@@ -17,6 +17,13 @@ class AgilentConfig:
         PROLOGIX_COM = 2
         PROLOGIX_ETHERNET = 3
 
+    CONN_TYPE_TO_NAME = {
+        ConnectType.AGILENT_USB: "Agilent USB-GPIB",
+        ConnectType.NI_USB: "NI USB-GPIB",
+        ConnectType.PROLOGIX_COM: "Prologix COM-GPIB",
+        ConnectType.PROLOGIX_ETHERNET: "Prologix Ethernet",
+    }
+
     def __init__(self):
         self.connect_type = AgilentConfig.ConnectType.AGILENT_USB
         self.gpib_index = 0

@@ -3,7 +3,6 @@ from collections import namedtuple
 from time import perf_counter
 from enum import IntEnum
 import logging
-import random
 
 from PyQt5 import QtCore
 
@@ -14,9 +13,11 @@ from CorrectionFlasher import CorrectionFlasher
 from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
+from irspy.dlls import multimeters
 from irspy import utils
 
 from edit_measure_parameters_dialog import MeasureParameters
+from edit_agilent_config_dialog import AgilentConfig
 from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
@@ -37,15 +38,16 @@ class MeasureConductor(QtCore.QObject):
         RESET_METER_CONFIG = 6
         RESET_SCHEME_CONFIG = 7
         SET_METER_CONFIG = 8
-        SET_SCHEME_CONFIG = 9
-        SET_CALIBRATOR_CONFIG = 10
-        WAIT_CALIBRATOR_READY = 11
-        MEASURE = 12
-        ERRORS_OUTPUT = 13
+        METER_TEST_MEASURE = 9
+        SET_SCHEME_CONFIG = 10
+        SET_CALIBRATOR_CONFIG = 11
+        WAIT_CALIBRATOR_READY = 12
+        MEASURE = 13
+        ERRORS_OUTPUT = 14
         START_FLASH = 15
-        FLASH_TO_CALIBRATOR = 15
-        NEXT_MEASURE = 16
-        MEASURE_DONE = 17
+        FLASH_TO_CALIBRATOR = 16
+        NEXT_MEASURE = 17
+        MEASURE_DONE = 18
 
     STAGE_IN_MESSAGE = {
         Stage.REST: "Измерение не проводится",
@@ -57,6 +59,7 @@ class MeasureConductor(QtCore.QObject):
         Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
         Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
         Stage.SET_METER_CONFIG: "Установка параметров измерителя",
+        Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение...",
         Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим",
@@ -78,7 +81,8 @@ class MeasureConductor(QtCore.QObject):
         Stage.RESET_METER_CONFIG: Stage.RESET_SCHEME_CONFIG,
         # Stage.RESET_SCHEME_CONFIG: Stage.SET_METER_CONFIG,
         # Stage.RESET_SCHEME_CONFIG: Stage.MEASURE_DONE,
-        Stage.SET_METER_CONFIG: Stage.SET_SCHEME_CONFIG,
+        Stage.SET_METER_CONFIG: Stage.METER_TEST_MEASURE,
+        Stage.METER_TEST_MEASURE: Stage.SET_SCHEME_CONFIG,
         Stage.SET_SCHEME_CONFIG: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
         Stage.WAIT_CALIBRATOR_READY: Stage.MEASURE,
@@ -142,6 +146,8 @@ class MeasureConductor(QtCore.QObject):
         self.correction_flasher = CorrectionFlasher()
         self.correction_flasher_started = False
 
+        self.multimeter = multimeters.Agilent3485A()
+
         self.__stage = MeasureConductor.Stage.REST
         self.__prev_stage = self.__stage
 
@@ -166,6 +172,7 @@ class MeasureConductor(QtCore.QObject):
         self.extra_variables.clear()
 
         self.need_to_reset_scheme = True
+        self.need_to_set_scheme = True
 
         self.start_time_point = None
 
@@ -330,6 +337,8 @@ class MeasureConductor(QtCore.QObject):
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
+            self.multimeter.disconnect()
+
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
@@ -352,7 +361,29 @@ class MeasureConductor(QtCore.QObject):
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
         elif self.__stage == MeasureConductor.Stage.SET_METER_CONFIG:
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            meter_settings = self.measure_manager.get_meter_settings()
+            success_connect = False
+            if isinstance(meter_settings, AgilentConfig):
+                if self.multimeter.connect(multimeters.MeasureType.tm_volt_dc,
+                                           AgilentConfig.CONN_TYPE_TO_NAME[meter_settings.connect_type],
+                                           meter_settings.gpib_index, meter_settings.gpib_address,
+                                           meter_settings.com_name, meter_settings.ip_address, meter_settings.port):
+                    success_connect = True
+                else:
+                    logging.error("Не удалось подключиться к мультиметру. Измерение остановлено")
+            else:
+                logging.critical("Не реализованный мультиметр. Измерение остановлено")
+
+            if success_connect:
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            else:
+                self.stop()
+
+        elif self.__stage == MeasureConductor.Stage.METER_TEST_MEASURE:
+            got_measure, value = self.multimeter.get_measured_value()
+            if got_measure and value != 0:
+                logging.info(f"Результат тестового измерения: {value}")
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_SCHEME_CONFIG:
             if self.need_to_set_scheme:
@@ -420,19 +451,18 @@ class MeasureConductor(QtCore.QObject):
                 self.__retry()
 
             elif not self.measure_duration_timer.check():
-                lower_bound = utils.increase_by_percent(self.current_amplitude, 2)
-                upper_bound = utils.decrease_by_percent(self.current_amplitude, 2)
+                got_value, measured = self.multimeter.get_measured_value()
+                if got_value:
+                    logging.debug(f"Измерено: {measured}")
+                    time_of_measure = perf_counter()
 
-                value = random.uniform(lower_bound, upper_bound)
-                time_of_measure = perf_counter()
+                    if self.start_time_point is None:
+                        self.start_time_point = time_of_measure
+                        time = 0
+                    else:
+                        time = time_of_measure - self.start_time_point
 
-                if self.start_time_point is None:
-                    self.start_time_point = time_of_measure
-                    time = 0
-                else:
-                    time = time_of_measure - self.start_time_point
-
-                self.measure_manager.add_measured_value(*self.current_cell_position, value, time)
+                    self.measure_manager.add_measured_value(*self.current_cell_position, measured, time)
             else:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
 

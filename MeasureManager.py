@@ -593,6 +593,12 @@ class MeasureManager(QtCore.QObject):
         else:
             assert False, f"Не реализованный измеритель '{self.meter_type}'"
 
+    def get_meter_settings(self):
+        if self.meter_type == MeasureManager.MeterType.AGILENT_3458A:
+            return self.agilent_config
+        else:
+            return None
+
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.displayed_data = a_displayed_data
         if self.current_data_model:
