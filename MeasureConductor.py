@@ -468,7 +468,9 @@ class MeasureConductor(QtCore.QObject):
                     self.calibrator_hold_ready_timer.start()
             else:
                 self.multimeter.start_measure()
-                self.measure_duration_timer.start(self.current_config.measure_time)
+                measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
+                self.measure_duration_timer.start(measure_duration)
+
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.MEASURE:
@@ -489,6 +491,10 @@ class MeasureConductor(QtCore.QObject):
                         time = time_of_measure - self.start_time_point
 
                     self.measure_manager.add_measured_value(*self.current_cell_position, measured, time)
+
+                    # Лайфхак, так будет сделано только одно измерение
+                    if self.current_config.measure_time == 0:
+                        self.measure_duration_timer.start(1e-6)
             else:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
 
