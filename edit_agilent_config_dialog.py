@@ -57,6 +57,12 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
 
         self.settings = a_settings
 
+        try:
+            size = self.settings.get_last_geometry(self.objectName()).split(";")
+            self.resize(int(size[0]), int(size[1]))
+        except ValueError:
+            pass
+
         self.ip_address_regex = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
         self.com_regex = re.compile(r"(?i)com\d")
 
@@ -104,4 +110,7 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        size = f"{self.size().width()};{self.size().height()}"
+        self.settings.save_geometry(self.objectName(), bytes(size, encoding='cp1251'))
+
         a_event.accept()

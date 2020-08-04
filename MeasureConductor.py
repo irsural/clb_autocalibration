@@ -13,11 +13,10 @@ from CorrectionFlasher import CorrectionFlasher
 from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
-from irspy.dlls import multimeters
+import multimeters
 from irspy import utils
 
 from edit_measure_parameters_dialog import MeasureParameters
-from edit_agilent_config_dialog import AgilentConfig
 from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
@@ -66,7 +65,7 @@ class MeasureConductor(QtCore.QObject):
         Stage.MEASURE: "Измерение",
         Stage.ERRORS_OUTPUT: "Вывод ошибок",
         Stage.START_FLASH: "Начало прошивки",
-        Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора.............................................................",
+        Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора...",
         Stage.NEXT_MEASURE: "Следующее измерение",
         Stage.MEASURE_DONE: "Измерение закончено",
     }
@@ -156,7 +155,7 @@ class MeasureConductor(QtCore.QObject):
         self.correction_flasher = CorrectionFlasher()
         self.correction_flasher_started = False
 
-        self.multimeter = multimeters.Agilent3485A()
+        self.multimeter: Union[None, multimeters.MultimeterBase] = None
         self.current_measure_type = None
 
         self.__stage = MeasureConductor.Stage.REST
@@ -182,7 +181,9 @@ class MeasureConductor(QtCore.QObject):
         self.measure_duration_timer.stop()
         self.extra_variables.clear()
 
-        self.multimeter.disconnect()
+        if self.multimeter is not None:
+            self.multimeter.disconnect()
+        self.multimeter = None
 
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
@@ -254,9 +255,13 @@ class MeasureConductor(QtCore.QObject):
         self.wait_error_clear_timer.stop()
         self.__stage = MeasureConductor.Stage.ERRORS_OUTPUT
 
+    @utils.exception_decorator
     def tick(self):
         self.scheme_control.tick()
         self.correction_flasher.tick()
+
+        if self.multimeter is not None:
+            self.multimeter.tick()
 
         if self.correction_flasher_started != self.correction_flasher.is_started():
             self.correction_flasher_started = self.correction_flasher.is_started()
@@ -274,13 +279,17 @@ class MeasureConductor(QtCore.QObject):
             pass
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_CALIBRATOR:
-            if self.calibrator.state != clb.State.DISCONNECTED: # ############################################################ if not self.calibr....
+            if self.calibrator.state != clb.State.DISCONNECTED:
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
                 logging.warning("Калибратор не подключен, измерение остановлено")
                 self.stop()
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_METER:
+            self.multimeter = self.measure_manager.get_meter()
+            # Паранойя, чтобы не началось измерение с неправильным типом измерителя
+            self.multimeter.disconnect()
+
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
@@ -354,7 +363,7 @@ class MeasureConductor(QtCore.QObject):
                                                                              variable.default_value)
                         variables_ready.append(ready)
 
-                    if all(variables_ready): # ################################################################################# if all....
+                    if all(variables_ready):
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
@@ -374,7 +383,7 @@ class MeasureConductor(QtCore.QObject):
                     # Иначе будет бесконечная рекурсия в автомате
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
-            elif self.scheme_control.ready():  # ################################################################################# elif self.scheme....
+            elif self.scheme_control.ready():
                 self.need_to_reset_scheme = True
 
                 if self.is_started():
@@ -383,28 +392,21 @@ class MeasureConductor(QtCore.QObject):
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
 
         elif self.__stage == MeasureConductor.Stage.SET_METER_CONFIG:
-            if not self.multimeter.is_connected():
-                meter_settings = self.measure_manager.get_meter_settings()
-                if isinstance(meter_settings, AgilentConfig):
-                    if self.multimeter.connect(self.current_measure_type,
-                                               AgilentConfig.CONN_TYPE_TO_NAME[meter_settings.connect_type],
-                                               meter_settings.gpib_index, meter_settings.gpib_address,
-                                               meter_settings.com_name, meter_settings.ip_address, meter_settings.port):
-
-                        self.__stage = MeasureConductor.Stage.METER_TEST_MEASURE
-                    else:
-                        logging.error("Не удалось подключиться к мультиметру. Измерение остановлено")
-                        self.stop()
-                else:
-                    logging.critical("Не реализованный мультиметр. Измерение остановлено")
-                    self.stop()
-            else:
+            if self.multimeter.is_connected():
                 self.__stage = MeasureConductor.Stage.SET_SCHEME_CONFIG
+            else:
+                if self.multimeter.connect(self.current_measure_type):
+                    self.multimeter.start_measure()
+                    self.__stage = MeasureConductor.Stage.METER_TEST_MEASURE
+                else:
+                    logging.error("Не удалось подключиться к мультиметру. Измерение остановлено")
+                    self.stop()
 
         elif self.__stage == MeasureConductor.Stage.METER_TEST_MEASURE:
-            got_measure, value = self.multimeter.get_measured_value()
-            if got_measure and value != 0:
+            if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
+                value = self.multimeter.get_measured_value()
                 logging.debug(f"Результат тестового измерения: {value}")
+
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_SCHEME_CONFIG:
@@ -450,8 +452,8 @@ class MeasureConductor(QtCore.QObject):
                                                                          variable.work_value)
                     variables_ready.append(ready)
 
-                if all(variables_ready): # ###################################################################################### if all....
-                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True): # ############################### True вместо False
+                if all(variables_ready):
+                    if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True):
                         # Сигнал включен, начинаем измерение
                         self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -461,10 +463,11 @@ class MeasureConductor(QtCore.QObject):
                 self.__retry()
 
             elif not self.calibrator_hold_ready_timer.check():
-                if self.calibrator.state != clb.State.READY: # ################################################################# if not self.calib....
+                if self.calibrator.state != clb.State.READY:
                     # logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
                     self.calibrator_hold_ready_timer.start()
             else:
+                self.multimeter.start_measure()
                 self.measure_duration_timer.start(self.current_config.measure_time)
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
@@ -473,8 +476,10 @@ class MeasureConductor(QtCore.QObject):
                 self.__retry()
 
             elif not self.measure_duration_timer.check():
-                got_value, measured = self.multimeter.get_measured_value()
-                if got_value:
+                if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
+                    measured = self.multimeter.get_measured_value()
+                    self.multimeter.start_measure()
+
                     time_of_measure = perf_counter()
 
                     if self.start_time_point is None:
