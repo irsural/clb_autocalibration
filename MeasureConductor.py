@@ -314,7 +314,7 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
-            if self.scheme_control.is_connected() or self.scheme_control.connect():
+            if self.scheme_control.connect():
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
                 logging.warning("Не удалось подключиться к схеме (FTDI), измерение остановлено")

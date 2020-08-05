@@ -64,32 +64,32 @@ class SchemeControl:
         Circuit.K_V: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._0)),
         ),
         Circuit.K_C10A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._1),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._1)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._1)),
         ),
         Circuit.K_C1A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._2),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._2)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._2)),
         ),
         Circuit.K_C01A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._3),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._3)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._3)),
         ),
         Circuit.K_BP: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._4),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._4)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._4)),
         ),
         Circuit.K_A: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._5),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._5)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._5)),
         ),
         Circuit.K_DIV650: (
             BistableRelay(
@@ -182,18 +182,21 @@ class SchemeControl:
                 self.__ftdi_control.set_pin(relay.reset_pin, False)
 
     def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
+        # Вызывать после self.reset()!!!
+
         self.__coil = a_coil
         self.__divider = a_divider
         self.__meter = a_meter
         self.__ready = False
 
-        # Переводим реле на всех цепях в состояние OFF
-        self.__set_relays(SchemeControl.CIRCUIT_TO_RELAYS.keys(), SchemeControl.RelayState.OFF)
         # Переводим реле на необходимых цепях в состояние ON
         self.__set_relays(SchemeControl.COIL_TO_CIRCUITS[a_coil], SchemeControl.RelayState.ON)
         self.__set_relays(SchemeControl.DIVIDER_TO_CIRCUITS[a_divider], SchemeControl.RelayState.ON)
-        if self.__coil == CellConfig.Coil.NONE and self.__divider == a_divider.NONE:
-            # Если прямая схема подключения, то включаем соответствующее реле
+
+        # K_V или K_A включаются, когда выбрана прямая схема подключения
+        # K_V так же включается, когда с калибратора выдается напряжение через делитель
+        if self.__meter == CellConfig.Meter.VOLTS and self.__divider != a_divider.NONE and self.__coil == CellConfig.Coil.NONE or \
+                self.__coil == CellConfig.Coil.NONE and self.__divider == a_divider.NONE:
             self.__set_relays(SchemeControl.METER_TO_CIRCUITS[a_meter], SchemeControl.RelayState.ON)
 
         self.__unset_relays_timer.stop()
