@@ -270,6 +270,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.correction_action.setDisabled(a_lock)
         self.ui.flash_all_action.setDisabled(a_lock)
         self.ui.verify_all_action.setDisabled(a_lock)
+        self.ui.read_correction_tables_action.setDisabled(a_lock)
         self.ui.stop_flash_verify_action.setDisabled(a_lock)
 
         self.ui.lock_action.setDisabled(a_lock)
