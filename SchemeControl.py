@@ -43,15 +43,15 @@ class SchemeControl:
     }
 
     DIVIDER_TO_CIRCUITS: Dict[CellConfig.Divider, List[Circuit]] = {
-        CellConfig.Divider.NONE: [],
-        CellConfig.Divider.DIV_650_V: [Circuit.K_BP, Circuit.K_DIV650],
-        CellConfig.Divider.DIV_500_V: [Circuit.K_BP, Circuit.K_DIV500],
-        CellConfig.Divider.DIV_350_V: [Circuit.K_BP, Circuit.K_DIV350],
-        CellConfig.Divider.DIV_200_V: [Circuit.K_BP, Circuit.K_DIV200],
-        CellConfig.Divider.DIV_55_V: [Circuit.K_BP, Circuit.K_DIV55],
-        CellConfig.Divider.DIV_40_V: [Circuit.K_BP, Circuit.K_DIV40],
-        CellConfig.Divider.MUL_30_mV: [Circuit.K_BP, Circuit.K_AMP30M],
-        CellConfig.Divider.MUL_10_mV: [Circuit.K_BP, Circuit.K_AMP10M],
+        CellConfig.Divider.NONE: [Circuit.K_BP],
+        CellConfig.Divider.DIV_650_V: [Circuit.K_DIV650],
+        CellConfig.Divider.DIV_500_V: [Circuit.K_DIV500],
+        CellConfig.Divider.DIV_350_V: [Circuit.K_DIV350],
+        CellConfig.Divider.DIV_200_V: [Circuit.K_DIV200],
+        CellConfig.Divider.DIV_55_V: [Circuit.K_DIV55],
+        CellConfig.Divider.DIV_40_V: [Circuit.K_DIV40],
+        CellConfig.Divider.MUL_30_mV: [Circuit.K_AMP30M],
+        CellConfig.Divider.MUL_10_mV: [Circuit.K_AMP10M],
     }
 
     METER_TO_CIRCUITS: Dict[CellConfig.Meter, List[Circuit]] = {
@@ -94,42 +94,42 @@ class SchemeControl:
         Circuit.K_DIV650: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._0),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._0)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._6)),
         ),
         Circuit.K_DIV500: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._1),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._1)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._7)),
         ),
         Circuit.K_DIV350: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._2),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._2)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._0)),
         ),
         Circuit.K_DIV200: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._3),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._3)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._1)),
         ),
         Circuit.K_DIV55: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._4),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._4)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._2)),
         ),
         Circuit.K_DIV40: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._5),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._5)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._3)),
         ),
         Circuit.K_AMP30M: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._6),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._6)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._4)),
         ),
         Circuit.K_AMP10M: (
             BistableRelay(
                 set_pin=FtdiPin(channel=FtdiControl.Channel.B, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._7),
-                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.D, pin=FtdiControl.Pin._7)),
+                reset_pin=FtdiPin(channel=FtdiControl.Channel.A, bus=FtdiControl.Bus.C, pin=FtdiControl.Pin._5)),
         ),
     }
 
@@ -182,9 +182,9 @@ class SchemeControl:
                 self.__ftdi_control.set_pin(relay.reset_pin, False)
 
     def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
-        self.__coil = CellConfig.Coil.NONE
-        self.__divider = CellConfig.Divider.NONE
-        self.__meter = CellConfig.Meter.AMPERES
+        self.__coil = a_coil
+        self.__divider = a_divider
+        self.__meter = a_meter
         self.__ready = False
 
         # Переводим реле на всех цепях в состояние OFF
@@ -192,7 +192,9 @@ class SchemeControl:
         # Переводим реле на необходимых цепях в состояние ON
         self.__set_relays(SchemeControl.COIL_TO_CIRCUITS[a_coil], SchemeControl.RelayState.ON)
         self.__set_relays(SchemeControl.DIVIDER_TO_CIRCUITS[a_divider], SchemeControl.RelayState.ON)
-        self.__set_relays(SchemeControl.METER_TO_CIRCUITS[a_meter], SchemeControl.RelayState.ON)
+        if self.__coil == CellConfig.Coil.NONE and self.__divider == a_divider.NONE:
+            # Если прямая схема подключения, то включаем соответствующее реле
+            self.__set_relays(SchemeControl.METER_TO_CIRCUITS[a_meter], SchemeControl.RelayState.ON)
 
         self.__unset_relays_timer.stop()
         self.__set_relays_timer.start()

@@ -35,19 +35,21 @@ class MeasureConductor(QtCore.QObject):
         CONNECT_TO_SCHEME = 3
         GET_CONFIGS = 4
         RESET_CALIBRATOR_CONFIG = 5
-        RESET_METER_CONFIG = 6
-        RESET_SCHEME_CONFIG = 7
-        SET_METER_CONFIG = 8
-        METER_TEST_MEASURE = 9
-        SET_SCHEME_CONFIG = 10
-        SET_CALIBRATOR_CONFIG = 11
-        WAIT_CALIBRATOR_READY = 12
-        MEASURE = 13
-        ERRORS_OUTPUT = 14
-        START_FLASH = 15
-        FLASH_TO_CALIBRATOR = 16
-        NEXT_MEASURE = 17
-        MEASURE_DONE = 18
+        WAIT_CALIBRATOR_RESET = 6
+        RESET_METER_CONFIG = 7
+        RESET_SCHEME_CONFIG = 8
+        SET_METER_CONFIG = 9
+        METER_TEST_MEASURE = 10
+        SET_SCHEME_CONFIG = 11
+        WAIT_SCHEME_SETTLE_DOWN = 12
+        SET_CALIBRATOR_CONFIG = 13
+        WAIT_CALIBRATOR_READY = 14
+        MEASURE = 15
+        ERRORS_OUTPUT = 16
+        START_FLASH = 17
+        FLASH_TO_CALIBRATOR = 18
+        NEXT_MEASURE = 19
+        MEASURE_DONE = 20
 
     STAGE_IN_MESSAGE = {
         Stage.REST: "Измерение не проводится",
@@ -56,11 +58,13 @@ class MeasureConductor(QtCore.QObject):
         Stage.CONNECT_TO_SCHEME: "Подключение к схеме",
         Stage.GET_CONFIGS: "Получение конфигурации",
         Stage.RESET_CALIBRATOR_CONFIG: "Сброс параметров калибратора",
+        Stage.WAIT_CALIBRATOR_RESET: "Ждем reset калибратора",
         Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
         Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
         Stage.SET_METER_CONFIG: "Установка параметров измерителя",
         Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение...",
         Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
+        Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
         Stage.MEASURE: "Измерение...",
@@ -77,14 +81,16 @@ class MeasureConductor(QtCore.QObject):
         Stage.CONNECT_TO_METER: Stage.CONNECT_TO_SCHEME,
         Stage.CONNECT_TO_SCHEME: Stage.GET_CONFIGS,
         Stage.GET_CONFIGS: Stage.RESET_CALIBRATOR_CONFIG,
-        Stage.RESET_CALIBRATOR_CONFIG: Stage.RESET_METER_CONFIG,
+        Stage.RESET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_RESET,
+        Stage.WAIT_CALIBRATOR_RESET: Stage.RESET_METER_CONFIG,
         Stage.RESET_METER_CONFIG: Stage.RESET_SCHEME_CONFIG,
         # Stage.RESET_SCHEME_CONFIG: Stage.SET_METER_CONFIG,
         # Stage.RESET_SCHEME_CONFIG: Stage.MEASURE_DONE,
         # Stage.SET_METER_CONFIG: Stage.METER_TEST_MEASURE,
         # Stage.SET_METER_CONFIG: Stage.SET_SCHEME_CONFIG,
         Stage.METER_TEST_MEASURE: Stage.SET_SCHEME_CONFIG,
-        Stage.SET_SCHEME_CONFIG: Stage.SET_CALIBRATOR_CONFIG,
+        Stage.SET_SCHEME_CONFIG: Stage.WAIT_SCHEME_SETTLE_DOWN,
+        Stage.WAIT_SCHEME_SETTLE_DOWN: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
         Stage.WAIT_CALIBRATOR_READY: Stage.MEASURE,
         # Stage.MEASURE: Stage.START_FLASH,
@@ -155,6 +161,9 @@ class MeasureConductor(QtCore.QObject):
         self.y_out_filter = metrology.ParamFilter()
         self.y_out_network_variable = self.netvars.fast_adc_slow
 
+        self.calibrator_signal_off_timer = utils.Timer(2)
+        self.wait_scheme_settle_down_timer = utils.Timer(1)
+
         self.__started = False
 
         self.correction_flasher = CorrectionFlasher()
@@ -196,6 +205,9 @@ class MeasureConductor(QtCore.QObject):
         self.current_measure_type = None
 
         self.start_time_point = None
+
+        self.calibrator_signal_off_timer.stop()
+        self.wait_scheme_settle_down_timer.stop()
 
     def start(self, a_measure_iterator: MeasureIterator, a_auto_flash_to_calibrator):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
@@ -380,7 +392,14 @@ class MeasureConductor(QtCore.QObject):
                         variables_ready.append(ready)
 
                     if all(variables_ready):
+                        self.calibrator_signal_off_timer.start()
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == MeasureConductor.Stage.WAIT_CALIBRATOR_RESET:
+            if self.calibrator_signal_off_timer.check():
+                self.calibrator_signal_off_timer.stop()
+
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
             # self.multimeter is None, когда измерение останавливается до CONNECT_TO_METER
@@ -440,7 +459,13 @@ class MeasureConductor(QtCore.QObject):
             else:
                 if self.scheme_control.ready():
                     self.need_to_set_scheme = True
+                    self.wait_scheme_settle_down_timer.start()
                     self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+        elif self.__stage == MeasureConductor.Stage.WAIT_SCHEME_SETTLE_DOWN:
+            if self.wait_scheme_settle_down_timer.check():
+                self.wait_scheme_settle_down_timer.stop()
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_CALIBRATOR_CONFIG:
             if self.netvars.error_occurred.get():
