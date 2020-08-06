@@ -288,6 +288,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.measure_progress_bar)
         self.verticalLayout_2.addWidget(self.progress_bar_widget)
         self.log_text_edit = QtWidgets.QTextEdit(self.mainwindow_splitter_2)
+        self.log_text_edit.setReadOnly(True)
         self.log_text_edit.setObjectName("log_text_edit")
         self.gridLayout.addWidget(self.mainwindow_splitter_2, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralWidget)

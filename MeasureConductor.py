@@ -67,10 +67,10 @@ class MeasureConductor(QtCore.QObject):
         Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",
         # Stage.SET_METER_RANGE: "Установка диапазона мультиметра",
         # Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
-        Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
+        # Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
-        Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
-        Stage.MEASURE: "Измерение...",
+        # Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
+        # Stage.MEASURE: "Измерение...",
         # Stage.ERRORS_OUTPUT: "Вывод ошибок",
         # Stage.START_FLASH: "Начало прошивки",
         Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора...",
@@ -299,7 +299,7 @@ class MeasureConductor(QtCore.QObject):
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
             if self.__stage in MeasureConductor.STAGE_IN_MESSAGE:
-                logging.info(MeasureConductor.STAGE_IN_MESSAGE[self.__stage])
+                logging.debug(MeasureConductor.STAGE_IN_MESSAGE[self.__stage])
 
         if self.__stage == MeasureConductor.Stage.REST:
             pass
@@ -381,6 +381,8 @@ class MeasureConductor(QtCore.QObject):
                     if self.current_amplitude <= max_amplitude:
                         self.measure_manager.reset_measure(*self.current_cell_position)
                         self.single_measure_started.emit()
+
+                        self.log_measure_info()
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
                     else:
                         logging.error(f'Амплитуда "{self.current_amplitude}" слишком высока для данной схемы '
@@ -467,7 +469,7 @@ class MeasureConductor(QtCore.QObject):
 
             range_ = self.current_amplitude / self.current_config.coefficient
             self.multimeter.set_range(range_)
-            logging.debug(f"Диапазон: {range_}")
+            logging.info(f"Диапазон: {range_}")
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
@@ -522,6 +524,7 @@ class MeasureConductor(QtCore.QObject):
 
                 if all(variables_ready):
                     if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True):
+                        logging.info(f"Ожидание выхода калибратора на режим... ({self.current_config.measure_delay} с)")
                         # Сигнал включен, начинаем измерение
                         self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -543,6 +546,7 @@ class MeasureConductor(QtCore.QObject):
                 if self.current_config.consider_output_value and self.current_config.enable_output_filtering:
                     self.y_out_filter.restart()
 
+                logging.info(f"Измерение... ({self.current_config.measure_time} с)")
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.MEASURE:
@@ -638,6 +642,19 @@ class MeasureConductor(QtCore.QObject):
             self.reset()
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+    def log_measure_info(self):
+        signal_type = self.current_measure_parameters.signal_type
+        frequency = self.current_frequency
+        frequency_str = f"Частота: {frequency} Гц" if clb.is_ac_signal[signal_type] else f"Y: {frequency}"
+
+        logging.info(
+            f"Параметры текущего измерения ({self.current_cell_position.measure_name}). "
+            f"Сигнал: {signal_type.name}. Амплитуда: {utils.float_to_string(self.current_amplitude)} "
+            f"{clb.signal_type_to_units[signal_type]}. {frequency_str}. "
+            f"Катушка: {self.current_config.coil.name}, делитель: {self.current_config.divider.name}, "
+            f"измеритель: {self.current_config.meter.name}"
+        )
 
     def add_new_measured_value(self, a_measured_value: float, a_time: float):
         self.y_out_filter.stop()

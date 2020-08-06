@@ -292,7 +292,7 @@ class CorrectionFlasher:
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
             try:
-                logging.info(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
+                logging.debug(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
             except KeyError:
                 pass
 
