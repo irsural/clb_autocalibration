@@ -129,7 +129,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
 
-            self.netvars = NetworkVariables(f"../irspy/clb/{clb.CLB_CONFIG_NAME}", self.calibrator,
+            self.netvars = NetworkVariables(f"./{clb.CLB_CONFIG_NAME}", self.calibrator,
                                             a_variables_read_delay=0)
 
             self.clb_signal_off_timer = QtCore.QTimer()
