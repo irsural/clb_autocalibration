@@ -20,6 +20,7 @@ from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
+import allowed_schemes_lut as scheme_lut
 from SchemeControl import SchemeControl
 import multimeters
 
@@ -373,9 +374,18 @@ class MeasureConductor(QtCore.QObject):
 
             if self.current_config.verify_scheme(self.current_measure_parameters.signal_type):
                 if self.current_measure_type is not None:
-                    self.measure_manager.reset_measure(*self.current_cell_position)
-                    self.single_measure_started.emit()
-                    self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                    max_amplitude = scheme_lut.get_max_amplitude(self.current_measure_parameters.signal_type,
+                                                                 self.current_config.coil, self.current_config.divider,
+                                                                 self.current_config.meter)
+
+                    if self.current_amplitude <= max_amplitude:
+                        self.measure_manager.reset_measure(*self.current_cell_position)
+                        self.single_measure_started.emit()
+                        self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                    else:
+                        logging.error(f'Амплитуда "{self.current_amplitude}" слишком высока для данной схемы '
+                                      f'подключения. Максимальная амплитуда: "{max_amplitude}". Измерение остановлено')
+                        self.stop()
                 else:
                     logging.critical("Ошибка в логике программы. Не удалось определить тип измерения")
                     self.stop()
