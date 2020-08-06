@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>tstlan_dialog</class>
+ <widget class="QDialog" name="tstlan_dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,6 +20,10 @@
   </property>
   <property name="windowTitle">
    <string>Tstlan</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/icons.qrc">
+    <normaloff>:/icons/icons/tstlan.png</normaloff>:/icons/icons/tstlan.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
@@ -165,8 +169,12 @@
  <tabstops>
   <tabstop>variables_table</tabstop>
   <tabstop>upadte_time_spinbox</tabstop>
+  <tabstop>show_marked_checkbox</tabstop>
+  <tabstop>graphs_button</tabstop>
   <tabstop>name_filter_edit</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -1,0 +1,35 @@
+@startuml
+
+state "Eeprom отдыхает" as rest
+state "Начать прошивку / верификацию" as start_flash
+state "Подключиться к eeprom" as eeprom_connect
+
+state "Подождать соединения с eeprom" as wait_connect
+state "Установить параметры в eeprom" as set_eeprom_params
+
+state "Сбросить eeprom" as reset_eeprom
+
+state "Запись в eeprom" as write_eeprom
+state "Чтение eeprom" as read_eeprom
+
+state "Верификация считанных данных" as verify_data
+state "Рассчет коэффициентов" as calc_coefs
+state "Рассчет коэффициентов" as calc_coefs
+
+
+[*] --> rest
+rest --> rest
+rest --> start_flash
+start_flash --> reset_eeprom: Ошибки типа "сбой коэффициентов"\n или "недостаточный объем памяти"
+start_flash --> eeprom_connect: Создать funnel_client_t
+eeprom_connect --> wait_connect
+wait_connect --> set_eeprom_params: Инициализация correct_map
+set_eeprom_params --> calc_coefs
+calc_coefs --> write_eeprom
+write_eeprom --> reset_eeprom
+set_eeprom_params --> read_eeprom
+read_eeprom --> verify_data
+verify_data --> reset_eeprom
+reset_eeprom --> [*]
+
+@enduml

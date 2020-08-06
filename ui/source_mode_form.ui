@@ -575,7 +575,7 @@
   <customwidget>
    <class>QEditCopyButton</class>
    <extends>QLineEdit</extends>
-   <header>custom_widgets.CustomLineEdit</header>
+   <header>irspy.qt.custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
  <resources>
@@ -583,7 +583,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>
