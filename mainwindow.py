@@ -1,3 +1,4 @@
+from logging.handlers import RotatingFileHandler
 from os import system as os_system
 from enum import IntEnum
 import logging
@@ -245,10 +246,13 @@ class MainWindow(QtWidgets.QMainWindow):
         log = qt_utils.QTextEditLogger(self, self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
+        file_log = RotatingFileHandler("autocalibration.log", maxBytes=1024**3, backupCount=3)
+        file_log.setLevel(logging.DEBUG)
+        file_log.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S'))
+
+        logging.getLogger().addHandler(file_log)
         logging.getLogger().addHandler(log)
         logging.getLogger().setLevel(logging.DEBUG)
-        # logging.getLogger().setLevel(logging.INFO)
-        # logging.getLogger().setLevel(logging.WARN)
 
     def set_up_source_mode_widget(self) -> SourceModeWidget:
         source_mode_widget = SourceModeWidget(self.settings, self.calibrator, self.netvars, self)

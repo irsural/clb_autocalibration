@@ -52,24 +52,24 @@ class MeasureConductor(QtCore.QObject):
         MEASURE_DONE = 20
 
     STAGE_IN_MESSAGE = {
-        Stage.REST: "Измерение не проводится",
-        Stage.CONNECT_TO_CALIBRATOR: "Подключение к калибратору",
-        Stage.CONNECT_TO_METER: "Подключение к измерителю",
-        Stage.CONNECT_TO_SCHEME: "Подключение к схеме",
-        Stage.GET_CONFIGS: "Получение конфигурации",
-        Stage.RESET_CALIBRATOR_CONFIG: "Сброс параметров калибратора",
-        Stage.WAIT_CALIBRATOR_RESET: "Ждем reset калибратора",
-        Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
-        Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
-        Stage.SET_METER_CONFIG: "Установка параметров измерителя",
-        Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение...",
-        Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
+        # Stage.REST: "Измерение не проводится",
+        # Stage.CONNECT_TO_CALIBRATOR: "Подключение к калибратору",
+        # Stage.CONNECT_TO_METER: "Подключение к измерителю",
+        # Stage.CONNECT_TO_SCHEME: "Подключение к схеме",
+        # Stage.GET_CONFIGS: "Получение конфигурации",
+        # Stage.RESET_CALIBRATOR_CONFIG: "Сброс параметров калибратора",
+        Stage.WAIT_CALIBRATOR_RESET: "Ждем сброс калибратора...",
+        # Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
+        # Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
+        # Stage.SET_METER_CONFIG: "Установка параметров измерителя",
+        Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",
+        # Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
         Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
         Stage.MEASURE: "Измерение...",
-        Stage.ERRORS_OUTPUT: "Вывод ошибок",
-        Stage.START_FLASH: "Начало прошивки",
+        # Stage.ERRORS_OUTPUT: "Вывод ошибок",
+        # Stage.START_FLASH: "Начало прошивки",
         Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора...",
         Stage.NEXT_MEASURE: "Следующее измерение",
         Stage.MEASURE_DONE: "Измерение закончено",
@@ -294,7 +294,8 @@ class MeasureConductor(QtCore.QObject):
 
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
-            logging.debug(MeasureConductor.STAGE_IN_MESSAGE[self.__stage])
+            if self.__stage in MeasureConductor.STAGE_IN_MESSAGE:
+                logging.info(MeasureConductor.STAGE_IN_MESSAGE[self.__stage])
 
         if self.__stage == MeasureConductor.Stage.REST:
             pass
@@ -303,7 +304,7 @@ class MeasureConductor(QtCore.QObject):
             if self.calibrator.state != clb.State.DISCONNECTED:
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
-                logging.warning("Калибратор не подключен, измерение остановлено")
+                logging.error("Калибратор не подключен, измерение остановлено")
                 self.stop()
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_METER:
@@ -317,7 +318,7 @@ class MeasureConductor(QtCore.QObject):
             if self.scheme_control.connect():
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
-                logging.warning("Не удалось подключиться к схеме (FTDI), измерение остановлено")
+                logging.error("Не удалось подключиться к схеме (FTDI), измерение остановлено")
                 self.stop()
 
         elif self.__stage == MeasureConductor.Stage.GET_CONFIGS:
@@ -417,7 +418,7 @@ class MeasureConductor(QtCore.QObject):
                 if self.scheme_control.reset():
                     self.need_to_reset_scheme = False
                 else:
-                    logging.warning("Не удалось сбросить схему (FTDI), измерение остановлено")
+                    logging.error("Не удалось сбросить схему (FTDI), измерение остановлено")
                     self.stop()
                     # Иначе будет бесконечная рекурсия в автомате
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
@@ -454,7 +455,7 @@ class MeasureConductor(QtCore.QObject):
                                               a_meter=self.current_config.meter):
                     self.need_to_set_scheme = False
                 else:
-                    logging.warning("Не удалось сбросить схему (FTDI), измерение остановлено")
+                    logging.error("Не удалось установить схему (FTDI), измерение остановлено")
                     self.stop()
             else:
                 if self.scheme_control.ready():
@@ -509,7 +510,6 @@ class MeasureConductor(QtCore.QObject):
 
             elif not self.calibrator_hold_ready_timer.check():
                 if self.calibrator.state != clb.State.READY:
-                    # logging.info("Калибратор вышел из режима ГОТОВ. Таймер готовности запущен заново.")
                     self.calibrator_hold_ready_timer.start()
             else:
                 measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
@@ -588,7 +588,7 @@ class MeasureConductor(QtCore.QObject):
 
                 if self.wait_error_clear_timer.check():
                     if self.current_try >= self.current_config.retry_count:
-                        logging.warning(f"Попытки закончились. Измерение прервано.")
+                        logging.error(f"Попытки закончились. Измерение прервано.")
                         self.stop()
                     else:
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]

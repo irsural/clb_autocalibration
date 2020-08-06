@@ -178,9 +178,9 @@ class CorrectionFlasher:
                 success = True
                 assert len(data_table) > 1, "Должна остаться хотя бы одна строка с данными!"
             else:
-                logging.warning("В таблице обнаружены ячейки без значений.")
+                logging.error("В таблице обнаружены ячейки без значений.")
         else:
-            logging.warning("Выбранная ячейка не входит ни в один диапазон.")
+            logging.error("Выбранная ячейка не входит ни в один диапазон.")
 
         return success
 
@@ -203,16 +203,16 @@ class CorrectionFlasher:
                     if all(flash_data_ok):
                         self.__flash_data += flash_data
                     else:
-                        logging.warning("Размер некоторых данных превышает заданный размер памяти.")
+                        logging.error("Размер некоторых данных превышает заданный размер памяти.")
                         success = False
                         break
                 else:
-                    logging.warning("Некоторые строки таблицы не входят ни в один из заданных диапазонов, "
-                                    "либо входят в несколько диапазонов одновременно")
+                    logging.error("Некоторые строки таблицы не входят ни в один из заданных диапазонов, "
+                                  "либо входят в несколько диапазонов одновременно")
                     success = False
                     break
             else:
-                logging.warning("В одной из таблиц обнаружены ячейки без значений, либо содержащие значение 0.")
+                logging.error("В одной из таблиц обнаружены ячейки без значений, либо содержащие значение 0.")
                 success = False
                 break
 
@@ -292,7 +292,7 @@ class CorrectionFlasher:
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
             try:
-                logging.debug(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
+                logging.info(CorrectionFlasher.STAGE_IN_MESSAGE[self.__stage])
             except KeyError:
                 pass
 
@@ -341,10 +341,10 @@ class CorrectionFlasher:
                 if not self.__metadata_are_read:
                     self.__stage = CorrectionFlasher.Stage.WAIT_EEPROM_READ_METADATA
                 else:
-                    logging.debug(f"Верификация диапазона: {self.__current_flash_data.diapason_name}")
+                    logging.info(f"Верификация диапазона: {self.__current_flash_data.diapason_name}")
                     self.__stage = CorrectionFlasher.Stage.WAIT_EEPROM_READ_DATA
             else:
-                logging.debug(f"Прошивка диапазона: {self.__current_flash_data.diapason_name}")
+                logging.info(f"Прошивка диапазона: {self.__current_flash_data.diapason_name}")
                 self.__stage = CorrectionFlasher.Stage.WRITE_TO_EEPROM
 
         elif self.__stage == CorrectionFlasher.Stage.WAIT_EEPROM_READ_METADATA:
