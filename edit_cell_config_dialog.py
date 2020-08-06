@@ -278,10 +278,10 @@ class EditCellConfigDialog(QtWidgets.QDialog):
     def update_edit_color(a_edit: QtWidgets.QLineEdit):
         try:
             utils.parse_input(a_edit.text())
-            # По каким то причинам это меняет размер шрифта
-            a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_WHITE + "font-size: 17px;")
+
+            a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_WHITE)
         except ValueError:
-            a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_RED + "font-size: 17px;")
+            a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_RED)
 
     def editing_finished(self):
         edit = self.sender()
@@ -363,17 +363,21 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                     work_value=utils.parse_input(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.WORK_VALUE).text()),
                     default_value=utils.parse_input(self.ui.extra_variables_table.item(row, EditCellConfigDialog.ExtraParamsColumn.DEFAULT_VALUE).text())
                 ))
-            table_valid = True
+            data_valid = True
         except ValueError:
-            table_valid = False
+            data_valid = False
 
-        if table_valid:
+        coefficient = utils.parse_input(self.ui.coefficient_edit.text())
+        if coefficient == 0:
+            data_valid = False
+
+        if data_valid:
             self.cell_config = CellConfig()
 
             self.cell_config.measure_delay = self.ui.measure_delay_spinbox.value()
             self.cell_config.measure_time = self.ui.measure_time_spinbox.value()
             self.cell_config.retry_count = self.ui.retry_count_spinbox.value()
-            self.cell_config.coefficient = utils.parse_input(self.ui.coefficient_edit.text())
+            self.cell_config.coefficient = coefficient
 
             self.cell_config.consider_output_value = self.ui.consider_output_value_checkbox.isChecked()
             self.cell_config.enable_output_filtering = self.ui.enable_output_filtering_checkbox.isChecked()
@@ -396,7 +400,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
             self.accept()
         else:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", "Таблица дополнительных параметров заполнена неверно",
+            QtWidgets.QMessageBox.critical(self, "Ошибка", "Таблица дополнительных параметров заполнена неверно,"
+                                                           "либо коэффициент равен нулю",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def add_extra_param_button_clicked(self):

@@ -41,17 +41,16 @@ class MeasureConductor(QtCore.QObject):
         SET_METER_CONFIG = 9
         METER_TEST_MEASURE = 10
         SET_METER_RANGE = 11
-        WAIT_SET_METER_RANGE = 12
-        SET_SCHEME_CONFIG = 13
-        WAIT_SCHEME_SETTLE_DOWN = 14
-        SET_CALIBRATOR_CONFIG = 15
-        WAIT_CALIBRATOR_READY = 16
-        MEASURE = 17
-        ERRORS_OUTPUT = 18
-        START_FLASH = 19
-        FLASH_TO_CALIBRATOR = 20
-        NEXT_MEASURE = 21
-        MEASURE_DONE = 22
+        SET_SCHEME_CONFIG = 12
+        WAIT_SCHEME_SETTLE_DOWN = 13
+        SET_CALIBRATOR_CONFIG = 14
+        WAIT_CALIBRATOR_READY = 15
+        MEASURE = 16
+        ERRORS_OUTPUT = 17
+        START_FLASH = 18
+        FLASH_TO_CALIBRATOR = 19
+        NEXT_MEASURE = 20
+        MEASURE_DONE = 21
 
     STAGE_IN_MESSAGE = {
         # Stage.REST: "Измерение не проводится",
@@ -66,7 +65,6 @@ class MeasureConductor(QtCore.QObject):
         # Stage.SET_METER_CONFIG: "Установка параметров измерителя",
         Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",
         # Stage.SET_METER_RANGE: "Установка диапазона мультиметра",
-        Stage.WAIT_SET_METER_RANGE: "Ждем установку диапазона мультиметра...",
         # Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
         Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
@@ -93,8 +91,7 @@ class MeasureConductor(QtCore.QObject):
         # Stage.SET_METER_CONFIG: Stage.METER_TEST_MEASURE,
         # Stage.SET_METER_CONFIG: Stage.SET_METER_RANGE,
         Stage.METER_TEST_MEASURE: Stage.SET_METER_RANGE,
-        Stage.SET_METER_RANGE: Stage.WAIT_SET_METER_RANGE,
-        Stage.WAIT_SET_METER_RANGE: Stage.SET_SCHEME_CONFIG,
+        Stage.SET_METER_RANGE: Stage.SET_SCHEME_CONFIG,
         Stage.SET_SCHEME_CONFIG: Stage.WAIT_SCHEME_SETTLE_DOWN,
         Stage.WAIT_SCHEME_SETTLE_DOWN: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
@@ -456,9 +453,12 @@ class MeasureConductor(QtCore.QObject):
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_METER_RANGE:
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            assert self.current_config.coefficient != 0, "Коэффициент преобразования не может быть равен нулю!"
 
-        elif self.__stage == MeasureConductor.Stage.WAIT_SET_METER_RANGE:
+            range_ = self.current_amplitude / self.current_config.coefficient
+            self.multimeter.set_range(range_)
+            logging.debug(f"Диапазон: {range_}")
+
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.SET_SCHEME_CONFIG:

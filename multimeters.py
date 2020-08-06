@@ -67,6 +67,10 @@ class MultimeterBase(abc.ABC):
     def get_measure_type(self) -> MeasureType:
         pass
 
+    @abc.abstractmethod
+    def set_range(self, a_range: float):
+        pass
+
 
 class MeterType(IntEnum):
     AGILENT_3458A = 0
@@ -161,3 +165,6 @@ class Agilent3485A(MultimeterBase):
 
     def get_measure_type(self) -> MeasureType:
         return self.measure_type
+
+    def set_range(self, a_range: float):
+        self.mxsrclib_dll.multimeter_set_range(ctypes.c_size_t(self.measure_type), a_range)
