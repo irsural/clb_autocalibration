@@ -37,9 +37,10 @@ class SchemeControl:
 
     COIL_TO_CIRCUITS: Dict[CellConfig.Coil, List[Circuit]] = {
         CellConfig.Coil.NONE: [],
-        CellConfig.Coil.VAL_10_OHM: [Circuit.K_C10A],
+        # Реле называются по диапазонам (Амперы), а не по сопротивлению(Омы)
+        CellConfig.Coil.VAL_10_OHM: [Circuit.K_C01A],
         CellConfig.Coil.VAL_1_OHM: [Circuit.K_C1A],
-        CellConfig.Coil.VAL_0_01_OHM: [Circuit.K_C01A],
+        CellConfig.Coil.VAL_0_01_OHM: [Circuit.K_C10A],
     }
 
     DIVIDER_TO_CIRCUITS: Dict[CellConfig.Divider, List[Circuit]] = {

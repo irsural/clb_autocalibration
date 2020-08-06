@@ -683,14 +683,7 @@ selection-background-color: rgb(170, 170, 255);</string>
         </layout>
        </widget>
       </widget>
-      <widget class="QPlainTextEdit" name="log_text_edit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
+      <widget class="QTextEdit" name="log_text_edit"/>
      </widget>
     </item>
    </layout>
@@ -701,7 +694,7 @@ selection-background-color: rgb(170, 170, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1104</width>
-     <height>23</height>
+     <height>19</height>
     </rect>
    </property>
    <property name="font">
