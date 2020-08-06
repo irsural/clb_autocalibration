@@ -17,7 +17,6 @@ import irspy.utils as utils
 
 from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
-from source_mode_window import SourceModeWidget
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
 from MeasureManager import MeasureManager
@@ -253,14 +252,6 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.getLogger().addHandler(file_log)
         logging.getLogger().addHandler(log)
         logging.getLogger().setLevel(logging.DEBUG)
-
-    def set_up_source_mode_widget(self) -> SourceModeWidget:
-        source_mode_widget = SourceModeWidget(self.settings, self.calibrator, self.netvars, self)
-        self.clb_list_changed.connect(source_mode_widget.update_clb_list)
-        self.usb_status_changed.connect(source_mode_widget.update_clb_status)
-        self.signal_enable_changed.connect(source_mode_widget.signal_enable_changed)
-        # self.ui.source_mode_layout.addWidget(source_mode_widget)
-        return source_mode_widget
 
     def lock_interface(self, a_lock: bool):
         self.ui.new_configuration_action.setDisabled(a_lock)
