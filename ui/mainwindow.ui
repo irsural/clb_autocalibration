@@ -1234,7 +1234,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <action name="stop_flash_verify_action">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+     <normaloff>:/icons/icons/close.png</normaloff>:/icons/icons/close.png</iconset>
    </property>
    <property name="text">
     <string>stop_flash_verify</string>

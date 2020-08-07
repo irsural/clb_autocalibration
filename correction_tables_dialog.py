@@ -39,19 +39,40 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
         self.show()
 
     def fill_correction_tables(self, a_correction_tables: Dict[str, List[Tuple[List, List, List]]]):
-        for name, data in a_correction_tables.items():
-            self.ui.table_names_list.addItem(name)
+        number = 0
+        for idx, (name, data) in enumerate(a_correction_tables.items()):
+            united_numbers = []
+            united = {}
 
-            x_points = []
-            y_points = []
-            coef_points = []
+            prev_x_points = []
+            y_united = []
+            coefs_united = []
 
-            for x_p, y_p, coefs in data:
-                x_points = x_p
-                y_points += y_p
-                coef_points += coefs
+            # Объединяем коррекции, у которых совпадает имя и x_points в одну таблицу
+            for sub_idx, (x_points, y_points, coefs) in enumerate(data):
+                if x_points == prev_x_points:
+                    united_numbers.append(number)
 
-            self.correction_table_models[name] = CorrectionTableModel(x_points, y_points, coef_points)
+                    y_united += y_points
+                    coefs_united += coefs
+                else:
+                    if united_numbers:
+                        united[f"{united_numbers[0]}-{united_numbers[-1]}. {name}"] = (prev_x_points, y_united, coefs_united)
+
+                    united_numbers = [number]
+
+                    prev_x_points = x_points
+                    y_united = y_points
+                    coefs_united = coefs
+
+                number += 1
+
+                if sub_idx == len(data) - 1:
+                    united[f"{united_numbers[0]}-{united_numbers[-1]}. {name}"] = (x_points, y_united, coefs_united)
+
+            for united_name, (x_points, y_points, coefs_points) in united.items():
+                self.ui.table_names_list.addItem(united_name)
+                self.correction_table_models[united_name] = CorrectionTableModel(x_points, y_points, coefs_points)
 
     def change_table(self, a_name):
         self.ui.correction_table_view.setModel(self.correction_table_models[a_name])

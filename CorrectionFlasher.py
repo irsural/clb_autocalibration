@@ -380,7 +380,7 @@ class CorrectionFlasher:
                 self.__read_data[self.__current_flash_data.diapason_name].append(
                     (self.__correct_map.x_points, self.__correct_map.y_points, real_coefs)
                 )
-                logging.info(f"Измерение {self.__current_flash_data.diapason_name}. Данные считаны.")
+                logging.debug(f"Измерение {self.__current_flash_data.diapason_name}. Данные считаны.")
             else:
                 if x_points == list(self.__current_flash_data.x_points) and \
                         y_points == list(self.__current_flash_data.y_points) and \

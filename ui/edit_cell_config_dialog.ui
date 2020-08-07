@@ -180,7 +180,7 @@
        <item row="4" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Коэффициент</string>
+          <string>Коэффициент преобразования</string>
          </property>
         </widget>
        </item>

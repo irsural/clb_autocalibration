@@ -150,7 +150,8 @@ class MeasureManager(QtCore.QObject):
 
                 # noinspection PyTypeChecker
                 new_name, accept = QtWidgets.QInputDialog.getText(self.__parent, "Переименование измерения",
-                                                                  "Введите новое имя измерения\t\t", text=changing_name)
+                                                                  "Введите новое имя измерения\t\t\t",
+                                                                  text=changing_name)
 
                 if accept and changing_name != new_name:
                     new_name = self.__get_allowable_name(names_before_changing, new_name)

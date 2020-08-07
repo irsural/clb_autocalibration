@@ -332,7 +332,7 @@ class Ui_edit_cell_config_dialog(object):
         self.dcv_radio.setText(_translate("edit_cell_config_dialog", "U="))
         self.label_5.setText(_translate("edit_cell_config_dialog", "Время измерения, с"))
         self.label_4.setText(_translate("edit_cell_config_dialog", "Задержка измерения, с"))
-        self.label_2.setText(_translate("edit_cell_config_dialog", "Коэффициент"))
+        self.label_2.setText(_translate("edit_cell_config_dialog", "Коэффициент преобразования"))
         self.coefficient_edit.setText(_translate("edit_cell_config_dialog", "1"))
         self.consider_output_value_checkbox.setTitle(_translate("edit_cell_config_dialog", "Учитывать выходное значение при измерении"))
         self.enable_output_filtering_checkbox.setText(_translate("edit_cell_config_dialog", "Включить фильтрацию выходного значения"))
