@@ -9,6 +9,7 @@ import os
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForView
 from irspy.built_in_extensions import OrderedDictInsert
 from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
@@ -19,6 +20,69 @@ from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
 from MeasureDataModel import MeasureDataModel, CellData
 import multimeters
+
+
+class CornerButtonPainter(TransparentPainterForView):
+    COIL_TO_ICON = {
+        CellConfig.Coil.NONE: "",
+        CellConfig.Coil.VAL_0_01_OHM: ":/scheme/icons/scheme/coil_001.png",
+        CellConfig.Coil.VAL_1_OHM: ":/scheme/icons/scheme/coil_1.png",
+        CellConfig.Coil.VAL_10_OHM: ":/scheme/icons/scheme/coil_10.png",
+    }
+
+    DIVIDER_TO_ICON = {
+        CellConfig.Divider.NONE: "",
+        CellConfig.Divider.DIV_650_V: ":/scheme/icons/scheme/div_650.png",
+        CellConfig.Divider.DIV_500_V: ":/scheme/icons/scheme/div_500.png",
+        CellConfig.Divider.DIV_350_V: ":/scheme/icons/scheme/div_350.png",
+        CellConfig.Divider.DIV_200_V: ":/scheme/icons/scheme/div_200.png",
+        CellConfig.Divider.DIV_55_V: ":/scheme/icons/scheme/div_55.png",
+        CellConfig.Divider.DIV_40_V: ":/scheme/icons/scheme/div_40.png",
+        CellConfig.Divider.MUL_30_mV: ":/scheme/icons/scheme/mul_30.png",
+        CellConfig.Divider.MUL_10_mV: ":/scheme/icons/scheme/mul_10.png",
+    }
+
+    def __init__(self, a_parent=None, a_default_color="#f5f0f0"):
+        super().__init__(a_parent, a_default_color)
+
+    @staticmethod
+    def decode_scheme(a_code: int) -> Tuple[CellConfig.Coil, CellConfig.Divider]:
+        assert a_code <= 38, "Неверный код схемы"
+
+        coil = CellConfig.Coil(a_code // 10)
+        divider = CellConfig.Divider(a_code % 10)
+        return coil, divider
+
+    @staticmethod
+    def get_button(a_left, a_top, a_width, a_height, a_icon):
+        btn = QtWidgets.QStyleOptionButton()
+        btn.rect = QtCore.QRect(a_left, a_top, a_width, a_height)
+        btn.features |= QtWidgets.QStyleOptionButton.Flat
+        btn.icon = a_icon
+        btn.iconSize = QtCore.QSize(a_width, a_height)
+        btn.state = QtWidgets.QStyle.State_Enabled
+        return btn
+
+    def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex):
+        super().paint(painter, option, index)
+
+        code = index.data(QtCore.Qt.UserRole)
+        if code > 0:
+            coil, divider = self.decode_scheme(code)
+            w = option.rect.height() / 2.5
+            h = option.rect.height() / 2.5
+            coil_x = option.rect.right() - w + 3
+            coil_y = option.rect.top() - 1
+
+            if coil != CellConfig.Coil.NONE:
+                coil_icon = QtGui.QIcon(QtGui.QPixmap(self.COIL_TO_ICON[coil]))
+                btn = self.get_button(coil_x, coil_y, w, h, coil_icon)
+                QtWidgets.QApplication.style().drawControl(QtWidgets.QStyle.CE_PushButton, btn, painter)
+
+            if divider != CellConfig.Divider.NONE:
+                divider_icon = QtGui.QIcon(QtGui.QPixmap(self.DIVIDER_TO_ICON[divider]))
+                btn = self.get_button(coil_x - w, coil_y, w, h, divider_icon)
+                QtWidgets.QApplication.style().drawControl(QtWidgets.QStyle.CE_PushButton, btn, painter)
 
 
 class MeasureManager(QtCore.QObject):

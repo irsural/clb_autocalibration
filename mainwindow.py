@@ -6,7 +6,7 @@ import json
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
 from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
 from irspy.dlls.ftdi_control import FtdiControl
@@ -15,11 +15,11 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
+from MeasureManager import MeasureManager, CornerButtonPainter
 from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
-from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
@@ -110,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.mainwindow_splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
-            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
+            self.ui.measure_data_view.setItemDelegate(CornerButtonPainter(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.ui.progress_bar_widget.setHidden(True)

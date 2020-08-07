@@ -245,7 +245,7 @@ class MeasureDataModel(QAbstractTableModel):
 
     HZ_UNITS = "Гц"
 
-    DISPLAY_DATA_PRECISION = 9
+    DISPLAY_DATA_PRECISION = 6
     EDIT_DATA_PRECISION = 20
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
@@ -579,7 +579,8 @@ class MeasureDataModel(QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
-                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole and role != Qt.ToolTipRole):
+                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole
+                 and role != Qt.ToolTipRole and role != Qt.UserRole):
             return QVariant()
         if role == Qt.BackgroundRole:
             return QVariant(QtGui.QBrush(self.__get_cell_color(index)))
@@ -588,6 +589,13 @@ class MeasureDataModel(QAbstractTableModel):
                 return self.get_cell_tool_tip(index.row(), index.column())
             else:
                 return QVariant()
+        elif role == Qt.UserRole:
+            if not self.__is_cell_header(index.row(), index.column()):
+                cell_config = self.__cells[index.row()][index.column()].config
+                # Уот так уот
+                return cell_config.coil * 10 + cell_config.divider
+            else:
+                return 0
         else:
             cell_data = self.__cells[index.row()][index.column()]
 

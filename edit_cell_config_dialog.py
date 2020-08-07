@@ -42,14 +42,14 @@ class CellConfig:
 
     DIVIDER_TO_NAME = {
         Divider.NONE: "",
-        Divider.DIV_650_V: "Делитель 650 В",
-        Divider.DIV_500_V: "Делитель 500 В",
-        Divider.DIV_350_V: "Делитель 350 В",
-        Divider.DIV_200_V: "Делитель 200 В",
-        Divider.DIV_55_V: "Делитель 55 В",
-        Divider.DIV_40_V: "Делитель 40 В",
-        Divider.MUL_30_mV: "Усилитель 30 мВ",
-        Divider.MUL_10_mV: "Усилитель 10 мВ",
+        Divider.DIV_650_V: "Делитель [650 В]",
+        Divider.DIV_500_V: "Делитель [500 В]",
+        Divider.DIV_350_V: "Делитель [350 В]",
+        Divider.DIV_200_V: "Делитель [200 В]",
+        Divider.DIV_55_V: "Делитель [55 В]",
+        Divider.DIV_40_V: "Делитель [40 В]",
+        Divider.MUL_30_mV: "Усилитель [30 мВ]",
+        Divider.MUL_10_mV: "Усилитель [10 мВ]",
     }
 
     class Meter(IntEnum):

@@ -51,4 +51,17 @@
     <file>icons/settings.png</file>
     <file>icons/warning.png</file>
   </qresource>
+  <qresource prefix="scheme">
+    <file>icons/scheme/coil_001.png</file>
+    <file>icons/scheme/coil_1.png</file>
+    <file>icons/scheme/coil_10.png</file>
+    <file>icons/scheme/div_40.png</file>
+    <file>icons/scheme/div_55.png</file>
+    <file>icons/scheme/div_200.png</file>
+    <file>icons/scheme/div_350.png</file>
+    <file>icons/scheme/div_500.png</file>
+    <file>icons/scheme/div_650.png</file>
+    <file>icons/scheme/mul_10.png</file>
+    <file>icons/scheme/mul_30.png</file>
+  </qresource>
 </RCC>
