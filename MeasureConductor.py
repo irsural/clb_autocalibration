@@ -459,8 +459,11 @@ class MeasureConductor(QtCore.QObject):
                 self.__stage = MeasureConductor.Stage.SET_METER_RANGE
             else:
                 if self.multimeter.connect(self.current_measure_type):
-                    self.multimeter.start_measure()
-                    self.__stage = MeasureConductor.Stage.METER_TEST_MEASURE
+                    if self.multimeter.start_measure():
+                        self.__stage = MeasureConductor.Stage.METER_TEST_MEASURE
+                    else:
+                        logging.error("Не удалось начать тестовое измерение. Измерение остановлено")
+                        self.stop()
                 else:
                     logging.error("Не удалось подключиться к мультиметру. Измерение остановлено")
                     self.stop()
@@ -523,6 +526,10 @@ class MeasureConductor(QtCore.QObject):
 
                 enable_correction = self.current_measure_parameters.enable_correction
                 ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.ui_correct_off, not enable_correction)
+                variables_ready.append(ready)
+
+                # На Agilent лучше не подавать инверсный сигнал
+                ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, False)
                 variables_ready.append(ready)
 
                 for variable in self.extra_variables:
