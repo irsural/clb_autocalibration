@@ -23,6 +23,7 @@ from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
+from multimeters import MeterType
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -669,7 +670,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.open_cell_configuration()
 
     def set_meter(self, a_index: int):
-        self.measure_manager.set_meter(MeasureManager.MeterType(a_index))
+        self.measure_manager.set_meter(MeterType(a_index))
 
     def open_meter_settings(self):
         self.measure_manager.open_meter_settings()

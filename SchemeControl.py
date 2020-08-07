@@ -249,3 +249,23 @@ class SchemeControl:
 
     def ready(self) -> bool:
         return self.__ready
+
+
+class SchemeControlGag:
+    def __init__(self):
+        pass
+
+    def tick(self):
+        pass
+
+    def connect(self):
+        return True
+
+    def reset(self):
+        return True
+
+    def ready(self):
+        return True
+
+    def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
+        return True

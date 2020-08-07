@@ -1,9 +1,11 @@
 from enum import IntEnum
+import random
 import ctypes
 import abc
 
 from irspy.settings_ini_parser import Settings
 from irspy.dlls import mxsrlib_dll
+from irspy import utils
 
 from edit_agilent_config_dialog import AgilentConfig, EditAgilentConfigDialog
 
@@ -81,7 +83,7 @@ def create_multimeter(a_meter_type: MeterType, a_settings: Settings):
     if a_meter_type == MeterType.AGILENT_3458A:
         return Agilent3485A(a_settings)
     elif a_meter_type == MeterType.GAG:
-        return None
+        return MultimeterGag()
     else:
         return None
 
@@ -168,3 +170,51 @@ class Agilent3485A(MultimeterBase):
 
     def set_range(self, a_range: float):
         self.mxsrclib_dll.multimeter_set_range(ctypes.c_size_t(self.measure_type), a_range)
+
+
+class MultimeterGag(MultimeterBase):
+
+    def __init__(self):
+        self.measure_type = None
+        self.lower_bound = 0.
+        self.upper_bound = 0.
+
+        self.measure_value_timer = utils.Timer(0.5)
+        self.measure_value_timer.start()
+
+    def edit_settings(self, a_lock_changes: bool, a_parent):
+        pass
+
+    def connect(self, a_measure_type: MeasureType) -> bool:
+        self.measure_type = a_measure_type
+        return True
+
+    def disconnect(self):
+        self.lower_bound = 0.
+        self.upper_bound = 0.
+
+    def is_connected(self) -> bool:
+        return True
+
+    def tick(self):
+        pass
+
+    def measure_status(self) -> MultimeterBase.MeasureStatus:
+        if self.measure_value_timer.check():
+            self.measure_value_timer.start()
+            return MultimeterBase.MeasureStatus.SUCCESS
+        else:
+            return MultimeterBase.MeasureStatus.BUSY
+
+    def start_measure(self) -> bool:
+        return True
+
+    def get_measured_value(self) -> float:
+        return random.uniform(self.lower_bound, self.upper_bound)
+
+    def get_measure_type(self) -> MeasureType:
+        return self.measure_type
+
+    def set_range(self, a_range: float):
+        self.lower_bound = utils.decrease_by_percent(a_range, 2)
+        self.upper_bound = utils.increase_by_percent(a_range, 2)

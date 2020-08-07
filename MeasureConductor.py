@@ -21,7 +21,7 @@ from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
 import allowed_schemes_lut as scheme_lut
-from SchemeControl import SchemeControl
+from SchemeControl import SchemeControl, SchemeControlGag
 import multimeters
 
 
@@ -152,7 +152,9 @@ class MeasureConductor(QtCore.QObject):
         self.calibrator_hold_ready_timer = utils.Timer(0)
         self.measure_duration_timer = utils.Timer(0)
 
-        self.scheme_control = SchemeControl(self.ftdi_control)
+        self.scheme_control_real = SchemeControl(self.ftdi_control)
+        self.scheme_control_gag = SchemeControlGag()
+        self.scheme_control = self.scheme_control_real
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
 
@@ -319,6 +321,11 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
+            if isinstance(self.multimeter, multimeters.MultimeterGag):
+                self.scheme_control = self.scheme_control_gag
+            else:
+                self.scheme_control = self.scheme_control_real
+
             if self.scheme_control.connect():
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
             else:
@@ -372,6 +379,8 @@ class MeasureConductor(QtCore.QObject):
             except KeyError:
                 self.current_measure_type = None
 
+            self.log_measure_info()
+
             if self.current_config.verify_scheme(self.current_measure_parameters.signal_type):
                 if self.current_measure_type is not None:
                     max_amplitude = scheme_lut.get_max_amplitude(self.current_measure_parameters.signal_type,
@@ -382,7 +391,6 @@ class MeasureConductor(QtCore.QObject):
                         self.measure_manager.reset_measure(*self.current_cell_position)
                         self.single_measure_started.emit()
 
-                        self.log_measure_info()
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
                     else:
                         logging.error(f'Амплитуда "{self.current_amplitude}" слишком высока для данной схемы '
@@ -645,7 +653,7 @@ class MeasureConductor(QtCore.QObject):
 
     def log_measure_info(self):
         signal_type = self.current_measure_parameters.signal_type
-        frequency = self.current_frequency
+        frequency = utils.float_to_string(self.current_frequency)
         frequency_str = f"Частота: {frequency} Гц" if clb.is_ac_signal[signal_type] else f"Y: {frequency}"
 
         logging.info(
