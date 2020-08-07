@@ -61,14 +61,14 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
 
                     united_numbers = [number]
 
-                    prev_x_points = x_points
-                    y_united = y_points
-                    coefs_united = coefs
+                    prev_x_points = list(x_points)
+                    y_united = list(y_points)
+                    coefs_united = list(coefs)
 
                 number += 1
 
                 if sub_idx == len(data) - 1:
-                    united[f"{united_numbers[0]}-{united_numbers[-1]}. {name}"] = (x_points, y_united, coefs_united)
+                    united[f"[{united_numbers[0]}-{united_numbers[-1]}] {name}"] = (x_points, y_united, coefs_united)
 
             for united_name, (x_points, y_points, coefs_points) in united.items():
                 self.ui.table_names_list.addItem(united_name)
