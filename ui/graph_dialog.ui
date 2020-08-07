@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1044</width>
-    <height>778</height>
+    <width>567</width>
+    <height>406</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,14 +65,25 @@
            </layout>
           </item>
           <item>
-           <widget class="QComboBox" name="graphs_combobox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>График:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="graphs_combobox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QTableWidget" name="parameters_table">

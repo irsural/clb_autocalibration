@@ -249,7 +249,7 @@
             <bool>false</bool>
            </attribute>
            <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
+            <bool>true</bool>
            </attribute>
            <column>
             <property name="text">
@@ -692,6 +692,9 @@ selection-background-color: rgb(170, 170, 255);</string>
        <property name="readOnly">
         <bool>true</bool>
        </property>
+       <property name="placeholderText">
+        <string>Здесь будет лог...</string>
+       </property>
       </widget>
      </widget>
     </item>
@@ -803,16 +806,19 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
+   <addaction name="lock_action"/>
+   <addaction name="unlock_action"/>
+   <addaction name="lock_all_action"/>
+   <addaction name="unlock_all_action"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="open_tstlan_action"/>
    <addaction name="graphs_action"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
-   <addaction name="lock_action"/>
-   <addaction name="unlock_action"/>
-   <addaction name="lock_all_action"/>
-   <addaction name="unlock_all_action"/>
    <addaction name="show_equal_action"/>
    <addaction name="switch_to_active_cell_action"/>
   </widget>

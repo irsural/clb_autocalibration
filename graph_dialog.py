@@ -292,6 +292,10 @@ class GraphDialog(QtWidgets.QDialog):
         print("graphs deleted")
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        if not self.ui.parameters_widget.isHidden():
+            # Здесь сохраняются размеры сплиттера
+            self.show_graph_parameters(None)
+
         self.settings.save_geometry(self.ui.graph_dialog_splitter.objectName(),
                                     self.ui.graph_dialog_splitter.saveState())
         self.settings.save_geometry(self.ui.parameters_table.objectName(),
