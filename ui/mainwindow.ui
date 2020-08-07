@@ -789,11 +789,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
    <addaction name="start_all_action"/>
    <addaction name="continue_all_action"/>
    <addaction name="stop_all_action"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
@@ -805,12 +803,10 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
    <addaction name="lock_action"/>
    <addaction name="unlock_action"/>
    <addaction name="lock_all_action"/>
    <addaction name="unlock_all_action"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>

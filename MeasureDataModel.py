@@ -263,6 +263,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.__cell_to_compare: Union[None, CellConfig] = None
         self.__displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
+        self.__signal_type = self.__measure_parameters.signal_type
         self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
@@ -332,6 +333,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.verify_cell_configs(self.__measure_parameters.signal_type, True)
         self.set_save_state(False)
 
+        self.__signal_type = a_measure_parameters.signal_type
         self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
         self.dataChanged.emit(self.index(MeasureDataModel.HEADER_ROW, MeasureDataModel.HEADER_COLUMN),
@@ -577,10 +579,15 @@ class MeasureDataModel(QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (self.rowCount() < index.row()) or \
-                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole):
+                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole and role != Qt.ToolTipRole):
             return QVariant()
         if role == Qt.BackgroundRole:
             return QVariant(QtGui.QBrush(self.__get_cell_color(index)))
+        elif role == Qt.ToolTipRole:
+            if not self.__is_cell_header(index.row(), index.column()):
+                return self.get_cell_tool_tip(index.row(), index.column())
+            else:
+                return QVariant()
         else:
             cell_data = self.__cells[index.row()][index.column()]
 
@@ -607,13 +614,30 @@ class MeasureDataModel(QAbstractTableModel):
             if role == Qt.DisplayRole:
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
                                               a_precision=MeasureDataModel.DISPLAY_DATA_PRECISION)
-            else:
+            else: # Qt.EditRole
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
                                               a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
 
             str_value = f"{value}{units}"
 
             return str_value
+
+    def get_cell_tool_tip(self, a_cell_row: int, a_cell_column: int):
+        cell_config = self.__cells[a_cell_row][a_cell_column].config
+
+        amplitude_str = f"{self.get_amplitude_with_units(a_cell_row)}; "
+        frequency_str = f"{self.get_frequency_with_units(a_cell_column)}; " if self.__signal_type_is_ac else ""
+        signal_type_str = clb.enum_to_signal_type_short[self.__signal_type]
+
+        coil_text = "" if cell_config.coil == CellConfig.Coil.NONE else f" -> {CellConfig.COIL_TO_NAME[cell_config.coil]}"
+        divider_text = "" if cell_config.divider == CellConfig.Divider.NONE else f" -> {CellConfig.DIVIDER_TO_NAME[cell_config.divider]}"
+        meter_text = f" -> {CellConfig.METER_TO_NAME[cell_config.meter]}"
+
+        cell_tool_tip = f"Время: {cell_config.measure_delay} с. /{cell_config.measure_time} с.; " \
+                        f"Коэффициент: {utils.float_to_string(cell_config.coefficient, a_precision=4)}\n" \
+                        f"Схема: ({amplitude_str}{frequency_str}{signal_type_str}){coil_text}{divider_text}{meter_text}"
+
+        return cell_tool_tip
 
     def reset_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].reset()

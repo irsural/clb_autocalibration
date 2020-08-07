@@ -1,9 +1,8 @@
+import traceback
+
 from irspy.qt import ui_to_py
 ui_to_py.convert_ui("./ui", "./ui/py")
 ui_to_py.convert_resources("./resources", ".")
-
-
-import traceback
 
 
 def main():
