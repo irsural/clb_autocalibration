@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/scheme_2.png</file>
+    <file>icons/scheme.png</file>
     <file>icons/multi_lock.png</file>
     <file>icons/table_check.png</file>
     <file>icons/left.png</file>

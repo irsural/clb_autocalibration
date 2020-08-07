@@ -245,7 +245,7 @@ class MeasureDataModel(QAbstractTableModel):
 
     HZ_UNITS = "Гц"
 
-    DISPLAY_DATA_PRECISION = 6
+    DISPLAY_DATA_PRECISION = 9
     EDIT_DATA_PRECISION = 20
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)

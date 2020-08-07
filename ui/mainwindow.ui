@@ -817,6 +817,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="show_equal_action"/>
    <addaction name="switch_to_active_cell_action"/>
+   <addaction name="scheme_connection_action"/>
   </widget>
   <action name="change_fixed_range_action">
    <property name="text">
@@ -1277,6 +1278,21 @@ selection-background-color: rgb(170, 170, 255);</string>
     <font>
      <pointsize>8</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="scheme_connection_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/scheme.png</normaloff>:/icons/icons/scheme.png</iconset>
+   </property>
+   <property name="text">
+    <string>Схема подключения</string>
+   </property>
+   <property name="toolTip">
+    <string>Отображать схему подключения в ячейках таблицы</string>
    </property>
   </action>
  </widget>
