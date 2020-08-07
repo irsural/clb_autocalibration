@@ -23,6 +23,7 @@ from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
+from multimeters import MeterType
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -129,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
 
-            self.netvars = NetworkVariables(f"../irspy/clb/{clb.CLB_CONFIG_NAME}", self.calibrator,
+            self.netvars = NetworkVariables(f"./{clb.CLB_CONFIG_NAME}", self.calibrator,
                                             a_variables_read_delay=0)
 
             self.clb_signal_off_timer = QtCore.QTimer()
@@ -358,6 +359,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return seconds_count
 
+    def set_up_progress_bars_for_measure(self, a_measures_total_length):
+        self.ui.measure_progress_bar.setMaximum(a_measures_total_length)
+
+        self.ui.measure_progress_bar.setFormat("%v с. / %m с. (%p%)")
+        self.ui.curent_cell_progress_bar.setFormat("%v с. / %m с. (%p%)")
+
     def start_measure(self, a_iteration_type: MeasureManager.IterationType):
         measure_iterator = self.measure_manager.get_measure_iterator(a_iteration_type)
         if measure_iterator is not None:
@@ -365,7 +372,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if measure_iterator.get() is not None:
                 if self.save_configuration():
                     self.lock_interface(True)
-                    self.ui.measure_progress_bar.setMaximum(self.count_measure_length(a_iteration_type) * 1000)
+                    self.set_up_progress_bars_for_measure(self.count_measure_length(a_iteration_type))
 
                     if a_iteration_type in (MeasureManager.IterationType.START_ALL,
                                             MeasureManager.IterationType.CONTINUE_ALL):
@@ -377,17 +384,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def progress_bars_handling(self):
         if self.measure_conductor.is_started():
-            # Все значения в прогресс барах умножены на 1000 для плавности, потому что они умеют только в целые
-            time_passed = self.measure_conductor.get_current_cell_time_passed() * 1000
+            time_passed = self.measure_conductor.get_current_cell_time_passed()
             self.ui.curent_cell_progress_bar.setValue(time_passed)
             self.ui.measure_progress_bar.setValue(self.measure_progress_bar_value + time_passed)
         elif self.measure_conductor.is_correction_flash_verify_started():
             current, full = self.measure_conductor.get_flash_progress()
-            self.ui.curent_cell_progress_bar.setValue(current * 1000)
-            self.ui.measure_progress_bar.setValue(full * 1000)
+            self.ui.curent_cell_progress_bar.setValue(current)
+            self.ui.measure_progress_bar.setValue(full)
 
     def single_measure_started(self):
-        self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration() * 1000)
+        self.ui.curent_cell_progress_bar.setMaximum(self.measure_conductor.get_current_cell_time_duration())
 
     def single_measure_done(self):
         # "Переливаем" прогресс маленького прогресс бара в большой
@@ -397,7 +403,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def measure_done(self):
         self.ui.curent_cell_progress_bar.setValue(0)
+        self.ui.curent_cell_progress_bar.resetFormat()
         self.ui.measure_progress_bar.setValue(0)
+        self.ui.measure_progress_bar.resetFormat()
         self.measure_progress_bar_value = 0
         self.lock_interface(False)
 
@@ -432,9 +440,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lock_interface(True)
         self.ui.stop_flash_verify_action.setDisabled(False)
 
-        self.ui.measure_progress_bar.setMaximum(100 * 1000)
+        self.ui.measure_progress_bar.setMaximum(100)
         # self.ui.measure_progress_bar.setValue(0)
-        self.ui.curent_cell_progress_bar.setMaximum(100 * 1000)
+        self.ui.curent_cell_progress_bar.setMaximum(100)
         # self.ui.curent_cell_progress_bar.setValue(0)
 
     def flash_table(self):
@@ -662,7 +670,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.open_cell_configuration()
 
     def set_meter(self, a_index: int):
-        self.measure_manager.set_meter(MeasureManager.MeterType(a_index))
+        self.measure_manager.set_meter(MeterType(a_index))
 
     def open_meter_settings(self):
         self.measure_manager.open_meter_settings()

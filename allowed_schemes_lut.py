@@ -26,11 +26,11 @@ MAX_CURRENT_AMPLITUDES = {
     (CellConfig.Divider.NONE, CellConfig.Coil.VAL_10_OHM, CellConfig.Meter.VOLTS): 0.12,
     # Катушка + усилитель
     (CellConfig.Divider.MUL_10_mV, CellConfig.Coil.VAL_0_01_OHM, CellConfig.Meter.VOLTS): 11.,
-    (CellConfig.Divider.MUL_30_mV, CellConfig.Coil.VAL_0_01_OHM, CellConfig.Meter.VOLTS): 11.,
-    (CellConfig.Divider.MUL_10_mV, CellConfig.Coil.VAL_1_OHM, CellConfig.Meter.VOLTS): 0.11,
-    (CellConfig.Divider.MUL_30_mV, CellConfig.Coil.VAL_1_OHM, CellConfig.Meter.VOLTS): 0.3,
-    (CellConfig.Divider.MUL_10_mV, CellConfig.Coil.VAL_10_OHM, CellConfig.Meter.VOLTS): 0.01,
-    (CellConfig.Divider.MUL_30_mV, CellConfig.Coil.VAL_10_OHM, CellConfig.Meter.VOLTS): 0.03,
+    (CellConfig.Divider.MUL_30_mV, CellConfig.Coil.VAL_0_01_OHM, CellConfig.Meter.VOLTS): 3.3,
+    (CellConfig.Divider.MUL_10_mV, CellConfig.Coil.VAL_1_OHM, CellConfig.Meter.VOLTS): 0.12,
+    (CellConfig.Divider.MUL_30_mV, CellConfig.Coil.VAL_1_OHM, CellConfig.Meter.VOLTS): 0.033,
+    (CellConfig.Divider.MUL_10_mV, CellConfig.Coil.VAL_10_OHM, CellConfig.Meter.VOLTS): 0.012,
+    (CellConfig.Divider.MUL_30_mV, CellConfig.Coil.VAL_10_OHM, CellConfig.Meter.VOLTS): 0.0033,
 }
 
 
