@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1104</width>
-    <height>745</height>
+    <height>742</height>
    </rect>
   </property>
   <property name="font">
@@ -817,7 +817,7 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="show_equal_action"/>
    <addaction name="switch_to_active_cell_action"/>
-   <addaction name="scheme_connection_action"/>
+   <addaction name="show_scheme_in_cell_action"/>
   </widget>
   <action name="change_fixed_range_action">
    <property name="text">
@@ -1280,7 +1280,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     </font>
    </property>
   </action>
-  <action name="scheme_connection_action">
+  <action name="show_scheme_in_cell_action">
    <property name="checkable">
     <bool>true</bool>
    </property>

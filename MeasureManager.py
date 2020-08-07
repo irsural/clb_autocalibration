@@ -22,7 +22,7 @@ from MeasureDataModel import MeasureDataModel, CellData
 import multimeters
 
 
-class CornerButtonPainter(TransparentPainterForView):
+class ChemeInCellPainter(TransparentPainterForView):
     COIL_TO_ICON = {
         CellConfig.Coil.NONE: "",
         CellConfig.Coil.VAL_0_01_OHM: ":/scheme/icons/scheme/coil_001.png",

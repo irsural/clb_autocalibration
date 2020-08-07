@@ -6,7 +6,7 @@ import json
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
 from irspy.settings_ini_parser import Settings, BadIniException
 from irspy.clb.network_variables import NetworkVariables
 from irspy.dlls.ftdi_control import FtdiControl
@@ -15,7 +15,7 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
-from MeasureManager import MeasureManager, CornerButtonPainter
+from MeasureManager import MeasureManager, ChemeInCellPainter
 from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from MeasureConductor import MeasureConductor
@@ -95,6 +95,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                       a_type=Settings.ValueType.INT, a_default=0),
                 Settings.VariableInfo(a_name="graph_parameters_splitter_size", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.INT, a_default=500),
+                Settings.VariableInfo(a_name="show_scheme_in_cell", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=1),
             ])
 
             ini_ok = True
@@ -110,7 +112,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.mainwindow_splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
-            self.ui.measure_data_view.setItemDelegate(CornerButtonPainter(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.ui.progress_bar_widget.setHidden(True)
@@ -169,6 +170,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
             self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
+
+            self.ui.show_scheme_in_cell_action.setChecked(self.settings.show_scheme_in_cell)
+            self.ui.show_scheme_in_cell_action.triggered.connect(self.show_scheme_in_cell_toggled)
+            self.show_scheme_in_cell_toggled(self.settings.show_scheme_in_cell)
 
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
@@ -530,9 +535,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.open_correction_tables:
             self.open_correction_tables = False
 
-            # from collections import defaultdict
-            # correction_tables = defaultdict(list, {'Калибровка U=': [([1.0, 2.0], [0.01, 0.04], [0.009975154248354, 0.009975154248354, 0.039970797689913, 0.039970797689913]), ([1.0, 2.0], [0.05, 0.4], [0.049927211508369006, 0.049927211508369006, 0.39995969607292703, 0.39995969607292703]), ([1.0, 2.0], [0.5, 4.0], [0.499422501526729, 0.499422501526729, 3.99942805992845, 3.99942805992845]), ([1.0, 2.0], [5.0, 40.0], [4.99410723585904, 4.99410723585904, 39.9947796930806, 39.9947796930806]), ([1.0, 2.0], [50.0, 200.0], [49.929965710001504, 49.929965710001504, 199.925356236382, 199.925356236382]), ([1.0, 2.0], [210.0, 600.0], [209.922540130437, 209.922540130437, 599.8432013468209, 599.8432013468209])], 'Калибровка I=': [([1.0, 2.0], [1e-05, 0.0001], [1.00327283641079e-05, 1.00328641408589e-05, 0.00010015972961021, 0.000100159933420841]), ([1.0, 2.0], [0.00011499999999999999, 0.001], [0.000115359308729811, 0.00011535984470438301, 0.00100146774030237, 0.0010014685727761802]), ([1.0, 2.0], [0.0011500000000000002, 0.01], [0.00115376444542256, 0.0011537689392614701, 0.0100147941816887, 0.010014775532116101]), ([1.0, 2.0], [0.0115, 0.1], [0.011526552203102, 0.011526584910971898, 0.10003368048541801, 0.10003377310587701]), ([1.0, 2.0], [0.115, 1.0], [0.11537375035214602, 0.11537474853705303, 1.00084928949008, 1.00085323469948]), ([1.0, 2.0], [1.1500000000000001, 10.0], [1.1837164792313097, 1.18368703441567, 10.3056051962545, 10.3055991072119])], 'Калибровка I~': [([40.0, 62.0, 105.0, 155.0, 405.0, 1005.0, 2000.0], [0.01, 0.035, 0.11], [0.010024623311651933, 0.009986813908168, 0.009977394580498, 0.009976973315591, 0.009978369264037, 0.009984158669325, 0.010001552990305, 0.034938082114077, 0.034928202835598, 0.034923328950179, 0.034922332504963, 0.034926247105708, 0.03494628677966, 0.035009413038922, 0.109810977344763, 0.109776049564884, 0.1101123547639906, 0.109755992391362, 0.109767206360684, 0.109829604417225, 0.11002905360721202]), ([40.0, 62.0, 105.0, 155.0, 405.0, 1005.0, 2000.0], [0.111, 0.35, 1.1], [0.110809125510565, 0.110774584094069, 0.110758165407581, 0.110753102906869, 0.110760765199417, 0.11079721471164, 0.110904281962654, 0.349457874237124, 0.349324818168857, 0.349258779826853, 0.349238269140621, 0.3500108635493698, 0.349342513676657, 0.34963444694719, 1.09899472748408, 1.000990293609996, 1.09772354794492, 1.09761974428777, 1.09761728142475, 1.09789822290319, 0.9987110201668582]), ([40.0, 51.0, 62.0, 105.0, 155.0, 270.0, 405.0, 1005.0, 2000.0], [1.101, 3.0, 11.0], [1.10032283882211, 1.09954667949391, 1.101, 1.101, 1.101, 1.101, 1.101, 1.101, 1.101, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 11.0, 11.0, 11.0, 11.0, 11.0, 11.0, 11.0, 11.0, 11.0])], 'Калибровка U~': [([40.0, 405.0, 1005.0, 2000.0], [0.01, 0.035, 0.11], [0.0100029247564148, 0.010004022569512602, 0.0100092924151711, 0.0100248794391812, 0.0350100726684121, 0.0350135607215167, 0.0350314757912309, 0.0350861161298813, 0.11003536702437203, 0.11004306222317999, 0.11009411413007199, 0.110262204738018]), ([40.0, 405.0, 1005.0, 2000.0], [0.1101, 1.1], [0.11010863241753101, 0.11011332396601801, 0.11011698502153701, 0.11013607882270099, 1.10009134468776, 1.1001042156470102, 1.10015690654585, 1.10037547232962]), ([40.0, 405.0, 1005.0, 2000.0], [1.101, 11.0], [1.10051217185966, 1.10052093765244, 1.10057386098388, 1.10072789684985, 10.9949479016285, 10.994928028529701, 10.995235972542101, 10.9970302873191]), ([40.0, 405.0, 1005.0, 2000.0], [11.001, 110.0], [11.001935725372899, 11.0016749465013, 11.0020166913847, 11.0046770478365, 109.992142171693, 109.991246710281, 109.995711544914, 110.015757665742]), ([40.0, 405.0, 1005.0, 2000.0], [110.01, 250.0, 600.0], [110.027318391615, 110.02896730723398, 110.034971609218, 110.057689144301, 250.02470902624103, 250.028061604601, 250.043111533623, 250.09813645338096, 600.043738332903, 600.06316858885, 600.100835715896, 600.22667306978])]})
-
             correction_tables = self.measure_conductor.get_correction_tables()
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
@@ -608,6 +610,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def switch_to_active_cell_action_toggled(self, a_enable: bool):
         self.settings.switch_to_active_cell = int(a_enable)
+
+    def show_scheme_in_cell_toggled(self, a_enable: bool):
+        if a_enable:
+            self.ui.measure_data_view.setItemDelegate(ChemeInCellPainter(self.ui.measure_data_view, "#d4d4ff"))
+        else:
+            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
 
     def measure_data_cell_clicked(self, index: QtCore.QModelIndex):
         if self.ui.show_equal_action.isChecked():

@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1104, 745)
+        MainWindow.resize(1104, 742)
         font = QtGui.QFont()
         font.setPointSize(10)
         MainWindow.setFont(font)
@@ -503,12 +503,12 @@ class Ui_MainWindow(object):
         font.setPointSize(8)
         self.get_correction_tables_from_file_action.setFont(font)
         self.get_correction_tables_from_file_action.setObjectName("get_correction_tables_from_file_action")
-        self.scheme_connection_action = QtWidgets.QAction(MainWindow)
-        self.scheme_connection_action.setCheckable(True)
+        self.show_scheme_in_cell_action = QtWidgets.QAction(MainWindow)
+        self.show_scheme_in_cell_action.setCheckable(True)
         icon30 = QtGui.QIcon()
         icon30.addPixmap(QtGui.QPixmap(":/icons/icons/scheme.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.scheme_connection_action.setIcon(icon30)
-        self.scheme_connection_action.setObjectName("scheme_connection_action")
+        self.show_scheme_in_cell_action.setIcon(icon30)
+        self.show_scheme_in_cell_action.setObjectName("show_scheme_in_cell_action")
         self.settings_menu.addAction(self.enter_settings_action)
         self.menu.addAction(self.action)
         self.menu_2.addAction(self.get_correction_tables_from_file_action)
@@ -555,7 +555,7 @@ class Ui_MainWindow(object):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.show_equal_action)
         self.toolBar.addAction(self.switch_to_active_cell_action)
-        self.toolBar.addAction(self.scheme_connection_action)
+        self.toolBar.addAction(self.show_scheme_in_cell_action)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -657,6 +657,6 @@ class Ui_MainWindow(object):
         self.read_correction_tables_action.setText(_translate("MainWindow", "read_correction_tables"))
         self.read_correction_tables_action.setToolTip(_translate("MainWindow", "Считать коррекцию в виде таблиц"))
         self.get_correction_tables_from_file_action.setText(_translate("MainWindow", "Загрузить из файла"))
-        self.scheme_connection_action.setText(_translate("MainWindow", "Схема подключения"))
-        self.scheme_connection_action.setToolTip(_translate("MainWindow", "Отображать схему подключения в ячейках таблицы"))
+        self.show_scheme_in_cell_action.setText(_translate("MainWindow", "Схема подключения"))
+        self.show_scheme_in_cell_action.setToolTip(_translate("MainWindow", "Отображать схему подключения в ячейках таблицы"))
 import icons_rc
