@@ -53,6 +53,9 @@
     <file>icons/settings.png</file>
     <file>icons/warning.png</file>
   </qresource>
+  <qresource prefix="images">
+    <file>images/image (2).png</file>
+  </qresource>
   <qresource prefix="scheme">
     <file>icons/scheme/coil_001.png</file>
     <file>icons/scheme/coil_1.png</file>

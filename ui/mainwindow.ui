@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1104</width>
-    <height>742</height>
+    <width>813</width>
+    <height>437</height>
    </rect>
   </property>
   <property name="font">
@@ -690,7 +690,7 @@ selection-background-color: rgb(170, 170, 255);</string>
       </widget>
       <widget class="QTextEdit" name="log_text_edit">
        <property name="readOnly">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="placeholderText">
         <string>Здесь будет лог...</string>
@@ -705,7 +705,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1104</width>
+     <width>813</width>
      <height>19</height>
     </rect>
    </property>
@@ -734,7 +734,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <property name="title">
      <string>Справка</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="open_about_action"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="font">
@@ -834,7 +834,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     </font>
    </property>
   </action>
-  <action name="action">
+  <action name="open_about_action">
    <property name="text">
     <string>О программе</string>
    </property>

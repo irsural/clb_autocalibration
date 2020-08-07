@@ -23,6 +23,7 @@ from settings_dialog import SettingsDialog
 from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
+from about_dialog import AboutDialog
 from multimeters import MeterType
 
 
@@ -239,6 +240,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
 
             self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
+
+            self.ui.open_about_action.triggered.connect(self.open_about)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -677,6 +680,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_settings(self, _):
         settings_dialog = SettingsDialog(self.settings, self)
         settings_dialog.exec()
+
+    def open_about(self):
+        about_dialog = AboutDialog(self)
+        about_dialog.exec()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
