@@ -18,9 +18,10 @@ if __name__ == "__main__":
 
     delete_convert_ui_strings(tmp_file)
     os.system(
-        f'pyinstaller --noconsole --onefile --icon=main_icon.ico '
+        f'pyinstaller --onefile --noconsole --icon=main_icon.ico '
         f'--add-data "C:\\Windows\\System32\\vcruntime140d.dll";. '
         f'--add-data "C:\\Windows\\System32\\ucrtbased.dll";. '
+        f'--add-data "C:\\Users\\503\\Desktop\\Qt Projects\\mxsrclib_dll\\mxsrclib_dll\\CDMv2.12.28\\i386\\ftd2xx.dll";. '
         f'--add-data "C:\\Users\\503\\Desktop\\Python projects\\clb_autocalibration\\irspy\\clb\\clb_driver_dll.dll";. '
         f'--add-data "C:\\Users\\503\\Desktop\\Python projects\\clb_autocalibration\\irspy\\dlls\\mxsrclib_dll.dll";. '
         f'{tmp_file}'
