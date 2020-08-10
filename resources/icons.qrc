@@ -54,7 +54,7 @@
     <file>icons/warning.png</file>
   </qresource>
   <qresource prefix="images">
-    <file>images/image (2).png</file>
+    <file>images/just_for_fun.png</file>
   </qresource>
   <qresource prefix="scheme">
     <file>icons/scheme/coil_001.png</file>

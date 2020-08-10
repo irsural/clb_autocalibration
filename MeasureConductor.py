@@ -47,11 +47,12 @@ class MeasureConductor(QtCore.QObject):
         SET_CALIBRATOR_CONFIG = 14
         WAIT_CALIBRATOR_READY = 15
         MEASURE = 16
-        ERRORS_OUTPUT = 17
-        START_FLASH = 18
-        FLASH_TO_CALIBRATOR = 19
-        NEXT_MEASURE = 20
-        MEASURE_DONE = 21
+        END_MEASURE = 17
+        ERRORS_OUTPUT = 18
+        START_FLASH = 19
+        FLASH_TO_CALIBRATOR = 20
+        NEXT_MEASURE = 21
+        MEASURE_DONE = 22
 
     STAGE_IN_MESSAGE = {
         # Stage.REST: "Измерение не проводится",
@@ -70,7 +71,8 @@ class MeasureConductor(QtCore.QObject):
         # Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         # Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
-        # Stage.MEASURE: "Измерение...",
+        Stage.MEASURE: "Измерение...",
+        # Stage.END_MEASURE: "Конец измерения",
         # Stage.ERRORS_OUTPUT: "Вывод ошибок",
         # Stage.START_FLASH: "Начало прошивки",
         Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора...",
@@ -97,9 +99,10 @@ class MeasureConductor(QtCore.QObject):
         Stage.WAIT_SCHEME_SETTLE_DOWN: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
         Stage.WAIT_CALIBRATOR_READY: Stage.MEASURE,
-        # Stage.MEASURE: Stage.START_FLASH,
-        # Stage.MEASURE: Stage.NEXT_MEASURE,
         # Stage.MEASURE: Stage.ERRORS_OUTPUT,
+        # Stage.MEASURE: Stage.END_MEASURE,
+        # Stage.END_MEASURE: Stage.START_FLASH,
+        # Stage.END_MEASURE: Stage.NEXT_MEASURE,
         Stage.ERRORS_OUTPUT: Stage.SET_CALIBRATOR_CONFIG,
         Stage.START_FLASH: Stage.FLASH_TO_CALIBRATOR,
         Stage.FLASH_TO_CALIBRATOR: Stage.NEXT_MEASURE,
@@ -409,13 +412,7 @@ class MeasureConductor(QtCore.QObject):
                 self.read_clb_variables_timer.start()
 
                 if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
-                    variables_ready = []
-                    for variable in self.extra_variables:
-                        ready = clb_assists.guaranteed_buffered_variable_set(variable.buffered_variable,
-                                                                             variable.default_value)
-                        variables_ready.append(ready)
-
-                    if all(variables_ready):
+                    if self.set_extra_variables(CellConfig.ExtraParameterState.DEFAULT_VALUE):
                         self.calibrator_signal_off_timer.start()
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
@@ -532,10 +529,8 @@ class MeasureConductor(QtCore.QObject):
                 ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, False)
                 variables_ready.append(ready)
 
-                for variable in self.extra_variables:
-                    ready = clb_assists.guaranteed_buffered_variable_set(variable.buffered_variable,
-                                                                         variable.work_value)
-                    variables_ready.append(ready)
+                ready = self.set_extra_variables(CellConfig.ExtraParameterState.WORK_VALUE)
+                variables_ready.append(ready)
 
                 if all(variables_ready):
                     if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, True):
@@ -595,10 +590,7 @@ class MeasureConductor(QtCore.QObject):
                 self.measure_duration_timer.stop()
                 self.single_measure_done.emit()
 
-                if self.flash_current_measure:
-                    self.__stage = MeasureConductor.Stage.START_FLASH
-                else:
-                    self.__stage = MeasureConductor.Stage.NEXT_MEASURE
+                self.__stage = MeasureConductor.Stage.END_MEASURE
 
         elif self.__stage == MeasureConductor.Stage.ERRORS_OUTPUT:
             if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
@@ -634,6 +626,14 @@ class MeasureConductor(QtCore.QObject):
                     else:
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
+        elif self.__stage == MeasureConductor.Stage.END_MEASURE:
+            if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
+                if self.set_extra_variables(CellConfig.ExtraParameterState.DEFAULT_VALUE):
+                    if self.flash_current_measure:
+                        self.__stage = MeasureConductor.Stage.START_FLASH
+                    else:
+                        self.__stage = MeasureConductor.Stage.NEXT_MEASURE
+
         elif self.__stage == MeasureConductor.Stage.START_FLASH:
             if not self.start_flash([self.current_cell_position.measure_name]):
                 logging.warning("ВНИМАНИЕ! Прошивка не была произведена из-за неверных данных")
@@ -657,6 +657,15 @@ class MeasureConductor(QtCore.QObject):
             self.reset()
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+
+    def set_extra_variables(self, a_state: CellConfig.ExtraParameterState):
+        variables_ready = []
+        for variable in self.extra_variables:
+            value = variable.default_value if a_state == CellConfig.ExtraParameterState.DEFAULT_VALUE else \
+                variable.work_value
+            ready = clb_assists.guaranteed_buffered_variable_set(variable.buffered_variable, value)
+            variables_ready.append(ready)
+        return all(variables_ready)
 
     def log_measure_info(self):
         signal_type = self.current_measure_parameters.signal_type

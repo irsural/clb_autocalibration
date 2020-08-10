@@ -105,6 +105,10 @@ class CellConfig:
 
     ExtraParameter = namedtuple("ExtraParameter", ["name", "index", "bit_index", "type", "work_value", "default_value"])
 
+    class ExtraParameterState(IntEnum):
+        WORK_VALUE = 0
+        DEFAULT_VALUE = 1
+
     def __init__(self):
         self.coefficient = 1
         self.measure_delay = 100
