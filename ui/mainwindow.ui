@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1104</width>
-    <height>745</height>
+    <width>813</width>
+    <height>437</height>
    </rect>
   </property>
   <property name="font">
@@ -141,8 +141,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>30</width>
-               <height>30</height>
+               <width>25</width>
+               <height>25</height>
               </size>
              </property>
             </widget>
@@ -161,8 +161,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>30</width>
-               <height>30</height>
+               <width>25</width>
+               <height>25</height>
               </size>
              </property>
             </widget>
@@ -181,8 +181,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>30</width>
-               <height>30</height>
+               <width>25</width>
+               <height>25</height>
               </size>
              </property>
             </widget>
@@ -214,8 +214,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>30</width>
-               <height>30</height>
+               <width>25</width>
+               <height>25</height>
               </size>
              </property>
             </widget>
@@ -249,7 +249,7 @@
             <bool>false</bool>
            </attribute>
            <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
+            <bool>true</bool>
            </attribute>
            <column>
             <property name="text">
@@ -299,14 +299,14 @@
             <widget class="QPushButton" name="save_current_measure_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="toolTip">
@@ -321,8 +321,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -331,14 +331,14 @@
             <widget class="QPushButton" name="open_cell_config_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="toolTip">
@@ -353,8 +353,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -376,14 +376,14 @@
             <widget class="QPushButton" name="start_current_measure_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="toolTip">
@@ -398,8 +398,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -408,14 +408,14 @@
             <widget class="QPushButton" name="continue_current_measure_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="toolTip">
@@ -430,8 +430,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -453,14 +453,14 @@
             <widget class="QPushButton" name="add_row_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="text">
@@ -472,8 +472,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -482,14 +482,14 @@
             <widget class="QPushButton" name="remove_row_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="text">
@@ -501,8 +501,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -511,14 +511,14 @@
             <widget class="QPushButton" name="add_column_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="text">
@@ -530,8 +530,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -540,14 +540,14 @@
             <widget class="QPushButton" name="remove_column_button">
              <property name="minimumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>35</width>
-               <height>35</height>
+               <width>30</width>
+               <height>30</height>
               </size>
              </property>
              <property name="text">
@@ -559,8 +559,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
             </widget>
@@ -690,7 +690,10 @@ selection-background-color: rgb(170, 170, 255);</string>
       </widget>
       <widget class="QTextEdit" name="log_text_edit">
        <property name="readOnly">
-        <bool>true</bool>
+        <bool>false</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Здесь будет лог...</string>
        </property>
       </widget>
      </widget>
@@ -702,7 +705,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1104</width>
+     <width>813</width>
      <height>19</height>
     </rect>
    </property>
@@ -731,7 +734,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <property name="title">
      <string>Справка</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="open_about_action"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="font">
@@ -769,8 +772,8 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="iconSize">
     <size>
-     <width>30</width>
-     <height>30</height>
+     <width>25</width>
+     <height>25</height>
     </size>
    </property>
    <attribute name="toolBarArea">
@@ -786,11 +789,9 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
    <addaction name="start_all_action"/>
    <addaction name="continue_all_action"/>
    <addaction name="stop_all_action"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
@@ -802,19 +803,21 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
+   <addaction name="lock_action"/>
+   <addaction name="unlock_action"/>
+   <addaction name="lock_all_action"/>
+   <addaction name="unlock_all_action"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="open_tstlan_action"/>
    <addaction name="graphs_action"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
-   <addaction name="lock_action"/>
-   <addaction name="unlock_action"/>
-   <addaction name="lock_all_action"/>
-   <addaction name="unlock_all_action"/>
    <addaction name="show_equal_action"/>
    <addaction name="switch_to_active_cell_action"/>
+   <addaction name="show_scheme_in_cell_action"/>
   </widget>
   <action name="change_fixed_range_action">
    <property name="text">
@@ -831,7 +834,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     </font>
    </property>
   </action>
-  <action name="action">
+  <action name="open_about_action">
    <property name="text">
     <string>О программе</string>
    </property>
@@ -1228,7 +1231,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <action name="stop_flash_verify_action">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
+     <normaloff>:/icons/icons/close.png</normaloff>:/icons/icons/close.png</iconset>
    </property>
    <property name="text">
     <string>stop_flash_verify</string>
@@ -1275,6 +1278,21 @@ selection-background-color: rgb(170, 170, 255);</string>
     <font>
      <pointsize>8</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="show_scheme_in_cell_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/scheme.png</normaloff>:/icons/icons/scheme.png</iconset>
+   </property>
+   <property name="text">
+    <string>Схема подключения</string>
+   </property>
+   <property name="toolTip">
+    <string>Отображать схему подключения в ячейках таблицы</string>
    </property>
   </action>
  </widget>

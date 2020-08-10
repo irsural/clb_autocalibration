@@ -67,7 +67,8 @@ class CorrectionTableModel(QAbstractTableModel):
                 return ""
 
             if index.row() == CorrectionTableModel.HEADER_ROW:
-                units = " " + CorrectionTableModel.HZ_UNITS
+                units = ""
+                # units = " " + CorrectionTableModel.HZ_UNITS
             else:
                 units = ""
                 # units = " " + self.__signal_type_units

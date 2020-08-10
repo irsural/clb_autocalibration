@@ -15,14 +15,15 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
+from MeasureManager import MeasureManager, ChemeInCellPainter
 from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
-from MeasureManager import MeasureManager
 from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
+from about_dialog import AboutDialog
 from multimeters import MeterType
 
 
@@ -95,6 +96,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                       a_type=Settings.ValueType.INT, a_default=0),
                 Settings.VariableInfo(a_name="graph_parameters_splitter_size", a_section="PARAMETERS",
                                       a_type=Settings.ValueType.INT, a_default=500),
+                Settings.VariableInfo(a_name="show_scheme_in_cell", a_section="PARAMETERS",
+                                      a_type=Settings.ValueType.INT, a_default=1),
             ])
 
             ini_ok = True
@@ -110,7 +113,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.mainwindow_splitter_2.objectName()))
             self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
                 self.ui.measures_table.objectName()))
-            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.ui.progress_bar_widget.setHidden(True)
@@ -169,6 +171,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
             self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
+
+            self.ui.show_scheme_in_cell_action.setChecked(self.settings.show_scheme_in_cell)
+            self.ui.show_scheme_in_cell_action.triggered.connect(self.show_scheme_in_cell_toggled)
+            self.show_scheme_in_cell_toggled(self.settings.show_scheme_in_cell)
 
             self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
@@ -234,6 +240,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
 
             self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
+
+            self.ui.open_about_action.triggered.connect(self.open_about)
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -529,6 +537,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.open_correction_tables:
             self.open_correction_tables = False
+
             correction_tables = self.measure_conductor.get_correction_tables()
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
@@ -605,6 +614,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def switch_to_active_cell_action_toggled(self, a_enable: bool):
         self.settings.switch_to_active_cell = int(a_enable)
 
+    def show_scheme_in_cell_toggled(self, a_enable: bool):
+        if a_enable:
+            self.ui.measure_data_view.setItemDelegate(ChemeInCellPainter(self.ui.measure_data_view, "#d4d4ff"))
+        else:
+            self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
+
     def measure_data_cell_clicked(self, index: QtCore.QModelIndex):
         if self.ui.show_equal_action.isChecked():
             self.measure_manager.set_cell_to_compare(index)
@@ -665,6 +680,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_settings(self, _):
         settings_dialog = SettingsDialog(self.settings, self)
         settings_dialog.exec()
+
+    def open_about(self):
+        about_dialog = AboutDialog(self)
+        about_dialog.exec()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()

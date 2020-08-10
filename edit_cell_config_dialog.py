@@ -22,6 +22,13 @@ class CellConfig:
         VAL_1_OHM = 2
         VAL_10_OHM = 3
 
+    COIL_TO_NAME = {
+        Coil.NONE: "",
+        Coil.VAL_0_01_OHM: "Катушка [0,01 Ом]",
+        Coil.VAL_1_OHM: "Катушка [1 Ом]",
+        Coil.VAL_10_OHM: "Катушка [10 Ом]",
+    }
+
     class Divider(IntEnum):
         NONE = 0
         DIV_650_V = 1
@@ -33,9 +40,26 @@ class CellConfig:
         MUL_30_mV = 7
         MUL_10_mV = 8
 
+    DIVIDER_TO_NAME = {
+        Divider.NONE: "",
+        Divider.DIV_650_V: "Делитель [650 В]",
+        Divider.DIV_500_V: "Делитель [500 В]",
+        Divider.DIV_350_V: "Делитель [350 В]",
+        Divider.DIV_200_V: "Делитель [200 В]",
+        Divider.DIV_55_V: "Делитель [55 В]",
+        Divider.DIV_40_V: "Делитель [40 В]",
+        Divider.MUL_30_mV: "Усилитель [30 мВ]",
+        Divider.MUL_10_mV: "Усилитель [10 мВ]",
+    }
+
     class Meter(IntEnum):
         AMPERES = 0
         VOLTS = 1
+
+    METER_TO_NAME = {
+        Meter.AMPERES: "Амперметр",
+        Meter.VOLTS: "Вольтметр",
+    }
 
     ALLOWED_COILS = {
         clb.SignalType.ACI: (Coil.NONE, Coil.VAL_0_01_OHM, Coil.VAL_1_OHM, Coil.VAL_10_OHM),
@@ -80,6 +104,10 @@ class CellConfig:
     }
 
     ExtraParameter = namedtuple("ExtraParameter", ["name", "index", "bit_index", "type", "work_value", "default_value"])
+
+    class ExtraParameterState(IntEnum):
+        WORK_VALUE = 0
+        DEFAULT_VALUE = 1
 
     def __init__(self):
         self.coefficient = 1

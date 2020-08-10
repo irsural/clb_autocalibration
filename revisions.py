@@ -2,5 +2,5 @@ from enum import IntEnum
 
 
 class Revisions(IntEnum):
-    autocalibration = 150
-    irspy = 33
+    clb_autocalibration = 161
+    irspy = 34

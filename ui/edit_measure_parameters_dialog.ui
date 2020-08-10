@@ -26,68 +26,90 @@
    <item>
     <layout class="QVBoxLayout" name="main_widget_layout">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="spacing">
-        <number>15</number>
-       </property>
-       <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
         <widget class="QLabel" name="label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string>Сигнал калибратора</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="aci_radio">
-         <property name="text">
-          <string>I~</string>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="flash_after_finish_checkbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="checked">
-          <bool>true</bool>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Прошивать после завершения</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="dci_radio">
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="enable_correction_checkbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>I=</string>
+          <string>Коррекция включена</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="acv_radio">
-         <property name="text">
-          <string>U~</string>
+       <item row="0" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="spacing">
+          <number>15</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="dcv_radio">
-         <property name="text">
-          <string>U=</string>
-         </property>
-        </widget>
+         <item>
+          <widget class="QRadioButton" name="aci_radio">
+           <property name="text">
+            <string>I~</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="dci_radio">
+           <property name="text">
+            <string>I=</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="acv_radio">
+           <property name="text">
+            <string>U~</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="dcv_radio">
+           <property name="text">
+            <string>U=</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="enable_correction_checkbox">
-       <property name="text">
-        <string>Коррекция включена</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="flash_after_finish_checkbox">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Прошивать после завершения</string>
-       </property>
-      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -152,9 +174,12 @@ selection-background-color: rgb(170, 170, 255);</string>
          <attribute name="horizontalHeaderStretchLastSection">
           <bool>true</bool>
          </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
          <column>
           <property name="text">
-           <string>Номер</string>
+           <string>№</string>
           </property>
          </column>
          <column>
@@ -227,8 +252,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>dci_radio</tabstop>
   <tabstop>acv_radio</tabstop>
   <tabstop>dcv_radio</tabstop>
-  <tabstop>enable_correction_checkbox</tabstop>
-  <tabstop>flash_after_finish_checkbox</tabstop>
   <tabstop>flash_table</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>cancel_button</tabstop>
