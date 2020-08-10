@@ -14,5 +14,5 @@ icons_rc.py
 /resources/py
 /configurations
 dist/*
-!dist/AutoCalibration.exe
+!dist/Clb_AutoCalibration.exe
 !dist/settings.ini
