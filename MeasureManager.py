@@ -400,8 +400,14 @@ class MeasureManager(QtCore.QObject):
 
     def clear_table_content(self):
         if self.current_data_model is not None:
-            self.current_data_model.reset_all_cells()
-            self.current_data_model.set_save_state(False)
+            # noinspection PyTypeChecker
+            res = QtWidgets.QMessageBox.question(None, "Подтвердите действие",
+                                                 f"Очистить содержимое таблицы? Заголовки таблицы не изменятся.",
+                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                 QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                self.current_data_model.reset_all_cells()
+                self.current_data_model.set_save_state(False)
 
     def copy_cell_config(self):
         if self.current_data_model is not None:
