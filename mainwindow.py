@@ -132,8 +132,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
 
-            self.netvars = NetworkVariables(f"./{clb.CLB_CONFIG_NAME}", self.calibrator,
-                                            a_variables_read_delay=0)
+            self.netvars = NetworkVariables(f"./{clb.CLB_CONFIG_NAME}", self.calibrator, a_variables_read_delay=0)
 
             self.clb_signal_off_timer = QtCore.QTimer()
             # noinspection PyTypeChecker
@@ -246,7 +245,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
-            self.tick_timer.start(10)
+            self.tick_timer.start(50)
 
         else:
             self.close()
@@ -272,7 +271,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.start_all_action.setDisabled(a_lock)
         self.ui.continue_all_action.setDisabled(a_lock)
 
-        self.ui.correction_action.setDisabled(a_lock)
         self.ui.flash_all_action.setDisabled(a_lock)
         self.ui.verify_all_action.setDisabled(a_lock)
         self.ui.read_correction_tables_action.setDisabled(a_lock)

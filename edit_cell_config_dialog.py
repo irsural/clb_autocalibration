@@ -110,10 +110,13 @@ class CellConfig:
         DEFAULT_VALUE = 1
 
     def __init__(self):
-        self.coefficient = 1
+        self.coefficient = 1.
         self.measure_delay = 100
         self.measure_time = 300
         self.retry_count = 1
+
+        self.manual_range_enabled = False
+        self.manual_range_value = 1.
 
         self.consider_output_value = False
         self.enable_output_filtering = False
@@ -132,6 +135,9 @@ class CellConfig:
             "measure_delay": self.measure_delay,
             "measure_time": self.measure_time,
             "retry_count": self.retry_count,
+
+            "manual_range_enabled": self.manual_range_enabled,
+            "manual_range_value": self.manual_range_value,
 
             "consider_output_value": self.consider_output_value,
             "enable_output_filtering": self.enable_output_filtering,
@@ -154,6 +160,9 @@ class CellConfig:
         cell_config.measure_delay = int(a_data_dict["measure_delay"])
         cell_config.measure_time = int(a_data_dict["measure_time"])
         cell_config.retry_count = int(a_data_dict["retry_count"])
+
+        cell_config.manual_range_enabled = bool(a_data_dict["manual_range_enabled"])
+        cell_config.manual_range_value = float(a_data_dict["manual_range_value"])
 
         cell_config.consider_output_value = bool(a_data_dict["consider_output_value"])
         cell_config.enable_output_filtering = bool(a_data_dict["enable_output_filtering"])
@@ -189,6 +198,8 @@ class CellConfig:
                self.measure_delay == other.measure_delay and \
                self.measure_time == other.measure_time and \
                self.retry_count == other.retry_count and \
+               self.manual_range_enabled == other.manual_range_enabled and \
+               self.manual_range_value == other.manual_range_value and \
                self.consider_output_value == other.consider_output_value and \
                self.enable_output_filtering == other.enable_output_filtering and \
                self.filter_sampling_time == other.filter_sampling_time and \
@@ -285,6 +296,9 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         for radio in self.radio_to_divider:
             radio.toggled.connect(self.scheme_changed)
 
+        self.ui.manual_range_spinbox.setEnabled(a_init_config.manual_range_enabled)
+        self.ui.manual_range_checkbox.toggled.connect(self.ui.manual_range_spinbox.setEnabled)
+
         self.ui.add_extra_param_button.clicked.connect(self.add_extra_param_button_clicked)
         self.ui.remove_extra_param_button.clicked.connect(self.remove_extra_param_button_clicked)
 
@@ -331,6 +345,9 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.ui.measure_time_spinbox.setValue(a_cell_config.measure_time)
         self.ui.retry_count_spinbox.setValue(a_cell_config.retry_count)
         self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient))
+
+        self.ui.manual_range_checkbox.setChecked(a_cell_config.manual_range_enabled)
+        self.ui.manual_range_spinbox.setValue(a_cell_config.manual_range_value)
 
         self.ui.consider_output_value_checkbox.setChecked(a_cell_config.consider_output_value)
         self.ui.enable_output_filtering_checkbox.setChecked(a_cell_config.enable_output_filtering)
@@ -406,6 +423,9 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             self.cell_config.measure_time = self.ui.measure_time_spinbox.value()
             self.cell_config.retry_count = self.ui.retry_count_spinbox.value()
             self.cell_config.coefficient = coefficient
+
+            self.cell_config.manual_range_enabled = self.ui.manual_range_checkbox.isChecked()
+            self.cell_config.manual_range_value = self.ui.manual_range_spinbox.value()
 
             self.cell_config.consider_output_value = self.ui.consider_output_value_checkbox.isChecked()
             self.cell_config.enable_output_filtering = self.ui.enable_output_filtering_checkbox.isChecked()
