@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>813</width>
-    <height>437</height>
+    <height>558</height>
    </rect>
   </property>
   <property name="font">
@@ -20,7 +20,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../resources/icons.qrc">
-    <normaloff>:/icons/icons/robot_2.png</normaloff>:/icons/icons/robot_2.png</iconset>
+    <normaloff>:/icons/icons/robot_1.png</normaloff>:/icons/icons/robot_1.png</iconset>
   </property>
   <property name="animated">
    <bool>true</bool>
@@ -321,8 +321,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -353,8 +353,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -398,8 +398,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -430,8 +430,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -472,8 +472,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -501,8 +501,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -530,8 +530,8 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -559,8 +559,53 @@
              </property>
              <property name="iconSize">
               <size>
-               <width>20</width>
+               <width>23</width>
+               <height>23</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
                <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="clear_table_button">
+             <property name="minimumSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Очистить значения таблицы</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/clear_table.png</normaloff>:/icons/icons/clear_table.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>23</width>
+               <height>23</height>
               </size>
              </property>
             </widget>

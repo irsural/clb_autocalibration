@@ -14,10 +14,6 @@ def main():
 
     from mainwindow import MainWindow
 
-    # Попробовать это, если будут проблемы с размерами иконок на дисплеях с высоким разрешением
-    # os.environ["QT_SCALE_FACTOR"] = "1"
-    # app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
-
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setFont(QtGui.QFont("MS Shell Dlg 2", 10))

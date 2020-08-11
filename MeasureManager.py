@@ -398,6 +398,11 @@ class MeasureManager(QtCore.QObject):
             for column in reversed(removing_cols):
                 self.current_data_model.remove_column(column)
 
+    def clear_table_content(self):
+        if self.current_data_model is not None:
+            self.current_data_model.reset_all_cells()
+            self.current_data_model.set_save_state(False)
+
     def copy_cell_config(self):
         if self.current_data_model is not None:
             index = self.get_only_selected_cell()

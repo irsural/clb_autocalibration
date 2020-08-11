@@ -147,8 +147,8 @@ class CellData:
         """
         if self.has_value():
             if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
-                logging.info("Количество измеренных значений слишком мало для импульсного фильтра! "
-                             "Результат будет вычислен по среднему значению")
+                logging.warning("Количество измеренных значений слишком мало для импульсного фильтра! "
+                                "Результат будет вычислен по среднему значению")
                 self.__result = self.__average.get()
             else:
                 self.__impulse_filter.assign(self.__measured_values)
@@ -622,7 +622,8 @@ class MeasureDataModel(QAbstractTableModel):
             if role == Qt.DisplayRole:
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
                                               a_precision=MeasureDataModel.DISPLAY_DATA_PRECISION)
-            else: # Qt.EditRole
+            else:
+                # role == Qt.EditRole
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
                                               a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
 
@@ -637,8 +638,10 @@ class MeasureDataModel(QAbstractTableModel):
         frequency_str = f"{self.get_frequency_with_units(a_cell_column)}; " if self.__signal_type_is_ac else ""
         signal_type_str = clb.enum_to_signal_type_short[self.__signal_type]
 
-        coil_text = "" if cell_config.coil == CellConfig.Coil.NONE else f" -> {CellConfig.COIL_TO_NAME[cell_config.coil]}"
-        divider_text = "" if cell_config.divider == CellConfig.Divider.NONE else f" -> {CellConfig.DIVIDER_TO_NAME[cell_config.divider]}"
+        coil_text = "" if cell_config.coil == CellConfig.Coil.NONE else \
+            f" -> {CellConfig.COIL_TO_NAME[cell_config.coil]}"
+        divider_text = "" if cell_config.divider == CellConfig.Divider.NONE else \
+            f" -> {CellConfig.DIVIDER_TO_NAME[cell_config.divider]}"
         meter_text = f" -> {CellConfig.METER_TO_NAME[cell_config.meter]}"
 
         cell_tool_tip = f"Время: {cell_config.measure_delay} с. /{cell_config.measure_time} с.; " \
@@ -651,6 +654,12 @@ class MeasureDataModel(QAbstractTableModel):
         self.__cells[a_row][a_column].reset()
         self.set_save_state(False)
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
+
+    def reset_all_cells(self):
+        for _, _, cell in self.__get_cells_iterator():
+            cell.reset()
+
+        self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.DisplayRole,))
 
     def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
         self.__cells[a_row][a_column].append_value(a_value, a_time)

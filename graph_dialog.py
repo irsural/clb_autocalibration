@@ -122,6 +122,7 @@ class GraphDialog(QtWidgets.QDialog):
         self.ui.graph_dialog_splitter.setSizes([0, splitter_sizes[0] + splitter_sizes[1]])
 
         self.fill_parameters_table()
+        self.ui.parameters_table.resizeRowsToContents()
 
         self.show()
 

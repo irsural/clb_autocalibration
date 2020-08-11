@@ -180,6 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
             self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
             self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
+            self.ui.clear_table_button.clicked.connect(self.clear_table_button_clicked)
 
             self.ui.start_all_action.triggered.connect(self.start_all_measures_button_clicked)
             self.ui.continue_all_action.triggered.connect(self.continue_all_measures_button_clicked)
@@ -291,6 +292,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.remove_row_button.setDisabled(a_lock)
         self.ui.add_column_button.setDisabled(a_lock)
         self.ui.remove_column_button.setDisabled(a_lock)
+        self.ui.clear_table_button.setDisabled(a_lock)
 
         self.ui.clb_list_combobox.setDisabled(a_lock)
         self.ui.meter_combobox.setDisabled(a_lock)
@@ -647,6 +649,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def remove_column_button_clicked(self, _):
         self.measure_manager.remove_column_from_current_measure()
+
+    def clear_table_button_clicked(self, _):
+        self.measure_manager.clear_table_content()
 
     @utils.exception_decorator
     def open_tstlan(self, _):

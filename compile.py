@@ -1,7 +1,5 @@
 import irspy.pyinstaller_build as py_build
 
-import os
-
 from revisions import Revisions
 
 
@@ -11,7 +9,6 @@ if __name__ == "__main__":
         'C:\\Windows\\System32\\ucrtbased.dll',
         'C:\\Users\\503\\Desktop\\Python projects\\clb_autocalibration\\irspy\\clb\\clb_driver_dll.dll',
         'C:\\Users\\503\\Desktop\\Python projects\\clb_autocalibration\\irspy\\dlls\\mxsrclib_dll.dll',
-        # 'C:\\Users\\503\\Desktop\\Qt Projects\\mxsrclib_dll\\mxsrclib_dll\\CDMv2.12.28\\i386\\ftd2xx.dll'
     ]
 
     py_build.build_qt_app(a_main_filename="main.py",
