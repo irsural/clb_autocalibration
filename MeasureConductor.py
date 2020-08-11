@@ -153,6 +153,7 @@ class MeasureConductor(QtCore.QObject):
         self.flash_current_measure = False
 
         self.calibrator_hold_ready_timer = utils.Timer(0)
+        self.calibrator_not_ready_message_time = utils.Timer(10)
         self.measure_duration_timer = utils.Timer(0)
 
         self.scheme_control_real = SchemeControl(self.ftdi_control)
@@ -537,6 +538,7 @@ class MeasureConductor(QtCore.QObject):
                         logging.info(f"Ожидание выхода калибратора на режим... ({self.current_config.measure_delay} с)")
                         # Сигнал включен, начинаем измерение
                         self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
+                        self.calibrator_not_ready_message_time.start()
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.WAIT_CALIBRATOR_READY:
@@ -546,6 +548,10 @@ class MeasureConductor(QtCore.QObject):
             elif not self.calibrator_hold_ready_timer.check():
                 if self.calibrator.state != clb.State.READY:
                     self.calibrator_hold_ready_timer.start()
+
+                    if self.calibrator_not_ready_message_time.check():
+                        self.calibrator_not_ready_message_time.start()
+                        logging.warning("Калибратор вышел из режима ГОТОВ!")
             else:
                 measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
                 self.measure_duration_timer.start(measure_duration)
