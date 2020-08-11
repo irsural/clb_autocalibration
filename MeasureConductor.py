@@ -476,7 +476,11 @@ class MeasureConductor(QtCore.QObject):
         elif self.__stage == MeasureConductor.Stage.SET_METER_RANGE:
             assert self.current_config.coefficient != 0, "Коэффициент преобразования не может быть равен нулю!"
 
-            range_ = self.current_amplitude / self.current_config.coefficient
+            if self.current_config.manual_range_enabled:
+                range_ = self.current_config.manual_range_value
+            else:
+                range_ = self.current_amplitude / self.current_config.coefficient
+
             self.multimeter.set_range(range_)
             logging.info(f"Диапазон: {range_}")
 
