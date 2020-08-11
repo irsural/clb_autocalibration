@@ -115,6 +115,8 @@ class CellConfig:
         self.measure_time = 300
         self.retry_count = 1
 
+        self.auto_calc_coefficient = True
+
         self.manual_range_enabled = False
         self.manual_range_value = 1.
 
@@ -135,6 +137,8 @@ class CellConfig:
             "measure_delay": self.measure_delay,
             "measure_time": self.measure_time,
             "retry_count": self.retry_count,
+
+            "auto_calc_coefficient": self.auto_calc_coefficient,
 
             "manual_range_enabled": self.manual_range_enabled,
             "manual_range_value": self.manual_range_value,
@@ -160,6 +164,8 @@ class CellConfig:
         cell_config.measure_delay = int(a_data_dict["measure_delay"])
         cell_config.measure_time = int(a_data_dict["measure_time"])
         cell_config.retry_count = int(a_data_dict["retry_count"])
+
+        cell_config.auto_calc_coefficient = bool(a_data_dict["auto_calc_coefficient"])
 
         cell_config.manual_range_enabled = bool(a_data_dict["manual_range_enabled"])
         cell_config.manual_range_value = float(a_data_dict["manual_range_value"])
@@ -198,6 +204,7 @@ class CellConfig:
                self.measure_delay == other.measure_delay and \
                self.measure_time == other.measure_time and \
                self.retry_count == other.retry_count and \
+               self.auto_calc_coefficient == other.auto_calc_coefficient and \
                self.manual_range_enabled == other.manual_range_enabled and \
                self.manual_range_value == other.manual_range_value and \
                self.consider_output_value == other.consider_output_value and \
@@ -283,6 +290,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         }
         self.radio_to_meter = {v: k for k, v in self.meter_to_radio.items()}
 
+        self.init_coefficient = a_init_config.coefficient
+
         self.cell_config = None
         self.signal_type = a_signal_type
         self.recover_config(a_init_config)
@@ -296,7 +305,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         for radio in self.radio_to_divider:
             radio.toggled.connect(self.scheme_changed)
 
-        self.ui.manual_range_spinbox.setEnabled(a_init_config.manual_range_enabled)
+        self.ui.auto_coefficient_checkbox.toggled.connect(self.auto_coefficient_checkbox_toggled)
         self.ui.manual_range_checkbox.toggled.connect(self.ui.manual_range_spinbox.setEnabled)
 
         self.ui.add_extra_param_button.clicked.connect(self.add_extra_param_button_clicked)
@@ -344,10 +353,14 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.ui.measure_delay_spinbox.setValue(a_cell_config.measure_delay)
         self.ui.measure_time_spinbox.setValue(a_cell_config.measure_time)
         self.ui.retry_count_spinbox.setValue(a_cell_config.retry_count)
-        self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient))
+        # self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient))
+
+        self.auto_coefficient_checkbox_toggled(a_cell_config.auto_calc_coefficient)
+        self.ui.auto_coefficient_checkbox.setChecked(a_cell_config.auto_calc_coefficient)
 
         self.ui.manual_range_checkbox.setChecked(a_cell_config.manual_range_enabled)
         self.ui.manual_range_spinbox.setValue(a_cell_config.manual_range_value)
+        self.ui.manual_range_spinbox.setEnabled(a_cell_config.manual_range_enabled)
 
         self.ui.consider_output_value_checkbox.setChecked(a_cell_config.consider_output_value)
         self.ui.enable_output_filtering_checkbox.setChecked(a_cell_config.enable_output_filtering)
@@ -363,6 +376,18 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                 extra_parameter.name, str(extra_parameter.index), str(extra_parameter.bit_index), extra_parameter.type,
                 utils.float_to_string(extra_parameter.work_value), utils.float_to_string(extra_parameter.default_value)
             ))
+
+    def auto_coefficient_checkbox_toggled(self, a_enable):
+        if a_enable:
+            coefficient = self.calc_coefficient()
+        else:
+            coefficient = self.init_coefficient
+
+        self.ui.coefficient_edit.setText(utils.float_to_string(coefficient))
+        self.ui.coefficient_edit.setReadOnly(a_enable)
+
+    def calc_coefficient(self):
+        return 1.2345
 
     def lock_scheme_radios(self):
         for radio, coil in self.radio_to_coil.items():
@@ -423,6 +448,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             self.cell_config.measure_time = self.ui.measure_time_spinbox.value()
             self.cell_config.retry_count = self.ui.retry_count_spinbox.value()
             self.cell_config.coefficient = coefficient
+
+            self.cell_config.auto_calc_coefficient = self.ui.auto_coefficient_checkbox.isChecked()
 
             self.cell_config.manual_range_enabled = self.ui.manual_range_checkbox.isChecked()
             self.cell_config.manual_range_value = self.ui.manual_range_spinbox.value()
