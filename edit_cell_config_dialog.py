@@ -353,9 +353,9 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.ui.measure_delay_spinbox.setValue(a_cell_config.measure_delay)
         self.ui.measure_time_spinbox.setValue(a_cell_config.measure_time)
         self.ui.retry_count_spinbox.setValue(a_cell_config.retry_count)
-        # self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient))
+        self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient))
 
-        self.auto_coefficient_checkbox_toggled(a_cell_config.auto_calc_coefficient)
+        self.ui.coefficient_edit.setReadOnly(a_cell_config.auto_calc_coefficient)
         self.ui.auto_coefficient_checkbox.setChecked(a_cell_config.auto_calc_coefficient)
 
         self.ui.manual_range_checkbox.setChecked(a_cell_config.manual_range_enabled)

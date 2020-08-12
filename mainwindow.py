@@ -211,6 +211,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
             self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
             self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
+            self.ui.open_shared_measure_parameters_button.clicked.connect(self.open_shared_measure_parameters)
 
             self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
 
@@ -687,6 +688,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_about(self):
         about_dialog = AboutDialog(self)
         about_dialog.exec()
+
+    def open_shared_measure_parameters(self, _):
+        self.measure_manager.open_shared_measure_parameters()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()

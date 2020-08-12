@@ -15,6 +15,7 @@ from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
 
+from edit_shared_measure_parameters_dialog import EditSharedMeasureParametersDialog, SharedMeasureParameters
 from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
@@ -125,11 +126,11 @@ class MeasureManager(QtCore.QObject):
         self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.ENABLE, 50)
 
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.NAME,
-                                                                       QtWidgets.QHeaderView.Stretch)
+                                                                    QtWidgets.QHeaderView.Stretch)
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.ENABLE,
-                                                                       QtWidgets.QHeaderView.Fixed)
+                                                                    QtWidgets.QHeaderView.Fixed)
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.SETTINGS,
-                                                                       QtWidgets.QHeaderView.Fixed)
+                                                                    QtWidgets.QHeaderView.Fixed)
 
         self.data_view = a_data_view
         self.data_view.setModel(None)
@@ -339,6 +340,13 @@ class MeasureManager(QtCore.QObject):
                     self.measures[measure_name].set_cell_config(row, column, new_cell_config)
 
                 edit_cell_config_dialog.close()
+
+    def open_shared_measure_parameters(self):
+        shared_parameter_dialog = EditSharedMeasureParametersDialog(SharedMeasureParameters(), self.settings,
+                                                                    self.interface_is_locked, self.__parent)
+        new_shared_parameters = shared_parameter_dialog.exec_and_get()
+        if new_shared_parameters is not None and new_shared_parameters != self.shared_measure_parameters:
+            logging.debug("changed")
 
     def lock_selected_cells(self, a_lock):
         if self.current_data_model is not None:

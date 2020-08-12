@@ -188,6 +188,26 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="open_shared_measure_parameters_button">
+             <property name="toolTip">
+              <string>Общие параметры для всех измерений</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="../resources/icons.qrc">
+               <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer_4">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
