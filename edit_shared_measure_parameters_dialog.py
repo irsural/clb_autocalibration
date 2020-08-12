@@ -123,7 +123,8 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
 
         self.ui.devices_list.currentTextChanged.connect(self.device_changed)
 
-        # self.ui.add
+        self.ui.add_coefficient_button.clicked.connect(self.add_coefficient_button_clicked)
+        self.ui.remove_coefficient_button.clicked.connect(self.remove_coefficient_button_clicked)
 
         self.ui.accept_button.clicked.connect(self.accept_parameters)
         self.ui.cancel_button.clicked.connect(self.reject)
@@ -145,6 +146,25 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
 
     def device_changed(self, a_device_name: str):
         self.ui.device_coefs_view.setModel(self.device_coefs_models[a_device_name])
+
+    def add_coefficient_button_clicked(self, _):
+        current_model = self.device_coefs_models[self.ui.devices_list.currentItem().text()]
+
+        selection = self.ui.device_coefs_view.selectionModel().selectedIndexes()
+        if selection:
+            row = max(selection, key=lambda idx: idx.row()).row() + 1
+        else:
+            row = current_model.rowCount()
+
+        current_model.add_coefficient(row)
+
+    def remove_coefficient_button_clicked(self, _):
+        current_model = self.device_coefs_models[self.ui.devices_list.currentItem().text()]
+        # Множество для удаления дубликатов
+        removing_rows = list(set(index.row() for index in self.ui.device_coefs_view.selectionModel().selectedIndexes()))
+        removing_rows.sort()
+        for row in reversed(removing_rows):
+            current_model.remove_coefficient(row)
 
     def exec_and_get(self) -> Union[SharedMeasureParameters, None]:
         if self.exec() == QtWidgets.QDialog.Accepted:

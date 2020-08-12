@@ -341,8 +341,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
     def normalize_edit_value(self, edit: QtWidgets.QLineEdit):
         try:
-            value = utils.parse_input(edit.text())
-            edit.setText(utils.float_to_string(value))
+            value = utils.parse_input(edit.text(), a_precision=15)
+            edit.setText(utils.float_to_string(value, a_precision=15))
         except ValueError:
             edit.setText("0")
         self.update_edit_color(edit)
@@ -353,7 +353,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.ui.measure_delay_spinbox.setValue(a_cell_config.measure_delay)
         self.ui.measure_time_spinbox.setValue(a_cell_config.measure_time)
         self.ui.retry_count_spinbox.setValue(a_cell_config.retry_count)
-        self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient))
+        self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient, a_precision=15))
 
         self.ui.coefficient_edit.setReadOnly(a_cell_config.auto_calc_coefficient)
         self.ui.auto_coefficient_checkbox.setChecked(a_cell_config.auto_calc_coefficient)
@@ -383,7 +383,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         else:
             coefficient = self.init_coefficient
 
-        self.ui.coefficient_edit.setText(utils.float_to_string(coefficient))
+        self.ui.coefficient_edit.setText(utils.float_to_string(coefficient, a_precision=15))
         self.ui.coefficient_edit.setReadOnly(a_enable)
 
     def calc_coefficient(self):
@@ -437,7 +437,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         except ValueError:
             data_valid = False
 
-        coefficient = utils.parse_input(self.ui.coefficient_edit.text())
+        coefficient = utils.parse_input(self.ui.coefficient_edit.text(), a_precision=15)
         if coefficient == 0:
             data_valid = False
 

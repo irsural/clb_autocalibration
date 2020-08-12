@@ -29,6 +29,16 @@ class DeviceCoefficientsModel(QAbstractTableModel):
 
         self.__values = [[frequency, coefficient] for frequency, coefficient in zip(a_frequencies, a_coefficients)]
 
+    def add_coefficient(self, a_row):
+        self.beginInsertRows(QModelIndex(), a_row, a_row)
+        self.__values.insert(a_row, [0, 1])
+        self.endInsertRows()
+
+    def remove_coefficient(self, a_row):
+        self.beginRemoveRows(QModelIndex(), a_row, a_row)
+        del self.__values[a_row]
+        self.endRemoveRows()
+
     def get_frequencies(self):
         return (self.__values[row][0] for row in range(self.rowCount()))
 
@@ -68,13 +78,22 @@ class DeviceCoefficientsModel(QAbstractTableModel):
             return False
 
         try:
-            self.__values[index.row()][index.column()] = \
-                utils.parse_input(value, a_precision=DeviceCoefficientsModel.EDIT_DATA_PRECISION)
+            value = utils.parse_input(value, a_precision=DeviceCoefficientsModel.EDIT_DATA_PRECISION)
             result = True
         except ValueError:
             result = False
 
+        if index.column() == DeviceCoefficientsModel.Column.COEFFICIENT and value == 0:
+            result = False
+
         if result:
+            self.__values[index.row()][index.column()] = value
             self.dataChanged.emit(index, index)
 
         return result
+
+    def flags(self, index):
+        item_flags = super().flags(index)
+        if index.isValid():
+            item_flags |= Qt.ItemIsEditable
+        return item_flags

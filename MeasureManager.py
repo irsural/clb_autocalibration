@@ -345,6 +345,7 @@ class MeasureManager(QtCore.QObject):
 
                 edit_cell_config_dialog.close()
 
+    @utils.exception_decorator
     def open_shared_measure_parameters(self):
         shared_parameter_dialog = EditSharedMeasureParametersDialog(self.shared_measure_parameters, self.settings,
                                                                     self.interface_is_locked, self.__parent)
