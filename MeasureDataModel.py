@@ -14,6 +14,7 @@ from irspy.clb import calibrator_constants as clb
 from irspy import metrology
 from irspy import utils
 
+from edit_shared_measure_parameters_dialog import SharedMeasureParameters
 from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 
@@ -229,6 +230,10 @@ class CellData:
     def is_marked_as_equal(self):
         return self.__marked_as_equal
 
+    def update_coefficient(self, a_frequency: float, a_shared_parameters: SharedMeasureParameters) -> bool:
+        # Рассчитывает self.coefficient в классе CellConfig и возвращает True, если значение изменилось
+        return self.config.update_coefficient(a_frequency, a_shared_parameters)
+
 
 class MeasureDataModel(QAbstractTableModel):
     HEADER_ROW = 0
@@ -415,6 +420,11 @@ class MeasureDataModel(QAbstractTableModel):
         else:
             self.__cell_to_compare = None
         self.__compare_cells()
+
+    def update_cell_config_coefficients(self, a_shared_parameters: SharedMeasureParameters):
+        for _, column, cell in self.__get_cells_iterator():
+            if cell.update_coefficient(self.get_frequency(column), a_shared_parameters):
+                self.set_save_state(False)
 
     def add_row(self, a_row: int):
         assert a_row != 0, "Строка не должна иметь 0 индекс!"

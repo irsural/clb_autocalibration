@@ -188,7 +188,9 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
             res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
                                                  'После применения новых значений, коэффициенты всех ячеек, в которых '
                                                  'используются делитель/усилитель или катушка и установлен параметр '
-                                                 '"Авто рассчет коэффициента" будут автоматически пересчитаны',
+                                                 '"Авто рассчет коэффициента" будут автоматически пересчитаны.\n'
+                                                 'ВНИМАНИЕ! Убедитесь, что заголовки всех таблиц заполнены, иначе '
+                                                 'коэффициент может быть рассчитан неверно.',
                                                  QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
                                                  QtWidgets.QMessageBox.Yes)
             if res == QtWidgets.QMessageBox.Yes:

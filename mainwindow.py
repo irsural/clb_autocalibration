@@ -651,9 +651,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_shared_measure_parameters(self, _):
         self.measure_manager.open_shared_measure_parameters()
-        # В качестве побочного эффекта первое измерение сохранится, даже если оно не было изменено, потому что
-        # изменится shared_measure_parameters
-        self.save_configuration()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()

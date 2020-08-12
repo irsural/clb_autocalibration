@@ -337,8 +337,10 @@ class MeasureManager(QtCore.QObject):
                 measure_name = self.current_data_model.get_name()
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
 
-                edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings,
-                                                               self.interface_is_locked, self.__parent)
+                edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
+                                                               self.current_data_model.get_frequency(column),
+                                                               signal_type, self.settings, self.interface_is_locked,
+                                                               self.__parent)
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
                     self.measures[measure_name].set_cell_config(row, column, new_cell_config)
@@ -353,11 +355,13 @@ class MeasureManager(QtCore.QObject):
         if new_shared_parameters is not None and new_shared_parameters != self.shared_measure_parameters:
             self.shared_measure_parameters_changed = True
             self.shared_measure_parameters = new_shared_parameters
-            self.calculate_coefficients_for_all_auto_cells()
+            self.__calculate_coefficients_for_all_auto_cells()
         shared_parameter_dialog.close()
 
-    def calculate_coefficients_for_all_auto_cells(self):
-        pass
+    def __calculate_coefficients_for_all_auto_cells(self):
+        if self.current_data_model is not None:
+            for data_model in self.measures.values():
+                data_model.update_cell_config_coefficients(self.shared_measure_parameters)
 
     def lock_selected_cells(self, a_lock):
         if self.current_data_model is not None:

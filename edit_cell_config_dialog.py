@@ -13,6 +13,7 @@ from irspy.qt import qt_utils
 import irspy.utils as utils
 
 from ui.py.edit_cell_config_dialog import Ui_edit_cell_config_dialog as EditCellConfigForm
+from edit_shared_measure_parameters_dialog import SharedMeasureParameters
 
 
 class CellConfig:
@@ -198,6 +199,25 @@ class CellConfig:
         self.divider = CellConfig.Divider.NONE
         self.meter = CellConfig.Meter.VOLTS if clb.is_voltage_signal[a_signal_type] else CellConfig.Meter.AMPERES
 
+    def update_coefficient(self, a_frequency: float, a_shared_parameters: SharedMeasureParameters) -> bool:
+        result = False
+
+        if self.auto_calc_coefficient:
+            coefficient = self.calculate_coefficient(self.coil, self.divider, a_frequency, a_shared_parameters)
+            if self.coefficient != coefficient:
+                self.coefficient = coefficient
+                result = True
+
+        return result
+
+    @staticmethod
+    def calculate_coefficient(a_coil: Coil, a_divider: Divider, a_frequency: float,
+                              a_shared_parameters: SharedMeasureParameters) -> float:
+        if a_coil == CellConfig.Coil.NONE and a_divider == CellConfig.Divider.NONE:
+            return 1
+        else:
+            return 1.2345
+
     def __eq__(self, other):
         return other is not None and \
                self.coefficient == other.coefficient and \
@@ -227,8 +247,9 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         DEFAULT_VALUE = 5
         COUNT = 6
 
-    def __init__(self, a_init_config: CellConfig, a_signal_type: clb.SignalType, a_settings: Settings,
-                 a_lock_editing=False, a_parent=None):
+    # a_shared_parameters и a_frequency нужны для автоматического рассчета коэффициента
+    def __init__(self, a_init_config: CellConfig, a_shared_parameters: SharedMeasureParameters, a_frequency: float,
+                 a_signal_type: clb.SignalType, a_settings: Settings, a_lock_editing=False, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = EditCellConfigForm()
@@ -290,6 +311,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         }
         self.radio_to_meter = {v: k for k, v in self.meter_to_radio.items()}
 
+        self.shared_parameters = a_shared_parameters
+        self.frequency = a_frequency
         self.init_coefficient = a_init_config.coefficient
 
         self.cell_config = None
@@ -379,15 +402,13 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
     def auto_coefficient_checkbox_toggled(self, a_enable):
         if a_enable:
-            coefficient = self.calc_coefficient()
+            coil, divider, _ = self.__get_scheme()
+            coefficient = CellConfig.calculate_coefficient(coil, divider, self.frequency, self.shared_parameters)
         else:
             coefficient = self.init_coefficient
 
         self.ui.coefficient_edit.setText(utils.float_to_string(coefficient, a_precision=15))
         self.ui.coefficient_edit.setReadOnly(a_enable)
-
-    def calc_coefficient(self):
-        return 1.2345
 
     def lock_scheme_radios(self):
         for radio, coil in self.radio_to_coil.items():
@@ -459,17 +480,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             self.cell_config.filter_sampling_time = self.ui.sampling_time_spinbox.value()
             self.cell_config.filter_samples_count = self.ui.filter_points_count_spinbox.value()
 
-            for coil_radio in self.radio_to_coil.keys():
-                if coil_radio.isChecked():
-                    self.cell_config.coil = self.radio_to_coil[coil_radio]
-
-            for divider_radio in self.radio_to_divider.keys():
-                if divider_radio.isChecked():
-                    self.cell_config.divider = self.radio_to_divider[divider_radio]
-
-            for meter_radio in self.radio_to_meter.keys():
-                if meter_radio.isChecked():
-                    self.cell_config.meter = self.radio_to_meter[meter_radio]
+            self.cell_config.coil, self.cell_config.divider, self.cell_config.meter = self.__get_scheme()
 
             self.cell_config.extra_parameters = extra_parameters
 
@@ -478,6 +489,25 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             QtWidgets.QMessageBox.critical(self, "Ошибка", "Таблица дополнительных параметров заполнена неверно,"
                                                            "либо коэффициент равен нулю",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
+    def __get_scheme(self):
+        coil = CellConfig.Coil.NONE
+        divider = CellConfig.Divider.NONE
+        meter = CellConfig.Meter.VOLTS
+
+        for coil_radio in self.radio_to_coil.keys():
+            if coil_radio.isChecked():
+                coil = self.radio_to_coil[coil_radio]
+
+        for divider_radio in self.radio_to_divider.keys():
+            if divider_radio.isChecked():
+                divider = self.radio_to_divider[divider_radio]
+
+        for meter_radio in self.radio_to_meter.keys():
+            if meter_radio.isChecked():
+                meter = self.radio_to_meter[meter_radio]
+
+        return coil, divider, meter
 
     def add_extra_param_button_clicked(self):
         init_row = [""] * EditCellConfigDialog.ExtraParamsColumn.COUNT
