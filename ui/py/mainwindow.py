@@ -589,7 +589,7 @@ class Ui_MainWindow(object):
         self.add_measure_button.setToolTip(_translate("MainWindow", "Добавить измерение"))
         self.delete_measure_button.setToolTip(_translate("MainWindow", "Удалить измерение"))
         self.rename_measure_button.setToolTip(_translate("MainWindow", "Переименовать измерение"))
-        self.open_shared_measure_parameters_button.setToolTip(_translate("MainWindow", "Переименовать измерение"))
+        self.open_shared_measure_parameters_button.setToolTip(_translate("MainWindow", "Общие параметры для всех измерений"))
         self.enable_all_button.setToolTip(_translate("MainWindow", "Включить/выключить все"))
         item = self.measures_table.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Измерение"))

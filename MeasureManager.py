@@ -23,7 +23,7 @@ from MeasureDataModel import MeasureDataModel, CellData
 import multimeters
 
 
-class ChemeInCellPainter(TransparentPainterForView):
+class SchemeInCellPainter(TransparentPainterForView):
     COIL_TO_ICON = {
         CellConfig.Coil.NONE: "",
         CellConfig.Coil.VAL_0_01_OHM: ":/scheme/icons/scheme/coil_001.png",
@@ -105,6 +105,7 @@ class MeasureManager(QtCore.QObject):
 
     MEASURE_FILE_EXTENSION = "measure"
     MEASURES_ORDER_FILENAME = "measures_order.json"
+    SHARED_PARAMETERS_FILENAME = "shared_measure_parameters.json"
 
     SAVED_COLOR = QtCore.Qt.white
     UNSAVED_COLOR = QtGui.QColor(255, 235, 179)
@@ -137,6 +138,9 @@ class MeasureManager(QtCore.QObject):
 
         self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
+
+        self.shared_measure_parameters: Union[None, SharedMeasureParameters] = None
+        self.shared_measure_parameters_changed: bool = False
 
         self.show_equal_cells = False
         self.copied_cell_config: Union[None, CellConfig] = None
@@ -342,11 +346,16 @@ class MeasureManager(QtCore.QObject):
                 edit_cell_config_dialog.close()
 
     def open_shared_measure_parameters(self):
-        shared_parameter_dialog = EditSharedMeasureParametersDialog(SharedMeasureParameters(), self.settings,
+        shared_parameter_dialog = EditSharedMeasureParametersDialog(self.shared_measure_parameters, self.settings,
                                                                     self.interface_is_locked, self.__parent)
         new_shared_parameters = shared_parameter_dialog.exec_and_get()
         if new_shared_parameters is not None and new_shared_parameters != self.shared_measure_parameters:
-            logging.debug("changed")
+            self.shared_measure_parameters_changed = True
+            self.shared_measure_parameters = new_shared_parameters
+            self.calculate_coefficients_for_all_auto_cells()
+
+    def calculate_coefficients_for_all_auto_cells(self):
+        pass
 
     def lock_selected_cells(self, a_lock):
         if self.current_data_model is not None:
@@ -765,7 +774,8 @@ class MeasureManager(QtCore.QObject):
         return graphs
 
     def is_saved(self):
-        return all([data_model.is_saved() for data_model in self.measures.values()])
+        return all([data_model.is_saved() for data_model in self.measures.values()]) and \
+               not self.shared_measure_parameters_changed
 
     def is_current_saved(self):
         saved = True if self.current_data_model is None else self.current_data_model.is_saved()
@@ -780,9 +790,20 @@ class MeasureManager(QtCore.QObject):
             measures_order = json.dumps(measures_list, ensure_ascii=False, indent=4)
             measure_order_file.write(measures_order)
 
+    def __save_shared_measure_parameters(self, a_folder):
+        if self.shared_measure_parameters_changed:
+            shared_parameters_filename = f"{a_folder}/{MeasureManager.SHARED_PARAMETERS_FILENAME}"
+
+            with open(shared_parameters_filename, "w") as shared_parameters_file:
+                shared_parameters = json.dumps(self.shared_measure_parameters.serialize_to_dict(),
+                                               ensure_ascii=False, indent=4)
+                shared_parameters_file.write(shared_parameters)
+                self.shared_measure_parameters_changed = False
+
     def save_current(self, a_folder):
         if self.current_data_model is not None:
             self.__save_measures_order_list(a_folder)
+            self.__save_shared_measure_parameters(a_folder)
             measure_filename = self.__get_full_path_to_measure(a_folder, self.current_data_model.get_name())
             try:
                 with open(measure_filename, "w") as measure_file:
@@ -798,6 +819,7 @@ class MeasureManager(QtCore.QObject):
 
     def save(self, a_folder: str):
         self.__save_measures_order_list(a_folder)
+        self.__save_shared_measure_parameters(a_folder)
         for measure_name in self.measures.keys():
             measure_data_model = self.measures[measure_name]
             measure_filename = f"{a_folder}/{measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
@@ -831,6 +853,20 @@ class MeasureManager(QtCore.QObject):
             self.measures_table.setRowCount(0)
             self.current_data_model = None
             self.measures.clear()
+
+            shared_parameters_filename = f"{a_folder}/{MeasureManager.SHARED_PARAMETERS_FILENAME}"
+            if os.path.exists(shared_parameters_filename):
+                with open(shared_parameters_filename, 'r') as shared_parameters_file:
+                    shared_parameters_dict = json.loads(shared_parameters_file.read())
+                    self.shared_measure_parameters = SharedMeasureParameters.from_dict(shared_parameters_dict)
+            else:
+                self.shared_measure_parameters = SharedMeasureParameters()
+                QtWidgets.QMessageBox.warning(None, "Предупреждение", f"Файл общих параметров измерения не найден! "
+                                                                      f"Будут использованы параметры по-умолчанию",
+                                              QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                # Сразу сохраняем если отсутствуют
+                self.shared_measure_parameters_changed = True
+                self.__save_shared_measure_parameters(a_folder)
 
             for measure_filename in measures_list:
                 measure_full_path = f"{a_folder}/{measure_filename}"

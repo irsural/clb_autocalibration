@@ -7,7 +7,7 @@ import json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
-from irspy.settings_ini_parser import Settings, BadIniException
+from irspy.settings_ini_parser import BadIniException
 from irspy.clb.network_variables import NetworkVariables
 from irspy.dlls.ftdi_control import FtdiControl
 import irspy.clb.calibrator_constants as clb
@@ -15,7 +15,7 @@ import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
-from MeasureManager import MeasureManager, ChemeInCellPainter
+from MeasureManager import MeasureManager, SchemeInCellPainter
 from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from MeasureConductor import MeasureConductor
@@ -25,6 +25,7 @@ from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
 from about_dialog import AboutDialog
 from multimeters import MeterType
+import settings
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -54,52 +55,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         try:
-            self.settings = Settings("./settings.ini", [
-                Settings.VariableInfo(a_name="fixed_step_list", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_FLOAT,
-                                      a_default=[0.0001, 0.01, 0.1, 1, 10, 20, 100]),
-                Settings.VariableInfo(a_name="checkbox_states", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="fixed_step_idx", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT),
-                Settings.VariableInfo(a_name="rough_step", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.5),
-                Settings.VariableInfo(a_name="common_step", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.05),
-                Settings.VariableInfo(a_name="exact_step", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.002),
-                Settings.VariableInfo(a_name="tstlan_update_time", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.2),
-                Settings.VariableInfo(a_name="tstlan_show_marks", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="tstlan_marks", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="tstlan_graphs", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="last_configuration_path", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.STRING),
-                Settings.VariableInfo(a_name="meter_type", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="agilent_connect_type", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="agilent_gpib_index", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="agilent_gpib_address", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=22),
-                Settings.VariableInfo(a_name="agilent_com_name", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.STRING, a_default="com4"),
-                Settings.VariableInfo(a_name="agilent_ip_address", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.STRING, a_default="0.0.0.0"),
-                Settings.VariableInfo(a_name="agilent_port", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="switch_to_active_cell", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="graph_parameters_splitter_size", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=500),
-                Settings.VariableInfo(a_name="show_scheme_in_cell", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=1),
-            ])
-
+            self.settings = settings.get_clb_autocalibration_settings()
             ini_ok = True
         except BadIniException:
             ini_ok = False
@@ -246,7 +202,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
-            self.tick_timer.start(50)
+            self.tick_timer.start(10)
 
         else:
             self.close()
@@ -617,7 +573,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_scheme_in_cell_toggled(self, a_enable: bool):
         if a_enable:
-            self.ui.measure_data_view.setItemDelegate(ChemeInCellPainter(self.ui.measure_data_view, "#d4d4ff"))
+            self.ui.measure_data_view.setItemDelegate(SchemeInCellPainter(self.ui.measure_data_view, "#d4d4ff"))
         else:
             self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
 
@@ -691,6 +647,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_shared_measure_parameters(self, _):
         self.measure_manager.open_shared_measure_parameters()
+        # В качестве побочного эффекта первое измерение сохранится, даже если оно не было изменено, потому что
+        # изменится shared_measure_parameters
+        self.save_configuration()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()

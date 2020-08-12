@@ -32,7 +32,7 @@ class SharedMeasureParameters:
     @classmethod
     def from_dict(cls, a_data_dict: dict):
         cell_config = cls()
-        cell_config.device_coefs = [DeviceCoefs(*device_coefs) for device_coefs in a_data_dict["device_coefs"]]
+        cell_config.device_coefs = DeviceCoefs(*a_data_dict["device_coefs"])
 
         return cell_config
 
@@ -59,6 +59,7 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
             pass
 
         self.shared_parameters = None
+        self.init_shared_parameters = a_init_parameters
         self.recover_parameters(a_init_parameters)
 
         self.ui.accept_button.clicked.connect(self.accept_parameters)
@@ -91,27 +92,31 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
     def accept_parameters(self):
         self.shared_parameters = SharedMeasureParameters()
 
-        # noinspection PyTypeChecker
-        res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                             'После применения новых значений, коэффициенты всех ячеек, в которых '
-                                             'используются делитель/усилитель или катушка и установлен параметр '
-                                             '"Авто рассчет коэффициента" будут автоматически пересчитаны',
-                                             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                             QtWidgets.QMessageBox.Yes)
+        self.shared_parameters.device_coefs = DeviceCoefs(coil_001=self.ui.coil_001_spinbox.value(),
+                                                          coil_1=self.ui.coil_1_spinbox.value(),
+                                                          coil_10=self.ui.coil_10_spinbox.value(),
+                                                          mul_30=self.ui.mul_30_spinbox.value(),
+                                                          mul_10=self.ui.mul_10_spinbox.value(),
+                                                          div_650=self.ui.div_650_spinbox.value(),
+                                                          div_500=self.ui.div_500_spinbox.value(),
+                                                          div_350=self.ui.div_350_spinbox.value(),
+                                                          div_200=self.ui.div_200_spinbox.value(),
+                                                          div_55=self.ui.div_55_spinbox.value(),
+                                                          div_40=self.ui.div_40_spinbox.value()
+                                                          )
 
-        if res == QtWidgets.QMessageBox.Yes:
-            self.shared_parameters.device_coefs = DeviceCoefs(coil_001=self.ui.coil_001_spinbox.value(),
-                                                              coil_1=self.ui.coil_1_spinbox.value(),
-                                                              coil_10=self.ui.coil_10_spinbox.value(),
-                                                              mul_30=self.ui.mul_30_spinbox.value(),
-                                                              mul_10=self.ui.mul_10_spinbox.value(),
-                                                              div_650=self.ui.div_650_spinbox.value(),
-                                                              div_500=self.ui.div_500_spinbox.value(),
-                                                              div_350=self.ui.div_350_spinbox.value(),
-                                                              div_200=self.ui.div_200_spinbox.value(),
-                                                              div_55=self.ui.div_55_spinbox.value(),
-                                                              div_40=self.ui.div_40_spinbox.value())
-            self.accept()
+        if self.init_shared_parameters != self.shared_parameters:
+            # noinspection PyTypeChecker
+            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
+                                                 'После применения новых значений, коэффициенты всех ячеек, в которых '
+                                                 'используются делитель/усилитель или катушка и установлен параметр '
+                                                 '"Авто рассчет коэффициента" будут автоматически пересчитаны',
+                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                 QtWidgets.QMessageBox.Yes)
+            if res == QtWidgets.QMessageBox.Yes:
+                self.accept()
+        else:
+            self.reject()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         size = f"{self.size().width()};{self.size().height()}"
