@@ -367,7 +367,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # "Переливаем" прогресс маленького прогресс бара в большой
         self.measure_progress_bar_value += self.ui.curent_cell_progress_bar.maximum()
         self.ui.curent_cell_progress_bar.setValue(0)
-        self.save_current_configuration()
+        if not self.save_current_configuration():
+            logging.warning("Не удалось сохранить результат после завершения измерения ячейки")
 
     def measure_done(self):
         self.ui.curent_cell_progress_bar.setValue(0)

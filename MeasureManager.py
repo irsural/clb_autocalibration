@@ -353,6 +353,7 @@ class MeasureManager(QtCore.QObject):
             self.shared_measure_parameters_changed = True
             self.shared_measure_parameters = new_shared_parameters
             self.calculate_coefficients_for_all_auto_cells()
+        shared_parameter_dialog.close()
 
     def calculate_coefficients_for_all_auto_cells(self):
         pass

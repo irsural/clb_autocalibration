@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui
 from irspy import utils
 
 
-class CorrectionTableModel(QAbstractTableModel):
+class DeviceCoefficientsModel(QAbstractTableModel):
     class Column(IntEnum):
         FREQUENCY = 0
         COEFFICIENT = 1
@@ -29,6 +29,12 @@ class CorrectionTableModel(QAbstractTableModel):
 
         self.__values = [[frequency, coefficient] for frequency, coefficient in zip(a_frequencies, a_coefficients)]
 
+    def get_frequencies(self):
+        return (self.__values[row][0] for row in range(self.rowCount()))
+
+    def get_coefficients(self):
+        return (self.__values[row][1] for row in range(self.rowCount()))
+
     def rowCount(self, parent=QModelIndex()):
         return len(self.__values)
 
@@ -41,7 +47,7 @@ class CorrectionTableModel(QAbstractTableModel):
         if orientation == Qt.Vertical:
             return section + 1
         else:
-            return CorrectionTableModel.COLUMN_TO_NAME[CorrectionTableModel.Column(section)]
+            return DeviceCoefficientsModel.COLUMN_TO_NAME[DeviceCoefficientsModel.Column(section)]
 
     @utils.exception_decorator
     def data(self, index, role=Qt.DisplayRole):
@@ -51,9 +57,9 @@ class CorrectionTableModel(QAbstractTableModel):
         cell_value = self.__values[index.row()][index.column()]
 
         if role == Qt.DisplayRole:
-            str_value = utils.float_to_string(cell_value, a_precision=CorrectionTableModel.DISPLAY_DATA_PRECISION)
+            str_value = utils.float_to_string(cell_value, a_precision=DeviceCoefficientsModel.DISPLAY_DATA_PRECISION)
         else:
-            str_value = utils.float_to_string(cell_value, a_precision=CorrectionTableModel.EDIT_DATA_PRECISION)
+            str_value = utils.float_to_string(cell_value, a_precision=DeviceCoefficientsModel.EDIT_DATA_PRECISION)
 
         return str_value
 
@@ -63,7 +69,7 @@ class CorrectionTableModel(QAbstractTableModel):
 
         try:
             self.__values[index.row()][index.column()] = \
-                utils.parse_input(value, a_precision=CorrectionTableModel.EDIT_DATA_PRECISION)
+                utils.parse_input(value, a_precision=DeviceCoefficientsModel.EDIT_DATA_PRECISION)
             result = True
         except ValueError:
             result = False

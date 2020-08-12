@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/shared_measure_parameters.ui'
+# Form implementation generated from reading ui file './ui/edit_shared_measure_parameters_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
