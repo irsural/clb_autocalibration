@@ -118,87 +118,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.measure_conductor.single_measure_done.connect(self.single_measure_done)
             self.measure_conductor.verify_flash_done.connect(self.verify_flash_done)
 
-            self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
-            self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
-            self.ui.lock_all_action.triggered.connect(self.lock_all_cells_button_clicked)
-            self.ui.unlock_all_action.triggered.connect(self.unlock_all_cells_button_clicked)
-            self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
-
-            self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
-            self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
-
-            self.ui.show_scheme_in_cell_action.setChecked(self.settings.show_scheme_in_cell)
-            self.ui.show_scheme_in_cell_action.triggered.connect(self.show_scheme_in_cell_toggled)
-            self.show_scheme_in_cell_toggled(self.settings.show_scheme_in_cell)
-
-            self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
-            self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
-            self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
-            self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
-            self.ui.clear_table_button.clicked.connect(self.clear_table_button_clicked)
-
-            self.ui.start_all_action.triggered.connect(self.start_all_measures_button_clicked)
-            self.ui.continue_all_action.triggered.connect(self.continue_all_measures_button_clicked)
-            self.ui.start_current_measure_button.clicked.connect(self.start_current_measure_button_clicked)
-            self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
-            self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
-
-            self.ui.flash_all_action.triggered.connect(self.flash_all_button_clicked)
-            self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
-            self.ui.read_correction_tables_action.triggered.connect(self.read_correction_tables_button_clicked)
-            self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
-            self.ui.get_correction_tables_from_file_action.triggered.connect(self.open_correction_tables_from_file)
-
-            self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
-            self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
-
-            self.ui.measures_table.customContextMenuRequested.connect(self.show_measures_table_context_menu)
-
-            self.ui.enter_settings_action.triggered.connect(self.open_settings)
-            self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
-            self.ui.graphs_action.triggered.connect(self.open_graphs)
-            self.ui.save_action.triggered.connect(self.save_configuration)
-            self.ui.save_as_action.triggered.connect(self.save_configuration_as)
-            self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
-            self.ui.open_cell_config_button.clicked.connect(self.open_cell_configuration)
-            self.ui.open_action.triggered.connect(self.open_configuration)
-            self.ui.new_configuration_action.triggered.connect(self.create_new_configuration)
-            self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
-            self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
-            self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
-            self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
-            self.ui.open_shared_measure_parameters_button.clicked.connect(self.open_shared_measure_parameters)
-
-            self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
-
-            self.ui.copy_cell_config_action.triggered.connect(self.copy_cell_config)
-            self.ui.measure_data_view.addAction(self.ui.copy_cell_config_action)
-            self.ui.paste_cell_config_action.triggered.connect(self.paste_cell_config)
-            self.ui.measure_data_view.addAction(self.ui.paste_cell_config_action)
-
-            self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
-            self.ui.measure_data_view.addAction(self.ui.copy_cell_value_action)
-            self.ui.paste_cell_value_action.triggered.connect(self.paste_cell_value)
-            self.ui.measure_data_view.addAction(self.ui.paste_cell_value_action)
-
-            self.ui.show_cell_graph_action.triggered.connect(self.open_cell_graph)
-            self.ui.measure_data_view.addAction(self.ui.show_cell_graph_action)
-
-            self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
-            self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
-            self.ui.verify_current_measure_action.triggered.connect(self.verify_table)
-            self.ui.measure_data_view.addAction(self.ui.verify_current_measure_action)
-            self.ui.verify_diapason_of_cell_action.triggered.connect(self.verify_diapason_of_cell)
-            self.ui.measure_data_view.addAction(self.ui.verify_diapason_of_cell_action)
-            self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
-            self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
-
-            self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
-            self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
-
-            self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
-
-            self.ui.open_about_action.triggered.connect(self.open_about)
+            self.connect_all()
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -206,6 +126,89 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             self.close()
+
+    def connect_all(self):
+        self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
+        self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
+        self.ui.lock_all_action.triggered.connect(self.lock_all_cells_button_clicked)
+        self.ui.unlock_all_action.triggered.connect(self.unlock_all_cells_button_clicked)
+        self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
+
+        self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
+        self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
+
+        self.ui.show_scheme_in_cell_action.setChecked(self.settings.show_scheme_in_cell)
+        self.ui.show_scheme_in_cell_action.triggered.connect(self.show_scheme_in_cell_toggled)
+        self.show_scheme_in_cell_toggled(self.settings.show_scheme_in_cell)
+
+        self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
+        self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
+        self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
+        self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
+        self.ui.clear_table_button.clicked.connect(self.clear_table_button_clicked)
+
+        self.ui.start_all_action.triggered.connect(self.start_all_measures_button_clicked)
+        self.ui.continue_all_action.triggered.connect(self.continue_all_measures_button_clicked)
+        self.ui.start_current_measure_button.clicked.connect(self.start_current_measure_button_clicked)
+        self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
+        self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
+
+        self.ui.flash_all_action.triggered.connect(self.flash_all_button_clicked)
+        self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
+        self.ui.read_correction_tables_action.triggered.connect(self.read_correction_tables_button_clicked)
+        self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
+        self.ui.get_correction_tables_from_file_action.triggered.connect(self.open_correction_tables_from_file)
+
+        self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
+        self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
+
+        self.ui.measures_table.customContextMenuRequested.connect(self.show_measures_table_context_menu)
+
+        self.ui.enter_settings_action.triggered.connect(self.open_settings)
+        self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
+        self.ui.graphs_action.triggered.connect(self.open_graphs)
+        self.ui.save_action.triggered.connect(self.save_configuration)
+        self.ui.save_as_action.triggered.connect(self.save_configuration_as)
+        self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
+        self.ui.open_cell_config_button.clicked.connect(self.open_cell_configuration)
+        self.ui.open_action.triggered.connect(self.open_configuration)
+        self.ui.new_configuration_action.triggered.connect(self.create_new_configuration)
+        self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+        self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
+        self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
+        self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
+        self.ui.open_shared_measure_parameters_button.clicked.connect(self.open_shared_measure_parameters)
+
+        self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
+
+        self.ui.copy_cell_config_action.triggered.connect(self.copy_cell_config)
+        self.ui.measure_data_view.addAction(self.ui.copy_cell_config_action)
+        self.ui.paste_cell_config_action.triggered.connect(self.paste_cell_config)
+        self.ui.measure_data_view.addAction(self.ui.paste_cell_config_action)
+
+        self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
+        self.ui.measure_data_view.addAction(self.ui.copy_cell_value_action)
+        self.ui.paste_cell_value_action.triggered.connect(self.paste_cell_value)
+        self.ui.measure_data_view.addAction(self.ui.paste_cell_value_action)
+
+        self.ui.show_cell_graph_action.triggered.connect(self.open_cell_graph)
+        self.ui.measure_data_view.addAction(self.ui.show_cell_graph_action)
+
+        self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
+        self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
+        self.ui.verify_current_measure_action.triggered.connect(self.verify_table)
+        self.ui.measure_data_view.addAction(self.ui.verify_current_measure_action)
+        self.ui.verify_diapason_of_cell_action.triggered.connect(self.verify_diapason_of_cell)
+        self.ui.measure_data_view.addAction(self.ui.verify_diapason_of_cell_action)
+        self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
+        self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
+
+        self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
+        self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
+
+        self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
+
+        self.ui.open_about_action.triggered.connect(self.open_about)
 
     def set_up_logger(self):
         log = qt_utils.QTextEditLogger(self, self.ui.log_text_edit)
