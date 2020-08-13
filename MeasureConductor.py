@@ -684,9 +684,11 @@ class MeasureConductor(QtCore.QObject):
 
         logging.info(
             f"Параметры текущего измерения ({self.current_cell_position.measure_name}). "
-            f"Сигнал: {signal_type.name}. Амплитуда: {utils.float_to_string(self.current_amplitude)} "
+            f"Сигнал: {clb.enum_to_signal_type_short[signal_type]} ({clb.enum_to_signal_type[signal_type]}). "
+            f"Амплитуда: {utils.float_to_string(self.current_amplitude)} "
             f"{clb.signal_type_to_units[signal_type]}. {frequency_str}. "
-            f"Катушка: {self.current_config.coil.name}, делитель: {self.current_config.divider.name}, "
+            f"Катушка: {self.current_config.coil.name}, "
+            f"делитель: {self.current_config.divider.name}, "
             f"измеритель: {self.current_config.meter.name}"
         )
 

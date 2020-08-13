@@ -13,7 +13,8 @@ from irspy.qt import qt_utils
 import irspy.utils as utils
 
 from ui.py.edit_cell_config_dialog import Ui_edit_cell_config_dialog as EditCellConfigForm
-from edit_shared_measure_parameters_dialog import SharedMeasureParameters
+from edit_shared_measure_parameters_dialog import \
+    SharedMeasureParameters, Device, DEVICE_TO_NAME, DEVICE_TO_DEFAULT_COEFS
 
 
 class CellConfig:
@@ -102,6 +103,23 @@ class CellConfig:
     meter_to_units = {
         Meter.AMPERES: "А",
         Meter.VOLTS: "В",
+    }
+
+    COIL_TO_DEVICE = {
+        Coil.VAL_0_01_OHM: Device.COIL_0_01_OHM,
+        Coil.VAL_1_OHM: Device.COIL_1_OHM,
+        Coil.VAL_10_OHM: Device.COIL_10_OHM,
+    }
+
+    DIVIDER_TO_DEVICE = {
+        Divider.MUL_30_mV: Device.MUL_30_mV,
+        Divider.MUL_10_mV: Device.MUL_10_mV,
+        Divider.DIV_650_V: Device.DIV_650_V,
+        Divider.DIV_500_V: Device.DIV_500_V,
+        Divider.DIV_350_V: Device.DIV_350_V,
+        Divider.DIV_200_V: Device.DIV_200_V,
+        Divider.DIV_55_V: Device.DIV_55_V,
+        Divider.DIV_40_V: Device.DIV_40_V,
     }
 
     ExtraParameter = namedtuple("ExtraParameter", ["name", "index", "bit_index", "type", "work_value", "default_value"])
@@ -213,10 +231,43 @@ class CellConfig:
     @staticmethod
     def calculate_coefficient(a_coil: Coil, a_divider: Divider, a_frequency: float,
                               a_shared_parameters: SharedMeasureParameters) -> float:
-        if a_coil == CellConfig.Coil.NONE and a_divider == CellConfig.Divider.NONE:
-            return 1
-        else:
-            return 1.2345
+        coil_coef = 1.
+        if a_coil != CellConfig.Coil.NONE:
+            a_device = CellConfig.COIL_TO_DEVICE[a_coil]
+            coil_coef = CellConfig.get_device_coefficient_by_frequency(a_device, a_frequency, a_shared_parameters)
+
+        divider_coef = 1.
+        if a_divider != CellConfig.Divider.NONE:
+            a_device = CellConfig.DIVIDER_TO_DEVICE[a_divider]
+            divider_coef = CellConfig.get_device_coefficient_by_frequency(a_device, a_frequency, a_shared_parameters)
+
+        # I = (1/R * 1/K) * Uк,
+        # где I - заданный в калибратор ток, R - сопр. катушки, K - коэф. делителя, Uк - конечное напряжение
+        # Здесь возвращаем коэффициент преобразования 1/R * 1/K
+        return 1 / coil_coef / divider_coef
+
+    @staticmethod
+    def get_device_coefficient_by_frequency(a_device: Device, a_frequency: float,
+                                            a_shared_parameters: SharedMeasureParameters) -> float:
+
+        frequencies, coefficients = a_shared_parameters.device_coefs[a_device]
+        try:
+            frequency_idx = frequencies.index(a_frequency)
+            coefficient = coefficients[frequency_idx]
+        except ValueError:
+            logging.warning(f'Прибор {DEVICE_TO_NAME[a_device]}, частота {a_frequency} Гц, '
+                            f'коэффициент не задан, попытка получить коэффициент для частоты "0 Гц"')
+            try:
+                frequency_idx = frequencies.index(0.)
+                coefficient = coefficients[frequency_idx]
+            except ValueError:
+                logging.warning(f'Коэффициент для частоты 0 Гц не задан, будет использован коэффициент по-умолчанию')
+                frequencies, coefficients = DEVICE_TO_DEFAULT_COEFS[a_device]
+                frequency_idx = frequencies.index(0.)
+                coefficient = coefficients[frequency_idx]
+                logging.warning(f'Коэффициент по-умолчанию: {coefficient}')
+
+        return coefficient
 
     def __eq__(self, other):
         return other is not None and \
@@ -435,6 +486,9 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         self.meter_to_radio[meter].setChecked(True)
         self.lock_scheme_radios()
+
+        # Пересчитывает коэффициент, если включен авто рассчет
+        self.auto_coefficient_checkbox_toggled(self.ui.auto_coefficient_checkbox.isChecked())
 
     def exec_and_get(self) -> Union[CellConfig, None]:
         if self.exec() == QtWidgets.QDialog.Accepted:

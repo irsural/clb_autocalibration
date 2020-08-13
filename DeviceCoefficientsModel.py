@@ -24,7 +24,6 @@ class DeviceCoefficientsModel(QAbstractTableModel):
     def __init__(self, a_frequencies: List[float], a_coefficients: List[float], a_parent=None):
         super().__init__(a_parent)
 
-        assert len(a_frequencies) > 0, "Списки частот и коэффициентов не должны быть пустые!"
         assert len(a_frequencies) == len(a_coefficients), "Размеры списков частот и коэффициентов должны быть равны!"
 
         self.__values = [[frequency, coefficient] for frequency, coefficient in zip(a_frequencies, a_coefficients)]
@@ -49,7 +48,7 @@ class DeviceCoefficientsModel(QAbstractTableModel):
         return len(self.__values)
 
     def columnCount(self, parent=QModelIndex()):
-        return len(self.__values[0])
+        return len(self.__values[0]) if self.__values else 0
 
     def headerData(self, section: int, orientation: Qt.Orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:

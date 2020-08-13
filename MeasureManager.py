@@ -11,6 +11,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForView
 from irspy.built_in_extensions import OrderedDictInsert
+from irspy.clb.calibrator_constants import is_ac_signal
 from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
@@ -336,11 +337,12 @@ class MeasureManager(QtCore.QObject):
             if cell_config is not None:
                 measure_name = self.current_data_model.get_name()
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
+                frequency = self.current_data_model.get_frequency(column) if is_ac_signal[signal_type] else 0
 
                 edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
-                                                               self.current_data_model.get_frequency(column),
-                                                               signal_type, self.settings, self.interface_is_locked,
-                                                               self.__parent)
+                                                               frequency, signal_type, self.settings,
+                                                               self.interface_is_locked, self.__parent)
+
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
                     self.measures[measure_name].set_cell_config(row, column, new_cell_config)

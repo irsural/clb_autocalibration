@@ -423,7 +423,8 @@ class MeasureDataModel(QAbstractTableModel):
 
     def update_cell_config_coefficients(self, a_shared_parameters: SharedMeasureParameters):
         for _, column, cell in self.__get_cells_iterator():
-            if cell.update_coefficient(self.get_frequency(column), a_shared_parameters):
+            frequency = self.get_frequency(column) if self.__signal_type_is_ac else 0
+            if cell.update_coefficient(frequency, a_shared_parameters):
                 self.set_save_state(False)
 
     def add_row(self, a_row: int):
