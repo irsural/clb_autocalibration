@@ -478,12 +478,22 @@ class MeasureManager(QtCore.QObject):
 
     def copy_cell_value(self):
         if self.current_data_model is not None:
-            selected_index = self.get_only_selected_cell()
-            if selected_index:
-                value: str = self.current_data_model.data(selected_index)
-                if value:
-                    value_without_units = value.split(" ")[0]
-                    QtWidgets.QApplication.clipboard().setText(value_without_units)
+            selected_indices = sorted(self.data_view.selectionModel().selectedIndexes())
+            if selected_indices:
+                copy_str = ""
+                prev_row = selected_indices[0].row()
+                for num, cell_idx in enumerate(selected_indices):
+                    if prev_row != cell_idx.row():
+                        prev_row = cell_idx.row()
+                        copy_str += "\n"
+                    elif num != 0:
+                        copy_str += "\t"
+
+                    cell_value = self.current_data_model.get_cell_value(cell_idx.row(), cell_idx.column())
+                    value_str = utils.float_to_string(cell_value, a_precision=15) if cell_value is not None else "0"
+                    copy_str += f"{value_str}"
+
+                QtWidgets.QApplication.clipboard().setText(copy_str)
 
     def paste_cell_value(self):
         if self.current_data_model is not None:

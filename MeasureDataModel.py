@@ -568,7 +568,6 @@ class MeasureDataModel(QAbstractTableModel):
         :return: Значение ячейки или None.
         """
         assert a_row < self.rowCount() and a_column < self.columnCount(), "Задан неверный индекс ячейки!"
-        # assert not self.__is_cell_header(a_row, a_column), "Этой функцией нельзя получить значения из хэдеров"
 
         cell = self.__cells[a_row][a_column]
         cell_value = None
