@@ -707,7 +707,8 @@ class MeasureDataModel(QAbstractTableModel):
         else:
             try:
                 float_value = utils.parse_input(value, a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
-                if float_value != cell_data.get_value() or not cell_data.has_value():
+                if not utils.are_float_equal(float_value, cell_data.get_value()) or not cell_data.has_value():
+                    logging.debug("set_data")
                     cell_data.set_value(float_value)
                 else:
                     result = False

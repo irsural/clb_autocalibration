@@ -271,21 +271,21 @@ class CellConfig:
 
     def __eq__(self, other):
         return other is not None and \
-               self.coefficient == other.coefficient and \
-               self.measure_delay == other.measure_delay and \
-               self.measure_time == other.measure_time and \
-               self.retry_count == other.retry_count and \
-               self.auto_calc_coefficient == other.auto_calc_coefficient and \
-               self.manual_range_enabled == other.manual_range_enabled and \
-               self.manual_range_value == other.manual_range_value and \
-               self.consider_output_value == other.consider_output_value and \
-               self.enable_output_filtering == other.enable_output_filtering and \
-               self.filter_sampling_time == other.filter_sampling_time and \
-               self.filter_samples_count == other.filter_samples_count and \
-               self.coil == other.coil and \
-               self.divider == other.divider and \
-               self.meter == other.meter and \
-               self.extra_parameters == other.extra_parameters
+            utils.are_float_equal(self.coefficient, other.coefficient) and \
+            self.measure_delay == other.measure_delay and \
+            self.measure_time == other.measure_time and \
+            self.retry_count == other.retry_count and \
+            self.auto_calc_coefficient == other.auto_calc_coefficient and \
+            self.manual_range_enabled == other.manual_range_enabled and \
+            self.manual_range_value == other.manual_range_value and \
+            self.consider_output_value == other.consider_output_value and \
+            self.enable_output_filtering == other.enable_output_filtering and \
+            self.filter_sampling_time == other.filter_sampling_time and \
+            self.filter_samples_count == other.filter_samples_count and \
+            self.coil == other.coil and \
+            self.divider == other.divider and \
+            self.meter == other.meter and \
+            self.extra_parameters == other.extra_parameters
 
 
 class EditCellConfigDialog(QtWidgets.QDialog):
@@ -365,7 +365,6 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.shared_parameters = a_shared_parameters
         self.frequency = a_frequency
         self.init_coefficient = a_init_config.coefficient
-
         self.cell_config = None
         self.signal_type = a_signal_type
         self.recover_config(a_init_config)
@@ -415,8 +414,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
     def normalize_edit_value(self, edit: QtWidgets.QLineEdit):
         try:
-            value = utils.parse_input(edit.text(), a_precision=15)
-            edit.setText(utils.float_to_string(value, a_precision=15))
+            value = utils.parse_input(edit.text(), a_precision=20)
+            edit.setText(utils.float_to_string(value, a_precision=20))
         except ValueError:
             edit.setText("0")
         self.update_edit_color(edit)
@@ -427,7 +426,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.ui.measure_delay_spinbox.setValue(a_cell_config.measure_delay)
         self.ui.measure_time_spinbox.setValue(a_cell_config.measure_time)
         self.ui.retry_count_spinbox.setValue(a_cell_config.retry_count)
-        self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient, a_precision=15))
+        self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient, a_precision=20))
 
         self.ui.coefficient_edit.setReadOnly(a_cell_config.auto_calc_coefficient)
         self.ui.auto_coefficient_checkbox.setChecked(a_cell_config.auto_calc_coefficient)
@@ -458,7 +457,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         else:
             coefficient = self.init_coefficient
 
-        self.ui.coefficient_edit.setText(utils.float_to_string(coefficient, a_precision=15))
+        self.ui.coefficient_edit.setText(utils.float_to_string(coefficient, a_precision=20))
         self.ui.coefficient_edit.setReadOnly(a_enable)
 
     def lock_scheme_radios(self):
@@ -512,7 +511,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         except ValueError:
             data_valid = False
 
-        coefficient = utils.parse_input(self.ui.coefficient_edit.text(), a_precision=15)
+        coefficient = utils.parse_input(self.ui.coefficient_edit.text(), a_precision=20)
         if coefficient == 0:
             data_valid = False
 
