@@ -31,15 +31,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
 
-        self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, clb.MIN_VOLTAGE,
-                                                           clb.MAX_VOLTAGE,
-                                                           a_optional_widget=QtWidgets.QLabel("Шаг", self))
-        self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
-
-        self.ui.exact_step_spinbox.setValue(self.settings.exact_step)
-        self.ui.rough_step_spinbox.setValue(self.settings.rough_step)
-        self.ui.common_step_spinbox.setValue(self.settings.common_step)
-
         self.open_first_tab()
 
     def __del__(self):
@@ -50,19 +41,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.settings_stackedwidget.setCurrentIndex(0)
 
     def save(self):
-        fixed_step_list = self.edit_fixed_range_widget.sort_list()
-        if self.settings.fixed_step_list != fixed_step_list:
-            self.settings.fixed_step_list = fixed_step_list
-
-        if self.settings.rough_step != self.ui.rough_step_spinbox.value():
-            self.settings.rough_step = self.ui.rough_step_spinbox.value()
-
-        if self.settings.common_step != self.ui.common_step_spinbox.value():
-            self.settings.common_step = self.ui.common_step_spinbox.value()
-
-        if self.settings.exact_step != self.ui.exact_step_spinbox.value():
-            self.settings.exact_step = self.ui.exact_step_spinbox.value()
-
         return True
 
     def save_and_exit(self):

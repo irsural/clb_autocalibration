@@ -809,14 +809,13 @@ class MeasureManager(QtCore.QObject):
             measure_order_file.write(measures_order)
 
     def __save_shared_measure_parameters(self, a_folder):
-        if self.shared_measure_parameters_changed:
-            shared_parameters_filename = f"{a_folder}/{MeasureManager.SHARED_PARAMETERS_FILENAME}"
+        shared_parameters_filename = f"{a_folder}/{MeasureManager.SHARED_PARAMETERS_FILENAME}"
 
-            with open(shared_parameters_filename, "w") as shared_parameters_file:
-                shared_parameters = json.dumps(self.shared_measure_parameters.serialize_to_dict(),
-                                               ensure_ascii=False, indent=4)
-                shared_parameters_file.write(shared_parameters)
-                self.shared_measure_parameters_changed = False
+        with open(shared_parameters_filename, "w") as shared_parameters_file:
+            shared_parameters = json.dumps(self.shared_measure_parameters.serialize_to_dict(),
+                                           ensure_ascii=False, indent=4)
+            shared_parameters_file.write(shared_parameters)
+            self.shared_measure_parameters_changed = False
 
     def save_current(self, a_folder):
         if self.current_data_model is not None:

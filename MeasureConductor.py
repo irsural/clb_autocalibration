@@ -149,6 +149,8 @@ class MeasureConductor(QtCore.QObject):
         self.current_frequency = clb.MIN_FREQUENCY
         self.current_try = 0
 
+        self.current_cell_is_the_last_in_table = False
+
         self.auto_flash_to_calibrator = False
         self.flash_current_measure = False
 
@@ -197,6 +199,8 @@ class MeasureConductor(QtCore.QObject):
         self.current_amplitude = 0
         self.current_frequency = clb.MIN_FREQUENCY
         self.current_try = 0
+
+        self.current_cell_is_the_last_in_table = False
 
         self.auto_flash_to_calibrator = False
         self.flash_current_measure = False
@@ -373,8 +377,10 @@ class MeasureConductor(QtCore.QObject):
             self.y_out_filter.set_sampling_time(self.current_config.filter_sampling_time)
             self.y_out_filter.resize(self.current_config.filter_samples_count)
 
+            self.current_cell_is_the_last_in_table = self.measure_iterator.is_the_last_cell_in_table()
+
             self.flash_current_measure = self.auto_flash_to_calibrator and \
-                                         self.measure_iterator.is_the_last_cell_in_table() and \
+                                         self.current_cell_is_the_last_in_table and \
                                          self.current_measure_parameters.flash_after_finish
 
             try:

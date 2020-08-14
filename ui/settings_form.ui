@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>672</width>
-    <height>526</height>
+    <width>547</width>
+    <height>359</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,8 +28,8 @@
    <iconset resource="../resources/icons.qrc">
     <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
     <widget class="QWidget" name="layout" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -114,7 +114,7 @@ QListWidget::item {
         </property>
         <item>
          <property name="text">
-          <string>Параметры шага</string>
+          <string>Общий настройки</string>
          </property>
         </item>
        </widget>
@@ -122,7 +122,7 @@ QListWidget::item {
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="0" column="1">
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
       <widget class="QFrame" name="frame">
@@ -150,132 +150,7 @@ QListWidget::item {
           <property name="currentIndex">
            <number>0</number>
           </property>
-          <widget class="QWidget" name="step_parameters_page">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="fixed_range_groupbox">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="title">
-               <string>Фиксированный шаг</string>
-              </property>
-              <layout class="QVBoxLayout" name="edit_fixed_step_widget_layout"/>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <item>
-               <widget class="QGroupBox" name="verticalGroupBox_2">
-                <property name="whatsThis">
-                 <string>Относительный шаг устанавливается в процентах от максимума шкалы поверяемого прибора</string>
-                </property>
-                <property name="title">
-                 <string>Относительный шаг</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <property name="topMargin">
-                  <number>6</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>6</number>
-                 </property>
-                 <item>
-                  <widget class="QLabel" name="label">
-                   <property name="text">
-                    <string>Точный, %</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QDoubleSpinBox" name="exact_step_spinbox">
-                   <property name="decimals">
-                    <number>3</number>
-                   </property>
-                   <property name="maximum">
-                    <double>100.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>0.002000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_2">
-                   <property name="text">
-                    <string>Обычный, %</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QDoubleSpinBox" name="common_step_spinbox">
-                   <property name="decimals">
-                    <number>3</number>
-                   </property>
-                   <property name="maximum">
-                    <double>100.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>0.050000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_3">
-                   <property name="text">
-                    <string>Грубый, %</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QDoubleSpinBox" name="rough_step_spinbox">
-                   <property name="decimals">
-                    <number>3</number>
-                   </property>
-                   <property name="maximum">
-                    <double>100.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>0.500000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
+          <widget class="QWidget" name="step_parameters_page"/>
          </widget>
         </item>
        </layout>
