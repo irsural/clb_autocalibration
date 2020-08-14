@@ -261,11 +261,11 @@ class CellConfig:
                 frequency_idx = frequencies.index(0.)
                 coefficient = coefficients[frequency_idx]
             except ValueError:
-                logging.warning(f'Коэффициент для частоты 0 Гц не задан, будет использован коэффициент по-умолчанию')
+                logging.error(f'Коэффициент для частоты 0 Гц не задан, будет использован коэффициент по-умолчанию')
                 frequencies, coefficients = DEVICE_TO_DEFAULT_COEFS[a_device]
                 frequency_idx = frequencies.index(0.)
                 coefficient = coefficients[frequency_idx]
-                logging.warning(f'Коэффициент по-умолчанию: {coefficient}')
+                logging.error(f'Коэффициент по-умолчанию: {coefficient}')
 
         return coefficient
 

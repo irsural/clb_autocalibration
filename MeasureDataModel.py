@@ -630,8 +630,9 @@ class MeasureDataModel(QAbstractTableModel):
                 units = ""
 
             if role == Qt.DisplayRole:
-                value = utils.float_to_string(cell_data.get_value(displayed_data),
-                                              a_precision=MeasureDataModel.DISPLAY_DATA_PRECISION)
+                cell_value = cell_data.get_value(displayed_data)
+                value = utils.float_to_string(
+                    cell_value, self.get_display_precision(cell_value, MeasureDataModel.DISPLAY_DATA_PRECISION))
             else:
                 # role == Qt.EditRole
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
@@ -640,6 +641,19 @@ class MeasureDataModel(QAbstractTableModel):
             str_value = f"{value}{units}"
 
             return str_value
+
+    @staticmethod
+    def get_display_precision(a_value: float, a_full_precision: int) -> str:
+        """
+        Конвертирует число в строку с учетом количества разрядов до запятой
+        Например для числа 0,123 precision=a_full_precision
+        Для числа 1,234 precision=a_full_precision - 1
+        Для числа 12,345 precision=a_full_precision - 2
+        """
+        value_str = str(a_value)
+        before_decimal_count = len(value_str.split('.')[0])
+        precision = utils.bound(a_full_precision + 1 - before_decimal_count, 0, a_full_precision)
+        return precision
 
     def get_cell_tool_tip(self, a_cell_row: int, a_cell_column: int):
         cell_config = self.__cells[a_cell_row][a_cell_column].config

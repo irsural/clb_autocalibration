@@ -71,7 +71,7 @@ class MeasureConductor(QtCore.QObject):
         # Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         # Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
-        Stage.MEASURE: "Измерение...",
+        # Stage.MEASURE: "Измерение...",
         # Stage.END_MEASURE: "Конец измерения",
         # Stage.ERRORS_OUTPUT: "Вывод ошибок",
         # Stage.START_FLASH: "Начало прошивки",
@@ -612,8 +612,8 @@ class MeasureConductor(QtCore.QObject):
 
                         if self.next_error_index == error_index:
                             error_code = self.netvars.error_code.get()
-                            logging.warning(f"Ошибка №{error_index + 1}: "
-                                            f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
+                            logging.error(f"Ошибка №{error_index + 1}: "
+                                          f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
 
                             next_error_index = error_index + 1
                             if next_error_index < error_count:
