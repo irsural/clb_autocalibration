@@ -1,12 +1,14 @@
 from collections import namedtuple
-from enum import IntEnum
 from typing import List, Union
+from enum import IntEnum
 import logging
+import copy
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
 from irspy.qt.custom_widgets.QTableDelegates import ComboboxCellDelegate
+from irspy.qt.object_fields_visualizer import ObjectFieldsVisualizer
 from irspy.clb import calibrator_constants as clb
 from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
@@ -128,6 +130,34 @@ class CellConfig:
         WORK_VALUE = 0
         DEFAULT_VALUE = 1
 
+    class AdditionalParameters:
+        # Эта структура специально сделана классом, чтобы можно было передать ее в ObjectFieldsVisualizer
+
+        def __init__(self):
+            self.deviation_threshold = 0.02
+            self.confidence_interval_threshold = 0.02
+
+        def __eq__(self, other):
+            return other is not None and \
+                utils.are_float_equal(self.deviation_threshold, other.deviation_threshold) and \
+                utils.are_float_equal(self.confidence_interval_threshold, other.confidence_interval_threshold)
+
+        def serialize_to_dict(self):
+            data_dict = {
+                "deviation_threshold": self.deviation_threshold,
+                "confidence_interval_threshold": self.confidence_interval_threshold,
+            }
+            return data_dict
+
+        @classmethod
+        def from_dict(cls, a_data_dict: dict):
+            additional_parameters = cls()
+
+            additional_parameters.deviation_threshold = float(a_data_dict["deviation_threshold"])
+            additional_parameters.confidence_interval_threshold = float(a_data_dict["confidence_interval_threshold"])
+
+            return additional_parameters
+
     def __init__(self):
         self.coefficient = 1.
         self.measure_delay = 100
@@ -148,7 +178,10 @@ class CellConfig:
         self.divider = CellConfig.Divider.NONE
         self.meter = CellConfig.Meter.AMPERES
 
+        # Это дополнительные сетевые переменные
         self.extra_parameters: List[CellConfig.ExtraParameter] = []
+        # А это просто переменные
+        self.additional_parameters = CellConfig.AdditionalParameters()
 
     def serialize_to_dict(self):
         data_dict = {
@@ -171,7 +204,8 @@ class CellConfig:
             "divider": int(self.divider),
             "meter": int(self.meter),
 
-            "extra_parameters": self.extra_parameters
+            "extra_parameters": self.extra_parameters,
+            "additional_parameters": self.additional_parameters.serialize_to_dict(),
         }
         return data_dict
 
@@ -200,6 +234,9 @@ class CellConfig:
 
         cell_config.extra_parameters = [CellConfig.ExtraParameter(*extra_parameter)
                                         for extra_parameter in a_data_dict["extra_parameters"]]
+
+        cell_config.additional_parameters = CellConfig.AdditionalParameters.from_dict(
+            a_data_dict["additional_parameters"])
 
         return cell_config
 
@@ -285,7 +322,8 @@ class CellConfig:
             self.coil == other.coil and \
             self.divider == other.divider and \
             self.meter == other.meter and \
-            self.extra_parameters == other.extra_parameters
+            self.extra_parameters == other.extra_parameters and \
+            self.additional_parameters == other.additional_parameters
 
 
 class EditCellConfigDialog(QtWidgets.QDialog):
@@ -368,6 +406,12 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.cell_config = None
         self.signal_type = a_signal_type
         self.recover_config(a_init_config)
+
+        self.additional_parameters = copy.deepcopy(a_init_config.additional_parameters)
+        visuzlizer = ObjectFieldsVisualizer(self.additional_parameters, self)
+        visuzlizer.add_setting("Порог отклонения", "deviation_threshold")
+        visuzlizer.add_setting("Порог болтанки (95%)", "confidence_interval_threshold")
+        self.ui.additional_parameters_layout.addWidget(visuzlizer)
 
         self.lock_scheme_radios()
         self.scheme_changed()
@@ -536,6 +580,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             self.cell_config.coil, self.cell_config.divider, self.cell_config.meter = self.__get_scheme()
 
             self.cell_config.extra_parameters = extra_parameters
+
+            self.cell_config.additional_parameters = self.additional_parameters
 
             self.accept()
         else:

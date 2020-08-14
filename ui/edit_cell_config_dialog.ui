@@ -313,7 +313,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -614,6 +614,11 @@ selection-background-color: rgb(170, 170, 255);</string>
         <attribute name="title">
          <string>Доп. параметры</string>
         </attribute>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="additional_parameters_layout"/>
+         </item>
+        </layout>
        </widget>
       </widget>
      </item>
@@ -692,8 +697,8 @@ selection-background-color: rgb(170, 170, 255);</string>
  </resources>
  <connections/>
  <buttongroups>
+  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

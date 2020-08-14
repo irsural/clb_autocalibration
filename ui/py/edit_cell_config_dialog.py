@@ -293,6 +293,14 @@ class Ui_edit_cell_config_dialog(object):
         self.extra_variables_table.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout_6.addWidget(self.extra_variables_table)
         self.tabWidget.addTab(self.tab_2, "")
+        self.tab_3 = QtWidgets.QWidget()
+        self.tab_3.setObjectName("tab_3")
+        self.gridLayout_5 = QtWidgets.QGridLayout(self.tab_3)
+        self.gridLayout_5.setObjectName("gridLayout_5")
+        self.additional_parameters_layout = QtWidgets.QGridLayout()
+        self.additional_parameters_layout.setObjectName("additional_parameters_layout")
+        self.gridLayout_5.addLayout(self.additional_parameters_layout, 0, 0, 1, 1)
+        self.tabWidget.addTab(self.tab_3, "")
         self.main_widget_layout.addWidget(self.tabWidget)
         self.verticalLayout.addLayout(self.main_widget_layout)
         self.buttons_layout = QtWidgets.QHBoxLayout()
@@ -309,7 +317,7 @@ class Ui_edit_cell_config_dialog(object):
         self.verticalLayout.addLayout(self.buttons_layout)
 
         self.retranslateUi(edit_cell_config_dialog)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(edit_cell_config_dialog)
         edit_cell_config_dialog.setTabOrder(self.aci_radio, self.dci_radio)
         edit_cell_config_dialog.setTabOrder(self.dci_radio, self.acv_radio)
@@ -388,7 +396,8 @@ class Ui_edit_cell_config_dialog(object):
         item = self.extra_variables_table.horizontalHeaderItem(5)
         item.setText(_translate("edit_cell_config_dialog", "Значение\n"
 "по-умолчанию"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("edit_cell_config_dialog", "Дополнительные переменные"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("edit_cell_config_dialog", "Сетевые переменные"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("edit_cell_config_dialog", "Доп. параметры"))
         self.accept_button.setText(_translate("edit_cell_config_dialog", "Принять"))
         self.cancel_button.setText(_translate("edit_cell_config_dialog", "Отмена"))
 from irspy.qt.custom_widgets.CustomLineEdit import QEditDoubleClick
