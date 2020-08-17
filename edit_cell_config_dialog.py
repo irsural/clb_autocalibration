@@ -418,9 +418,11 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         for radio in self.radio_to_coil:
             radio.toggled.connect(self.scheme_changed)
+            radio.toggled.connect(self.calculate_auto_coefficient)
 
         for radio in self.radio_to_divider:
             radio.toggled.connect(self.scheme_changed)
+            radio.toggled.connect(self.calculate_auto_coefficient)
 
         self.ui.auto_coefficient_checkbox.toggled.connect(self.auto_coefficient_checkbox_toggled)
         self.ui.manual_range_checkbox.toggled.connect(self.ui.manual_range_spinbox.setEnabled)
@@ -530,6 +532,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.meter_to_radio[meter].setChecked(True)
         self.lock_scheme_radios()
 
+    def calculate_auto_coefficient(self):
         # Пересчитывает коэффициент, если включен авто рассчет
         self.auto_coefficient_checkbox_toggled(self.ui.auto_coefficient_checkbox.isChecked())
 
