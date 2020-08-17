@@ -255,8 +255,9 @@ class MeasureDataModel(QAbstractTableModel):
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
 
-    def __init__(self, a_name: str, a_saved=False, a_init_cells: [List[List[CellData]]] = None,
-                 a_measured_parameters=None, a_enabled=False, a_parent=None):
+    def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_saved=False,
+                 a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None, a_enabled=False,
+                 a_parent=None):
         super().__init__(a_parent)
 
         self.__name = a_name
@@ -267,6 +268,9 @@ class MeasureDataModel(QAbstractTableModel):
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
         self.__displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
+
+        assert a_shared_parameters is not None, "ERROR, a_shared_parameters is None"
+        self.__shared_measure_parameters: SharedMeasureParameters = a_shared_parameters
 
         self.__signal_type = self.__measure_parameters.signal_type
         self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
@@ -291,7 +295,7 @@ class MeasureDataModel(QAbstractTableModel):
         return data_dict
 
     @classmethod
-    def from_dict(cls, a_measure_name: str, a_data_dict: dict):
+    def from_dict(cls, a_measure_name: str, a_shared_parameters: SharedMeasureParameters, a_data_dict: dict):
         name_in_dict = a_data_dict["name"]
         assert a_measure_name == name_in_dict, "Имена в измерении и в имени файла должны совпадать!"
 
@@ -313,8 +317,8 @@ class MeasureDataModel(QAbstractTableModel):
         measure_parameters = MeasureParameters.from_dict(a_data_dict["measure_parameters"])
         enabled = a_data_dict["enabled"]
 
-        return cls(a_name=a_measure_name, a_saved=True, a_init_cells=cells, a_measured_parameters=measure_parameters,
-                   a_enabled=enabled)
+        return cls(a_name=a_measure_name, a_shared_parameters=a_shared_parameters, a_saved=True, a_init_cells=cells,
+                   a_measured_parameters=measure_parameters, a_enabled=enabled)
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -421,10 +425,11 @@ class MeasureDataModel(QAbstractTableModel):
             self.__cell_to_compare = None
         self.__compare_cells()
 
-    def update_cell_config_coefficients(self, a_shared_parameters: SharedMeasureParameters):
+    def update_shared_parameters(self, a_shared_parameters: SharedMeasureParameters):
+        self.__shared_measure_parameters = a_shared_parameters
         for _, column, cell in self.__get_cells_iterator():
             frequency = self.get_frequency(column) if self.__signal_type_is_ac else 0
-            if cell.update_coefficient(frequency, a_shared_parameters):
+            if cell.update_coefficient(frequency, self.__shared_measure_parameters):
                 self.set_save_state(False)
 
     def add_row(self, a_row: int):
@@ -708,7 +713,6 @@ class MeasureDataModel(QAbstractTableModel):
             try:
                 float_value = utils.parse_input(value, a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
                 if not utils.are_float_equal(float_value, cell_data.get_value()) or not cell_data.has_value():
-                    logging.debug("set_data")
                     cell_data.set_value(float_value)
                 else:
                     result = False
@@ -716,7 +720,14 @@ class MeasureDataModel(QAbstractTableModel):
                 result = False
 
         if result:
-            self.dataChanged.emit(index, index)
+            if index.row() == MeasureDataModel.HEADER_ROW and self.__signal_type_is_ac:
+                # Изменение частоты для переменного сигнала, нужно пересчитать коэффициент для всех авто ячеек
+                frequency = self.get_frequency(index.column())
+                for row in range(MeasureDataModel.HEADER_ROW + 1, self.rowCount()):
+                    cell_data = self.__cells[row][index.column()]
+                    cell_data.update_coefficient(frequency, self.__shared_measure_parameters)
+
+                self.dataChanged.emit(index, index)
             self.set_save_state(False)
 
         return result

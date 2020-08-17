@@ -238,7 +238,9 @@ class MeasureManager(QtCore.QObject):
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
         new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
-        measure_data_model = a_measure_data_model if a_measure_data_model else MeasureDataModel(new_name)
+        measure_data_model = a_measure_data_model if a_measure_data_model else \
+            MeasureDataModel(new_name, self.shared_measure_parameters)
+
         self.measures.insert(row_index, new_name, measure_data_model)
         measure_data_model.data_save_state_changed.connect(self.set_measure_save_state)
 
@@ -363,7 +365,7 @@ class MeasureManager(QtCore.QObject):
     def __calculate_coefficients_for_all_auto_cells(self):
         if self.current_data_model is not None:
             for data_model in self.measures.values():
-                data_model.update_cell_config_coefficients(self.shared_measure_parameters)
+                data_model.update_shared_parameters(self.shared_measure_parameters)
 
     def lock_selected_cells(self, a_lock):
         if self.current_data_model is not None:
@@ -892,7 +894,7 @@ class MeasureManager(QtCore.QObject):
                         data_dict = json.loads(measure_file.read())
 
                         measure_name = measure_filename[:measure_filename.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
-                        data_model = MeasureDataModel.from_dict(measure_name, data_dict)
+                        data_model = MeasureDataModel.from_dict(measure_name, self.shared_measure_parameters, data_dict)
                         self.new_measure(measure_name, data_model)
                 else:
                     QtWidgets.QMessageBox.warning(None, "Предупреждение",
