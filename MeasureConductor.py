@@ -273,7 +273,8 @@ class MeasureConductor(QtCore.QObject):
 
     def __retry(self):
         self.current_try += 1
-        logging.warning(f"Произошел сбой. Попытка:{self.current_try}/{self.current_config.retry_count}")
+        logging.warning(f"Произошел сбой. Попытка:{self.current_try}/"
+                        f"{self.current_config.additional_parameters.retry_count}")
 
         self.start_time_point = None
         # stop() чтобы таймеры возвращали верное значение time_passed()
@@ -374,8 +375,8 @@ class MeasureConductor(QtCore.QObject):
                 clb.is_dc_signal[self.current_measure_parameters.signal_type] else self.netvars.fast_adc_slow
 
             self.y_out_filter.stop()
-            self.y_out_filter.set_sampling_time(self.current_config.filter_sampling_time)
-            self.y_out_filter.resize(self.current_config.filter_samples_count)
+            self.y_out_filter.set_sampling_time(self.current_config.additional_parameters.filter_sampling_time)
+            self.y_out_filter.resize(self.current_config.additional_parameters.filter_samples_count)
 
             self.current_cell_is_the_last_in_table = self.measure_iterator.is_the_last_cell_in_table()
 
@@ -482,8 +483,8 @@ class MeasureConductor(QtCore.QObject):
         elif self.__stage == MeasureConductor.Stage.SET_METER_RANGE:
             assert self.current_config.coefficient != 0, "Коэффициент преобразования не может быть равен нулю!"
 
-            if self.current_config.manual_range_enabled:
-                range_ = self.current_config.manual_range_value
+            if self.current_config.additional_parameters.manual_range_enabled:
+                range_ = self.current_config.additional_parameters.manual_range_value
             else:
                 range_ = self.current_amplitude / self.current_config.coefficient
 
@@ -569,7 +570,9 @@ class MeasureConductor(QtCore.QObject):
                 self.multimeter.start_measure()
 
                 self.y_out = self.y_out_network_variable.get()
-                if self.current_config.consider_output_value and self.current_config.enable_output_filtering:
+
+                if self.current_config.consider_output_value and \
+                        self.current_config.additional_parameters.enable_output_filtering:
                     self.y_out_filter.restart()
 
                 logging.info(f"Измерение... ({self.current_config.measure_time} с)")
@@ -636,7 +639,7 @@ class MeasureConductor(QtCore.QObject):
                     self.wait_error_clear_timer.start()
 
                 if self.wait_error_clear_timer.check():
-                    if self.current_try >= self.current_config.retry_count:
+                    if self.current_try >= self.current_config.additional_parameters.retry_count:
                         logging.error(f"Попытки закончились. Измерение прервано.")
                         self.stop()
                     else:
@@ -700,7 +703,7 @@ class MeasureConductor(QtCore.QObject):
 
     def add_new_measured_value(self, a_measured_value: float, a_time: float):
         self.y_out_filter.stop()
-        if self.current_config.consider_output_value and self.current_config.enable_output_filtering:
+        if self.current_config.consider_output_value and self.current_config.additional_parameters.enable_output_filtering:
             out_on_device = self.y_out_filter.get_value()
         else:
             out_on_device = self.y_out

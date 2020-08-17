@@ -137,15 +137,39 @@ class CellConfig:
             self.deviation_threshold = 0.02
             self.confidence_interval_threshold = 0.02
 
+            self.retry_count = 3
+
+            self.manual_range_enabled = False
+            self.manual_range_value = 1.
+
+            self.enable_output_filtering = True
+            self.filter_sampling_time = 0.1
+            self.filter_samples_count = 100
+
         def __eq__(self, other):
             return other is not None and \
                 utils.are_float_equal(self.deviation_threshold, other.deviation_threshold) and \
-                utils.are_float_equal(self.confidence_interval_threshold, other.confidence_interval_threshold)
+                utils.are_float_equal(self.confidence_interval_threshold, other.confidence_interval_threshold) and \
+                self.retry_count == other.retry_count and \
+                self.manual_range_enabled == other.manual_range_enabled and \
+                self.manual_range_value == other.manual_range_value and \
+                self.enable_output_filtering == other.enable_output_filtering and \
+                self.filter_sampling_time == other.filter_sampling_time and \
+                self.filter_samples_count == other.filter_samples_count
 
         def serialize_to_dict(self):
             data_dict = {
                 "deviation_threshold": self.deviation_threshold,
                 "confidence_interval_threshold": self.confidence_interval_threshold,
+
+                "retry_count": self.retry_count,
+
+                "manual_range_enabled": self.manual_range_enabled,
+                "manual_range_value": self.manual_range_value,
+
+                "enable_output_filtering": self.enable_output_filtering,
+                "filter_sampling_time": self.filter_sampling_time,
+                "filter_samples_count": self.filter_samples_count,
             }
             return data_dict
 
@@ -156,23 +180,25 @@ class CellConfig:
             additional_parameters.deviation_threshold = float(a_data_dict["deviation_threshold"])
             additional_parameters.confidence_interval_threshold = float(a_data_dict["confidence_interval_threshold"])
 
+            additional_parameters.retry_count = int(a_data_dict["retry_count"])
+
+            additional_parameters.manual_range_enabled = bool(a_data_dict["manual_range_enabled"])
+            additional_parameters.manual_range_value = float(a_data_dict["manual_range_value"])
+
+            additional_parameters.enable_output_filtering = bool(a_data_dict["enable_output_filtering"])
+            additional_parameters.filter_sampling_time = float(a_data_dict["filter_sampling_time"])
+            additional_parameters.filter_samples_count = int(a_data_dict["filter_samples_count"])
+
             return additional_parameters
 
     def __init__(self):
         self.coefficient = 1.
         self.measure_delay = 100
         self.measure_time = 300
-        self.retry_count = 1
 
         self.auto_calc_coefficient = True
 
-        self.manual_range_enabled = False
-        self.manual_range_value = 1.
-
         self.consider_output_value = False
-        self.enable_output_filtering = False
-        self.filter_sampling_time = 0.1
-        self.filter_samples_count = 100
 
         self.coil = CellConfig.Coil.NONE
         self.divider = CellConfig.Divider.NONE
@@ -188,17 +214,10 @@ class CellConfig:
             "coefficient": self.coefficient,
             "measure_delay": self.measure_delay,
             "measure_time": self.measure_time,
-            "retry_count": self.retry_count,
 
             "auto_calc_coefficient": self.auto_calc_coefficient,
 
-            "manual_range_enabled": self.manual_range_enabled,
-            "manual_range_value": self.manual_range_value,
-
             "consider_output_value": self.consider_output_value,
-            "enable_output_filtering": self.enable_output_filtering,
-            "filter_sampling_time": self.filter_sampling_time,
-            "filter_samples_count": self.filter_samples_count,
 
             "coil": int(self.coil),
             "divider": int(self.divider),
@@ -216,17 +235,10 @@ class CellConfig:
         cell_config.coefficient = float(a_data_dict["coefficient"])
         cell_config.measure_delay = int(a_data_dict["measure_delay"])
         cell_config.measure_time = int(a_data_dict["measure_time"])
-        cell_config.retry_count = int(a_data_dict["retry_count"])
 
         cell_config.auto_calc_coefficient = bool(a_data_dict["auto_calc_coefficient"])
 
-        cell_config.manual_range_enabled = bool(a_data_dict["manual_range_enabled"])
-        cell_config.manual_range_value = float(a_data_dict["manual_range_value"])
-
         cell_config.consider_output_value = bool(a_data_dict["consider_output_value"])
-        cell_config.enable_output_filtering = bool(a_data_dict["enable_output_filtering"])
-        cell_config.filter_sampling_time = float(a_data_dict["filter_sampling_time"])
-        cell_config.filter_samples_count = int(a_data_dict["filter_samples_count"])
 
         cell_config.coil = CellConfig.Coil(int(a_data_dict["coil"]))
         cell_config.divider = CellConfig.Divider(int(a_data_dict["divider"]))
@@ -311,14 +323,8 @@ class CellConfig:
             utils.are_float_equal(self.coefficient, other.coefficient) and \
             self.measure_delay == other.measure_delay and \
             self.measure_time == other.measure_time and \
-            self.retry_count == other.retry_count and \
             self.auto_calc_coefficient == other.auto_calc_coefficient and \
-            self.manual_range_enabled == other.manual_range_enabled and \
-            self.manual_range_value == other.manual_range_value and \
             self.consider_output_value == other.consider_output_value and \
-            self.enable_output_filtering == other.enable_output_filtering and \
-            self.filter_sampling_time == other.filter_sampling_time and \
-            self.filter_samples_count == other.filter_samples_count and \
             self.coil == other.coil and \
             self.divider == other.divider and \
             self.meter == other.meter and \
@@ -408,10 +414,16 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         self.recover_config(a_init_config)
 
         self.additional_parameters = copy.deepcopy(a_init_config.additional_parameters)
-        visuzlizer = ObjectFieldsVisualizer(self.additional_parameters, self)
-        visuzlizer.add_setting("Порог отклонения", "deviation_threshold")
-        visuzlizer.add_setting("Порог болтанки (95%)", "confidence_interval_threshold")
-        self.ui.additional_parameters_layout.addWidget(visuzlizer)
+        visualizer = ObjectFieldsVisualizer(self.additional_parameters, self)
+        visualizer.add_setting("Порог отклонения", "deviation_threshold")
+        visualizer.add_setting("Порог болтанки (95%)", "confidence_interval_threshold")
+        visualizer.add_setting("Количество попыток", "retry_count")
+        visualizer.add_setting("Вкл. ручной диапазон измерителя", "manual_range_enabled")
+        visualizer.add_setting("Ручной диапазон", "manual_range_value")
+        visualizer.add_setting("Фильтрация выходного значения", "enable_output_filtering")
+        visualizer.add_setting("Время дискретизации (фильтр)", "filter_sampling_time")
+        visualizer.add_setting("Количество точек (фильтр)", "filter_samples_count")
+        self.ui.additional_parameters_layout.addWidget(visualizer)
 
         self.lock_scheme_radios()
         self.scheme_changed()
@@ -425,7 +437,6 @@ class EditCellConfigDialog(QtWidgets.QDialog):
             radio.toggled.connect(self.calculate_auto_coefficient)
 
         self.ui.auto_coefficient_checkbox.toggled.connect(self.auto_coefficient_checkbox_toggled)
-        self.ui.manual_range_checkbox.toggled.connect(self.ui.manual_range_spinbox.setEnabled)
 
         self.ui.add_extra_param_button.clicked.connect(self.add_extra_param_button_clicked)
         self.ui.remove_extra_param_button.clicked.connect(self.remove_extra_param_button_clicked)
@@ -471,20 +482,12 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
         self.ui.measure_delay_spinbox.setValue(a_cell_config.measure_delay)
         self.ui.measure_time_spinbox.setValue(a_cell_config.measure_time)
-        self.ui.retry_count_spinbox.setValue(a_cell_config.retry_count)
         self.ui.coefficient_edit.setText(utils.float_to_string(a_cell_config.coefficient, a_precision=20))
 
         self.ui.coefficient_edit.setReadOnly(a_cell_config.auto_calc_coefficient)
         self.ui.auto_coefficient_checkbox.setChecked(a_cell_config.auto_calc_coefficient)
 
-        self.ui.manual_range_checkbox.setChecked(a_cell_config.manual_range_enabled)
-        self.ui.manual_range_spinbox.setValue(a_cell_config.manual_range_value)
-        self.ui.manual_range_spinbox.setEnabled(a_cell_config.manual_range_enabled)
-
         self.ui.consider_output_value_checkbox.setChecked(a_cell_config.consider_output_value)
-        self.ui.enable_output_filtering_checkbox.setChecked(a_cell_config.enable_output_filtering)
-        self.ui.sampling_time_spinbox.setValue(a_cell_config.filter_sampling_time)
-        self.ui.filter_points_count_spinbox.setValue(a_cell_config.filter_samples_count)
 
         self.coil_to_radio[a_cell_config.coil].setChecked(True)
         self.divider_to_radio[a_cell_config.divider].setChecked(True)
@@ -567,18 +570,11 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
             self.cell_config.measure_delay = self.ui.measure_delay_spinbox.value()
             self.cell_config.measure_time = self.ui.measure_time_spinbox.value()
-            self.cell_config.retry_count = self.ui.retry_count_spinbox.value()
             self.cell_config.coefficient = coefficient
 
             self.cell_config.auto_calc_coefficient = self.ui.auto_coefficient_checkbox.isChecked()
 
-            self.cell_config.manual_range_enabled = self.ui.manual_range_checkbox.isChecked()
-            self.cell_config.manual_range_value = self.ui.manual_range_spinbox.value()
-
             self.cell_config.consider_output_value = self.ui.consider_output_value_checkbox.isChecked()
-            self.cell_config.enable_output_filtering = self.ui.enable_output_filtering_checkbox.isChecked()
-            self.cell_config.filter_sampling_time = self.ui.sampling_time_spinbox.value()
-            self.cell_config.filter_samples_count = self.ui.filter_points_count_spinbox.value()
 
             self.cell_config.coil, self.cell_config.divider, self.cell_config.meter = self.__get_scheme()
 
