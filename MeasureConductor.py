@@ -567,13 +567,7 @@ class MeasureConductor(QtCore.QObject):
                 measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
                 self.measure_duration_timer.start(measure_duration)
 
-                self.multimeter.start_measure()
-
-                self.y_out = self.y_out_network_variable.get()
-
-                if self.current_config.consider_output_value and \
-                        self.current_config.additional_parameters.enable_output_filtering:
-                    self.y_out_filter.restart()
+                self.start_multimeter_measure()
 
                 logging.info(f"Измерение... ({self.current_config.measure_time} с)")
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -595,13 +589,16 @@ class MeasureConductor(QtCore.QObject):
 
                     self.add_new_measured_value(measured, time)
 
-                    self.multimeter.start_measure()
+                    self.start_multimeter_measure()
 
                     # Лайфхак(говнокод), так будет сделано ровно одно измерение
                     if self.current_config.measure_time == 0:
                         self.measure_duration_timer.start(1e-6)
             else:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
+
+                if self.current_cell_is_the_last_in_table:
+                    self.measure_manager.update_measure_status(self.current_cell_position.measure_name)
 
                 self.start_time_point = None
                 # stop() чтобы таймеры возвращали верное значение time_passed()
@@ -677,6 +674,14 @@ class MeasureConductor(QtCore.QObject):
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
+    def start_multimeter_measure(self):
+        self.multimeter.start_measure()
+        self.y_out = self.y_out_network_variable.get()
+
+        if self.current_config.consider_output_value and \
+                self.current_config.additional_parameters.enable_output_filtering:
+            self.y_out_filter.restart()
+
     def set_extra_variables(self, a_state: CellConfig.ExtraParameterState):
         variables_ready = []
         for variable in self.extra_variables:
@@ -705,8 +710,10 @@ class MeasureConductor(QtCore.QObject):
         self.y_out_filter.stop()
         if self.current_config.consider_output_value and self.current_config.additional_parameters.enable_output_filtering:
             out_on_device = self.y_out_filter.get_value()
+            logging.debug(("filter", out_on_device))
         else:
             out_on_device = self.y_out
+            logging.debug(("y_out", out_on_device))
 
         out_measured = a_measured_value * self.current_config.coefficient
 

@@ -91,7 +91,8 @@ class MeasureManager(QtCore.QObject):
     class MeasureColumn(IntEnum):
         NAME = 0
         SETTINGS = 1
-        ENABLE = 2
+        STATUS = 2
+        ENABLE = 3
 
     class IterationType(IntEnum):
         START_ALL = 0
@@ -113,6 +114,16 @@ class MeasureManager(QtCore.QObject):
 
     new_value_measured = QtCore.pyqtSignal(float, float)
 
+    STATUS_TO_PIXMAP = {
+        MeasureDataModel.Status.NOT_CHECKED: "",
+        MeasureDataModel.Status.BAD: ":/icons/icons/warning_2.png",
+        MeasureDataModel.Status.GOOD: ":/icons/icons/medal.png",
+    }
+
+    SETTINGS_COLUMN_WIDTH = 55
+    STATUS_COLUMN_WIDTH = 40
+    ENABLE_COLUMN_WIDTH = 40
+
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
                  a_settings: Settings, a_parent=None):
         # a_parent специально не передается в super, потому что иначе MeasureManager не удаляется в MainWindow при
@@ -124,12 +135,15 @@ class MeasureManager(QtCore.QObject):
         self.measures_table = a_measures_table
         self.measures_table.setRowCount(0)
 
-        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.SETTINGS, 70)
-        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.ENABLE, 50)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.SETTINGS, MeasureManager.SETTINGS_COLUMN_WIDTH)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.STATUS, MeasureManager.STATUS_COLUMN_WIDTH)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.ENABLE, MeasureManager.ENABLE_COLUMN_WIDTH)
 
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.NAME,
                                                                     QtWidgets.QHeaderView.Stretch)
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.ENABLE,
+                                                                    QtWidgets.QHeaderView.Fixed)
+        self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.STATUS,
                                                                     QtWidgets.QHeaderView.Fixed)
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.SETTINGS,
                                                                     QtWidgets.QHeaderView.Fixed)
@@ -243,17 +257,20 @@ class MeasureManager(QtCore.QObject):
 
         self.measures.insert(row_index, new_name, measure_data_model)
         measure_data_model.data_save_state_changed.connect(self.set_measure_save_state)
+        measure_data_model.status_changed.connect(self.__set_measure_status)
 
-        self.add_measure_in_table(row_index, new_name, measure_data_model.is_enabled())
+        self.add_measure_in_table(row_index, new_name, measure_data_model.is_enabled(), measure_data_model.get_status())
 
         self.set_measure_save_state(new_name, measure_data_model.is_saved())
         self.measures_table.setCurrentCell(row_index, MeasureManager.MeasureColumn.NAME)
 
-    def add_measure_in_table(self, a_row_index: int, a_name: str, a_enabled: bool):
+    def add_measure_in_table(self, a_row_index: int, a_name: str, a_enabled: bool, a_status: MeasureDataModel.Status):
         self.measures_table.insertRow(a_row_index)
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.NAME,
                                     QtWidgets.QTableWidgetItem(a_name))
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.SETTINGS,
+                                    QtWidgets.QTableWidgetItem())
+        self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.STATUS,
                                     QtWidgets.QTableWidgetItem())
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.ENABLE,
                                     QtWidgets.QTableWidgetItem())
@@ -263,6 +280,11 @@ class MeasureManager(QtCore.QObject):
         self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.SETTINGS,
                                           qt_utils.wrap_in_layout(button))
         button.clicked.connect(self.edit_measure_parameters_button_clicked)
+
+        status_label = QtWidgets.QLabel()
+        self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.STATUS,
+                                          qt_utils.wrap_in_layout(status_label))
+        self.__set_status_icon(status_label, a_status)
 
         cb = QtWidgets.QCheckBox()
         self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
@@ -615,17 +637,52 @@ class MeasureManager(QtCore.QObject):
 
     def set_measure_save_state(self, a_measure_name: str, a_saved: bool):
         for row in range(self.measures_table.rowCount()):
-            name_item, param_item, enable_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME), \
-                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS), \
-                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.ENABLE),
+            name_item, param_item, status_item, enable_item = \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.NAME), \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS), \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.STATUS), \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.ENABLE),
+
             if name_item.text() == a_measure_name:
                 color = MeasureManager.SAVED_COLOR if a_saved else MeasureManager.UNSAVED_COLOR
                 name_item.setBackground(color)
                 param_item.setBackground(color)
+                status_item.setBackground(color)
                 enable_item.setBackground(color)
                 break
         else:
             assert False, f"Не найдено измерение с именем {a_measure_name}"
+
+    def update_all_measures_status(self):
+        if self.current_data_model is not None:
+            for measure_name, data_model in self.measures.items():
+                data_model.update_status()
+                self.__set_measure_status(measure_name, data_model.get_status())
+
+    def update_measure_status(self, a_measure_name: str):
+        data_model = self.measures[a_measure_name]
+        data_model.update_status()
+        self.__set_measure_status(a_measure_name, data_model.get_status())
+
+    def __set_measure_status(self, a_measure_name: str, a_status: MeasureDataModel.Status):
+        for row in range(self.measures_table.rowCount()):
+            name_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME)
+
+            if name_item.text() == a_measure_name:
+                status_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.STATUS)
+                status_label: QtWidgets.QLabel = qt_utils.unwrap_from_layout(status_widget)
+                self.__set_status_icon(status_label, a_status)
+                break
+        else:
+            assert False, f"Не найдено измерение с именем {a_measure_name}"
+
+    @staticmethod
+    def __set_status_icon(a_status_label: QtWidgets.QLabel, a_status: MeasureDataModel.Status):
+        pixmap = QtGui.QPixmap(MeasureManager.STATUS_TO_PIXMAP[a_status])
+        # noinspection PyTypeChecker
+        a_status_label.setPixmap(pixmap.scaled(MeasureManager.STATUS_COLUMN_WIDTH / 1.5,
+                                               MeasureManager.STATUS_COLUMN_WIDTH / 1.5,
+                                               QtCore.Qt.KeepAspectRatio))
 
     @utils.exception_decorator
     def edit_measure_parameters_button_clicked(self, _):

@@ -253,17 +253,24 @@ class MeasureDataModel(QAbstractTableModel):
     DISPLAY_DATA_PRECISION = 6
     EDIT_DATA_PRECISION = 20
 
+    class Status(IntEnum):
+        NOT_CHECKED = 0
+        BAD = 1
+        GOOD = 2
+
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
+    status_changed = QtCore.pyqtSignal(str, Status)
 
     def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_saved=False,
-                 a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None, a_enabled=False,
-                 a_parent=None):
+                 a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None,
+                 a_status: Status = Status.NOT_CHECKED, a_enabled=False, a_parent=None):
         super().__init__(a_parent)
 
         self.__name = a_name
         self.__saved = a_saved
         self.__cells = a_init_cells if a_init_cells is not None else [[CellData()]]
         self.__measure_parameters = a_measured_parameters if a_measured_parameters else MeasureParameters()
+        self.__status: MeasureDataModel.Status = a_status
         self.__enabled = a_enabled
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
@@ -288,6 +295,7 @@ class MeasureDataModel(QAbstractTableModel):
             "name": self.__name,
             "row_count": self.rowCount(),
             "column_count": self.columnCount(),
+            "status": int(self.__status),
             "enabled": self.__enabled,
             "cells": self.__serialize_cells_to_dict(),
             "measure_parameters": self.__measure_parameters.serialize_to_dict(),
@@ -315,10 +323,11 @@ class MeasureDataModel(QAbstractTableModel):
         assert all([cell is not None for cell in cells])
 
         measure_parameters = MeasureParameters.from_dict(a_data_dict["measure_parameters"])
+        status = MeasureDataModel.Status(a_data_dict["status"])
         enabled = a_data_dict["enabled"]
 
         return cls(a_name=a_measure_name, a_shared_parameters=a_shared_parameters, a_saved=True, a_init_cells=cells,
-                   a_measured_parameters=measure_parameters, a_enabled=enabled)
+                   a_measured_parameters=measure_parameters, a_status=status, a_enabled=enabled)
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -354,6 +363,9 @@ class MeasureDataModel(QAbstractTableModel):
     def set_enabled(self, a_enabled: bool):
         self.__enabled = a_enabled
         self.set_save_state(False)
+
+    def get_status(self) -> Status:
+        return self.__status
 
     @staticmethod
     def __is_cell_header(a_row, a_column):
@@ -432,6 +444,19 @@ class MeasureDataModel(QAbstractTableModel):
             if cell.update_coefficient(frequency, self.__shared_measure_parameters):
                 self.set_save_state(False)
 
+    def update_status(self):
+        new_status = self.__calculate_status()
+        if self.__status != new_status:
+            self.__status = new_status
+            self.set_save_state(False)
+
+    def __reset_status(self):
+        self.__status = MeasureDataModel.Status.NOT_CHECKED
+        self.status_changed.emit(self.__name, self.__status)
+
+    def __calculate_status(self) -> Status:
+        return MeasureDataModel.Status.GOOD
+
     def add_row(self, a_row: int):
         assert a_row != 0, "Строка не должна иметь 0 индекс!"
 
@@ -446,6 +471,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.endInsertRows()
         self.set_save_state(False)
         self.__compare_cells()
+        self.__reset_status()
 
     def remove_row(self, a_row: int):
         if a_row != MeasureDataModel.HEADER_ROW:
@@ -453,6 +479,7 @@ class MeasureDataModel(QAbstractTableModel):
             del self.__cells[a_row]
             self.endRemoveRows()
             self.set_save_state(False)
+            self.__reset_status()
 
     def add_column(self, a_column: int):
         assert a_column != 0, "Столбец не должен иметь 0 индекс!"
@@ -469,6 +496,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.endInsertColumns()
         self.set_save_state(False)
         self.__compare_cells()
+        self.__reset_status()
 
     def remove_column(self, a_column: int):
         if a_column != MeasureDataModel.HEADER_COLUMN:
@@ -477,6 +505,7 @@ class MeasureDataModel(QAbstractTableModel):
                 del cell_row[a_column]
             self.endRemoveColumns()
             self.set_save_state(False)
+            self.__reset_status()
 
     def get_amplitude(self, a_row):
         cell_data = self.__cells[a_row][MeasureDataModel.HEADER_COLUMN]
@@ -682,22 +711,26 @@ class MeasureDataModel(QAbstractTableModel):
     def reset_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].reset()
         self.set_save_state(False)
+        self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def reset_all_cells(self):
         for _, _, cell in self.__get_cells_iterator():
             cell.reset()
 
+        self.__reset_status()
         self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.DisplayRole,))
 
     def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
         self.__cells[a_row][a_column].append_value(a_value, a_time)
         self.set_save_state(False)
+        self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def finalize_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].finalize()
         self.set_save_state(False)
+        self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
@@ -729,6 +762,7 @@ class MeasureDataModel(QAbstractTableModel):
 
                 self.dataChanged.emit(index, index)
             self.set_save_state(False)
+            self.__reset_status()
 
         return result
 

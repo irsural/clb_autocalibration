@@ -178,6 +178,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
         self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
         self.ui.open_shared_measure_parameters_button.clicked.connect(self.open_shared_measure_parameters)
+        self.ui.update_measure_status_button.clicked.connect(self.update_measure_status_button_clicked)
 
         self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
 
@@ -258,6 +259,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.add_measure_button.setDisabled(a_lock)
         self.ui.delete_measure_button.setDisabled(a_lock)
         self.ui.rename_measure_button.setDisabled(a_lock)
+        self.ui.update_measure_status_button.setDisabled(a_lock)
         self.ui.enable_all_button.setDisabled(a_lock)
 
         self.ui.paste_cell_value_action.setDisabled(a_lock)
@@ -568,6 +570,9 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def rename_measure_button_clicked(self, _):
         self.measure_manager.rename_current_measure(self.current_configuration_path)
+
+    def update_measure_status_button_clicked(self, _):
+        self.measure_manager.update_all_measures_status()
 
     def show_equal_cell_configs_button_toggled(self, a_enable: bool):
         self.measure_manager.show_equal_cell_configs(a_enable)

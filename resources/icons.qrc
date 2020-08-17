@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/medal.png</file>
+    <file>icons/warning_2.png</file>
     <file>icons/scheme_2.png</file>
     <file>icons/scheme.png</file>
     <file>icons/multi_lock.png</file>
