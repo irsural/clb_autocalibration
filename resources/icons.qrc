@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/update.png</file>
     <file>icons/medal.png</file>
     <file>icons/warning_2.png</file>
     <file>icons/scheme_2.png</file>

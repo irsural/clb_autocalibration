@@ -758,7 +758,7 @@ class MeasureManager(QtCore.QObject):
 
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.displayed_data = a_displayed_data
-        if self.current_data_model:
+        if self.current_data_model is not None:
             lock_table = self.displayed_data != CellData.GetDataType.MEASURED or self.interface_is_locked
             self.__lock_measure_table(lock_table)
 

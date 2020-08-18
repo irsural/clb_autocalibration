@@ -213,6 +213,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.set_scheme_type(self.ui.scheme_combobox.currentIndex())
 
         self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
+        self.ui.update_calculated_cells_data_button.clicked.connect(self.update_calculated_cells_data)
 
         self.ui.open_about_action.triggered.connect(self.open_about)
 
@@ -260,6 +261,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.clb_list_combobox.setDisabled(a_lock)
         self.ui.meter_combobox.setDisabled(a_lock)
+        self.ui.scheme_combobox.setDisabled(a_lock)
 
         self.ui.add_measure_button.setDisabled(a_lock)
         self.ui.delete_measure_button.setDisabled(a_lock)
@@ -677,6 +679,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_displayed_data(self, a_displayed_data: int):
         self.measure_manager.set_displayed_data(CellData.GetDataType(a_displayed_data))
+
+    def update_calculated_cells_data(self, _):
+        displayed_data = self.ui.displayed_data_type_combobox.currentIndex()
+        self.measure_manager.set_displayed_data(CellData.GetDataType(displayed_data))
 
     def save_configuration(self):
         result = True
