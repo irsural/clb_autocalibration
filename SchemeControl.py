@@ -22,9 +22,9 @@ def create_scheme(a_scheme_type: SchemeType, a_ftdi_control: FtdiControl):
     if a_scheme_type == SchemeType.AUTOCALIBRATOR:
         return SchemeControl(a_ftdi_control)
     elif a_scheme_type == SchemeType.DIRECT:
-        return SchemeControlGag()
+        return DirectSchemeControl()
     elif a_scheme_type == SchemeType.GAG:
-        return SchemeControlGag()
+        return DirectSchemeControl()
     else:
         return None
 
@@ -268,7 +268,7 @@ class SchemeControl:
         return self.__ready
 
 
-class SchemeControlGag:
+class DirectSchemeControl:
     def __init__(self):
         pass
 
@@ -285,4 +285,7 @@ class SchemeControlGag:
         return True
 
     def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
-        return True
+        if a_coil is CellConfig.Coil.NONE and a_divider is CellConfig.Divider.NONE:
+            return True
+        else:
+            return False

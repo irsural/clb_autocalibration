@@ -20,7 +20,7 @@ from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
 import allowed_schemes_lut as scheme_lut
-from SchemeControl import SchemeControl, SchemeControlGag
+from SchemeControl import SchemeControl, DirectSchemeControl
 import multimeters
 
 
@@ -494,7 +494,7 @@ class MeasureConductor(QtCore.QObject):
                                               a_meter=self.current_config.meter):
                     self.need_to_set_scheme = False
                 else:
-                    logging.error("Не удалось установить схему (FTDI), измерение остановлено")
+                    logging.error("Не удалось установить схему, измерение остановлено")
                     self.stop()
             else:
                 if self.scheme_control.ready():
