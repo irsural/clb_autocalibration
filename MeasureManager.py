@@ -472,6 +472,7 @@ class MeasureManager(QtCore.QObject):
                 if self.copied_cell_config != self.current_data_model.get_cell_config(index.row(), index.column()):
                     scheme_is_ok = self.copied_cell_config.verify_scheme(current_signal_type)
                     exec_paste = True
+
                     if not scheme_is_ok and not always_paste:
                         amplitude = self.current_data_model.get_amplitude_with_units(index.row())
                         frequency = self.current_data_model.get_frequency_with_units(index.column())
@@ -493,10 +494,14 @@ class MeasureManager(QtCore.QObject):
 
                     if exec_paste or always_paste:
                         if not scheme_is_ok:
-                            new_cell_config = copy.deepcopy(self.copied_cell_config)
+                            new_cell_config = self.copied_cell_config
                             new_cell_config.reset_scheme(current_signal_type)
                         else:
                             new_cell_config = self.copied_cell_config
+
+                        if self.copied_cell_config.auto_calc_coefficient:
+                            freq = self.current_data_model.get_frequency(index.column())
+                            self.copied_cell_config.update_coefficient(freq, self.shared_measure_parameters)
 
                         self.current_data_model.set_cell_config(index.row(), index.column(), new_cell_config)
 

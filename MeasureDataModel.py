@@ -511,14 +511,14 @@ class MeasureDataModel(QAbstractTableModel):
         cell_data = self.__cells[a_row][MeasureDataModel.HEADER_COLUMN]
         return 0 if not cell_data.has_value() else cell_data.get_value()
 
-    def get_amplitude_with_units(self, a_row):
+    def get_amplitude_with_units(self, a_row) -> str:
         return self.data(self.index(a_row, MeasureDataModel.HEADER_COLUMN))
 
     def get_frequency(self, a_column):
         cell_data = self.__cells[MeasureDataModel.HEADER_ROW][a_column]
         return 0 if not cell_data.has_value() else cell_data.get_value()
 
-    def get_frequency_with_units(self, a_column):
+    def get_frequency_with_units(self, a_column) -> str:
         return self.data(self.index(MeasureDataModel.HEADER_ROW, a_column))
 
     def verify_cell_configs(self, a_signal_type: clb.SignalType, a_reset_bad_cells=False):
