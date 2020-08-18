@@ -25,6 +25,7 @@ from MeasureDataModel import CellData
 from graph_dialog import GraphDialog
 from about_dialog import AboutDialog
 from multimeters import MeterType
+from SchemeControl import SchemeType
 import settings
 
 
@@ -107,12 +108,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.show()
 
-            self.measure_manager = MeasureManager(self.ui.measures_table,
-                                                  self.ui.measure_data_view, self.settings, self)
+            self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings,
+                                                  self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
-            self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
-                                                      self.measure_manager, self.settings)
+            self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.measure_manager,
+                                                      self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
             self.measure_conductor.single_measure_started.connect(self.single_measure_started)
             self.measure_conductor.single_measure_done.connect(self.single_measure_done)
@@ -206,6 +207,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
         self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
+
+        self.ui.scheme_combobox.setCurrentIndex(self.settings.scheme_type)
+        self.ui.scheme_combobox.currentIndexChanged.connect(self.set_scheme_type)
+        self.set_scheme_type(self.ui.scheme_combobox.currentIndex())
 
         self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
 
@@ -663,6 +668,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def set_meter(self, a_index: int):
         self.measure_manager.set_meter(MeterType(a_index))
 
+    def set_scheme_type(self, a_index: int):
+        self.measure_manager.set_scheme(SchemeType(a_index), self.ftdi_control)
+        self.settings.scheme_type = a_index
+
     def open_meter_settings(self):
         self.measure_manager.open_meter_settings()
 
@@ -721,9 +730,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def reset_measure_manager(self):
         self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
+        self.set_scheme_type(self.ui.scheme_combobox.currentIndex())
 
-        self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
-                                                  self.measure_manager, self.settings)
+        self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.measure_manager, self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
         self.measure_conductor.single_measure_started.connect(self.single_measure_started)
         self.measure_conductor.single_measure_done.connect(self.single_measure_done)

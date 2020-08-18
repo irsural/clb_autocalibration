@@ -12,6 +12,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForView
 from irspy.built_in_extensions import OrderedDictInsert
 from irspy.clb.calibrator_constants import is_ac_signal
+from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 from irspy import utils
@@ -21,6 +22,7 @@ from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
 from MeasureDataModel import MeasureDataModel, CellData
+import SchemeControl
 import multimeters
 
 
@@ -164,6 +166,8 @@ class MeasureManager(QtCore.QObject):
 
         self.meter: Union[None, multimeters.MultimeterBase] = None
         self.set_meter(multimeters.MeterType.AGILENT_3458A)
+
+        self.scheme = None
 
         self.displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
@@ -744,6 +748,13 @@ class MeasureManager(QtCore.QObject):
 
     def get_meter(self) -> multimeters.MultimeterBase:
         return self.meter
+
+    def set_scheme(self, a_scheme_type: SchemeControl, a_ftdi_control: FtdiControl):
+        self.scheme = SchemeControl.create_scheme(a_scheme_type, a_ftdi_control)
+        assert self.scheme is not None, f"Не реализованная схема подключения '{a_scheme_type.name}'"
+
+    def get_scheme(self):
+        return self.scheme
 
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.displayed_data = a_displayed_data

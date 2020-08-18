@@ -10,7 +10,6 @@ from irspy.clb.network_variables import NetworkVariables, BufferedVariable, Vari
 from irspy.clb import assist_functions as clb_assists
 from irspy.clb import calibrator_constants as clb
 from CorrectionFlasher import CorrectionFlasher
-from irspy.dlls.ftdi_control import FtdiControl
 from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
 from irspy import metrology
@@ -126,12 +125,11 @@ class MeasureConductor(QtCore.QObject):
 
     verify_flash_done = QtCore.pyqtSignal()
 
-    def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_ftdi_control: FtdiControl,
-                 a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
+    def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_measure_manager: MeasureManager,
+                 a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
         self.calibrator = a_calibrator
-        self.ftdi_control = a_ftdi_control
         self.netvars = a_netvars
         self.settings = a_settings
         self.measure_manager = a_measure_manager
@@ -158,9 +156,7 @@ class MeasureConductor(QtCore.QObject):
         self.calibrator_not_ready_message_time = utils.Timer(20)
         self.measure_duration_timer = utils.Timer(0)
 
-        self.scheme_control_real = SchemeControl(self.ftdi_control)
-        self.scheme_control_gag = SchemeControlGag()
-        self.scheme_control = self.scheme_control_real
+        self.scheme_control = None
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
 
@@ -289,8 +285,10 @@ class MeasureConductor(QtCore.QObject):
 
     @utils.exception_decorator
     def tick(self):
-        self.scheme_control.tick()
         self.correction_flasher.tick()
+
+        if self.scheme_control is not None:
+            self.scheme_control.tick()
 
         if self.multimeter is not None:
             self.multimeter.tick()
@@ -330,10 +328,7 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
-            if isinstance(self.multimeter, multimeters.MultimeterGag):
-                self.scheme_control = self.scheme_control_gag
-            else:
-                self.scheme_control = self.scheme_control_real
+            self.scheme_control = self.measure_manager.get_scheme()
 
             if self.scheme_control.connect():
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]

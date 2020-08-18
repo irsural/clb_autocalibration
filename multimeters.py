@@ -217,5 +217,5 @@ class MultimeterGag(MultimeterBase):
         return self.measure_type
 
     def set_range(self, a_range: float):
-        self.lower_bound = utils.decrease_by_percent(a_range, 0.02)
-        self.upper_bound = utils.increase_by_percent(a_range, 0.02)
+        self.lower_bound = utils.decrease_by_percent(a_range, 0.04)
+        self.upper_bound = utils.increase_by_percent(a_range, 0.04)

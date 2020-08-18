@@ -6,10 +6,27 @@ import logging
 from irspy.dlls.ftdi_control import FtdiControl, FtdiPin
 from irspy import utils
 
-
 from edit_cell_config_dialog import CellConfig
 
+
 BistableRelay = namedtuple("BistableRelay", "set_pin reset_pin")
+
+
+class SchemeType(IntEnum):
+    AUTOCALIBRATOR = 0
+    DIRECT = 1
+    GAG = 2
+
+
+def create_scheme(a_scheme_type: SchemeType, a_ftdi_control: FtdiControl):
+    if a_scheme_type == SchemeType.AUTOCALIBRATOR:
+        return SchemeControl(a_ftdi_control)
+    elif a_scheme_type == SchemeType.DIRECT:
+        return SchemeControlGag()
+    elif a_scheme_type == SchemeType.GAG:
+        return SchemeControlGag()
+    else:
+        return None
 
 
 class SchemeControl:
