@@ -179,7 +179,7 @@ class MultimeterGag(MultimeterBase):
         self.lower_bound = 0.
         self.upper_bound = 0.
 
-        self.measure_value_timer = utils.Timer(0.5)
+        self.measure_value_timer = utils.Timer(2)
         self.measure_value_timer.start()
 
     def edit_settings(self, a_lock_changes: bool, a_parent):
@@ -201,12 +201,13 @@ class MultimeterGag(MultimeterBase):
 
     def measure_status(self) -> MultimeterBase.MeasureStatus:
         if self.measure_value_timer.check():
-            self.measure_value_timer.start()
+            self.measure_value_timer.stop()
             return MultimeterBase.MeasureStatus.SUCCESS
         else:
             return MultimeterBase.MeasureStatus.BUSY
 
     def start_measure(self) -> bool:
+        self.measure_value_timer.start()
         return True
 
     def get_measured_value(self) -> float:

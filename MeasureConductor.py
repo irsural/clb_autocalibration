@@ -710,10 +710,8 @@ class MeasureConductor(QtCore.QObject):
         self.y_out_filter.stop()
         if self.current_config.consider_output_value and self.current_config.additional_parameters.enable_output_filtering:
             out_on_device = self.y_out_filter.get_value()
-            logging.debug(("filter", out_on_device))
         else:
             out_on_device = self.y_out
-            logging.debug(("y_out", out_on_device))
 
         out_measured = a_measured_value * self.current_config.coefficient
 
