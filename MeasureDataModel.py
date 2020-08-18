@@ -455,7 +455,33 @@ class MeasureDataModel(QAbstractTableModel):
         self.status_changed.emit(self.__name, self.__status)
 
     def __calculate_status(self) -> Status:
-        return MeasureDataModel.Status.GOOD
+        status_parameter = CellData.GetDataType.DEVIATION if self.__measure_parameters.enable_correction else \
+            CellData.GetDataType.STUDENT_95
+
+        self.__calculate_cells_parameters(status_parameter)
+
+        statuses = []
+        for row, column, cell in self.__get_cells_iterator():
+            value = cell.config.additional_parameters.deviation_threshold \
+                if status_parameter == CellData.GetDataType.DEVIATION else CellData.GetDataType.STUDENT_95
+            threshold = self.get_cell_value(row, column, status_parameter)
+            if value is None or threshold is None:
+                status = MeasureDataModel.Status.NOT_CHECKED
+            elif abs(value) <= threshold:
+                status = MeasureDataModel.Status.BAD
+            else:
+                status = MeasureDataModel.Status.GOOD
+
+            statuses.append(status)
+
+        if any((st == MeasureDataModel.Status.NOT_CHECKED for st in statuses)):
+            measure_status = MeasureDataModel.Status.NOT_CHECKED
+        elif any((st == MeasureDataModel.Status.BAD for st in statuses)):
+            measure_status = MeasureDataModel.Status.BAD
+        else:
+            measure_status = MeasureDataModel.Status.GOOD
+
+        return measure_status
 
     def add_row(self, a_row: int):
         assert a_row != 0, "Строка не должна иметь 0 индекс!"

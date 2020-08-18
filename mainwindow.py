@@ -215,7 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
         log = qt_utils.QTextEditLogger(self, self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
-        file_log = RotatingFileHandler("autocalibration.log", maxBytes=1024*1024, backupCount=3)
+        file_log = RotatingFileHandler("autocalibration.log", maxBytes=10*1024*1024, backupCount=3)
         file_log.setLevel(logging.DEBUG)
         file_log.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S'))
 

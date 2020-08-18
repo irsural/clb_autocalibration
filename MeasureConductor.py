@@ -155,7 +155,7 @@ class MeasureConductor(QtCore.QObject):
         self.flash_current_measure = False
 
         self.calibrator_hold_ready_timer = utils.Timer(0)
-        self.calibrator_not_ready_message_time = utils.Timer(10)
+        self.calibrator_not_ready_message_time = utils.Timer(20)
         self.measure_duration_timer = utils.Timer(0)
 
         self.scheme_control_real = SchemeControl(self.ftdi_control)
