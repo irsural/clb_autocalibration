@@ -760,7 +760,18 @@ class MeasureConductor(QtCore.QObject):
         for measure_name in a_measures_to_flash:
             measure_params = self.measure_manager.get_measure_parameters(measure_name)
             if measure_params.flash_after_finish:
-                data_to_flash.append((measure_params.flash_table, self.measure_manager.get_table_values(measure_name)))
+                table_data: List[List[Union[None, float]]] = self.measure_manager.get_table_values(measure_name)
+
+                if table_data:
+                    if clb.is_dc_signal[measure_params.signal_type] and len(table_data[0]) == 2:
+                        # Особый случай, потому что на постоянном токе должно быть 2 одинаковых столбца и измерять
+                        # достаточно только один, а прошивать нужно оба
+                        for row in table_data:
+                            row.append(row[1])
+                        # Заголовок столбца может быть любой, главно чтобы отличался от столбца-предка
+                        table_data[0][2] = table_data[0][1] + 1
+
+                data_to_flash.append((measure_params.flash_table, table_data))
             else:
                 logging.warning(f'Измерение "{measure_name}" не предназначено для прошивки и '
                                 f'прошито/верифицировано не будет')

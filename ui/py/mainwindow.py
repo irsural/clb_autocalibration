@@ -641,6 +641,7 @@ class Ui_MainWindow(object):
         self.start_current_measure_button.setToolTip(_translate("MainWindow", "Начать измерение по текущей таблице"))
         self.continue_current_measure_button.setToolTip(_translate("MainWindow", "Продолжить измерение по текущей таблице"))
         self.clear_table_button.setToolTip(_translate("MainWindow", "Очистить значения таблицы"))
+        self.update_calculated_cells_data_button.setToolTip(_translate("MainWindow", "Обновить значения в ячейках таблицы"))
         self.curent_cell_progress_bar.setFormat(_translate("MainWindow", "%p%"))
         self.log_text_edit.setPlaceholderText(_translate("MainWindow", "Здесь будет лог..."))
         self.settings_menu.setTitle(_translate("MainWindow", "Настройки"))
