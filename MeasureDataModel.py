@@ -710,7 +710,7 @@ class MeasureDataModel(QAbstractTableModel):
         Для числа 1,234 precision=a_full_precision - 1
         Для числа 12,345 precision=a_full_precision - 2
         """
-        value_str = str(a_value)
+        value_str = f"{a_value:9f}"
         before_decimal_count = len(value_str.split('.')[0])
         precision = utils.bound(a_full_precision + 1 - before_decimal_count, 0, a_full_precision)
         return precision
