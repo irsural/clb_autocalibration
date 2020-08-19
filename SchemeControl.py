@@ -288,4 +288,4 @@ class DirectSchemeControl:
         if a_coil is CellConfig.Coil.NONE and a_divider is CellConfig.Divider.NONE:
             return True
         else:
-            return False
+            return True
