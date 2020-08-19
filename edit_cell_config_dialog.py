@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from typing import List, Union
 from enum import IntEnum
 import logging
@@ -11,6 +11,7 @@ from irspy.qt.custom_widgets.QTableDelegates import ComboboxCellDelegate
 from irspy.qt.object_fields_visualizer import ObjectFieldsVisualizer
 from irspy.clb import calibrator_constants as clb
 from irspy.settings_ini_parser import Settings
+from irspy.metrology import Pchip
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
@@ -266,6 +267,7 @@ class CellConfig:
         self.divider = CellConfig.Divider.NONE
         self.meter = CellConfig.Meter.VOLTS if clb.is_voltage_signal[a_signal_type] else CellConfig.Meter.AMPERES
 
+    @utils.exception_decorator
     def update_coefficient(self, a_frequency: float, a_shared_parameters: SharedMeasureParameters) -> bool:
         result = False
 
@@ -273,6 +275,7 @@ class CellConfig:
             coefficient = self.calculate_coefficient(self.coil, self.divider, a_frequency, a_shared_parameters)
             if self.coefficient != coefficient:
                 self.coefficient = coefficient
+                logging.debug(f"freq {a_frequency} update coef")
                 result = True
 
         return result
@@ -298,23 +301,37 @@ class CellConfig:
     @staticmethod
     def get_device_coefficient_by_frequency(a_device: Device, a_frequency: float,
                                             a_shared_parameters: SharedMeasureParameters) -> float:
-
+        """
+        Для нулевой частоты (постоянный сигнал) всегда берется коэффициент с частотой 0, если он отсутствует,
+        берется коэффициент по-умолчанию
+        Для ненулевой частоты (переменный сигнал) сигнал интерполируется, если частот не хватает для интерполяции, то
+        берется коэффициент для 0 частоты. Если коэффициент для 0 частоты не задан, то берется коэффициент по умолчанию
+        При вычислении интерполяции, коэффициент для 0 частоты не учитывается.
+        """
         frequencies, coefficients = a_shared_parameters.device_coefs[a_device]
+
         try:
             frequency_idx = frequencies.index(a_frequency)
             coefficient = coefficients[frequency_idx]
         except ValueError:
-            logging.warning(f'Прибор {DEVICE_TO_NAME[a_device]}, частота {a_frequency} Гц, '
-                            f'коэффициент не задан, попытка получить коэффициент для частоты "0 Гц"')
-            try:
-                frequency_idx = frequencies.index(0.)
-                coefficient = coefficients[frequency_idx]
-            except ValueError:
-                logging.error(f'Коэффициент для частоты 0 Гц не задан, будет использован коэффициент по-умолчанию')
+            freq_coefs = {freq: coef for freq, coef in zip(frequencies, coefficients)}
+            freq_coefs_sorted = OrderedDict(sorted(freq_coefs.items()))
+
+            if 0 in freq_coefs_sorted:
+                # 0 частоту не включаем в интерполяцию
+                del freq_coefs_sorted[0]
+
+            if a_frequency == 0 or len(freq_coefs_sorted) < 2:
+                logging.error(f'Коэффициент для частоты 0 Гц не задан, либо количество точек для интерполяции '
+                              f'слишком мало будет использован коэффициент по-умолчанию')
                 frequencies, coefficients = DEVICE_TO_DEFAULT_COEFS[a_device]
                 frequency_idx = frequencies.index(0.)
                 coefficient = coefficients[frequency_idx]
                 logging.error(f'Коэффициент по-умолчанию: {coefficient}')
+            else:
+                pchip = Pchip()
+                pchip.set_points(list(freq_coefs_sorted.keys()), list(freq_coefs_sorted.values()))
+                coefficient = pchip.interpolate(a_frequency)
 
         return coefficient
 
