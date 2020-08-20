@@ -20,7 +20,6 @@ from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
 import allowed_schemes_lut as scheme_lut
-from SchemeControl import SchemeControl, DirectSchemeControl
 import multimeters
 
 
@@ -380,8 +379,11 @@ class MeasureConductor(QtCore.QObject):
                                          self.current_measure_parameters.flash_after_finish
 
             try:
-                self.current_measure_type = MeasureConductor.SIGNAL_TO_MEASURE_TYPE[
-                    (self.current_measure_parameters.signal_type, self.current_config.meter)]
+                if not self.current_config.additional_parameters.dont_set_meter_config:
+                    self.current_measure_type = MeasureConductor.SIGNAL_TO_MEASURE_TYPE[
+                        (self.current_measure_parameters.signal_type, self.current_config.meter)]
+                else:
+                    self.current_measure_type = multimeters.MeasureType.tm_value
             except KeyError:
                 self.current_measure_type = None
 
