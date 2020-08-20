@@ -27,6 +27,45 @@
     <layout class="QVBoxLayout" name="main_widget_layout">
      <item>
       <layout class="QGridLayout" name="gridLayout_2">
+       <item row="3" column="2">
+        <widget class="QEditDoubleClick" name="coefficient_edit">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Задержка измерения, с</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="3">
+        <widget class="QCheckBox" name="consider_output_value_checkbox">
+         <property name="text">
+          <string>Учитывать выходное значение при измерении</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Время измерения, с</string>
+         </property>
+        </widget>
+       </item>
        <item row="2" column="2">
         <widget class="QSpinBox" name="measure_time_spinbox">
          <property name="sizePolicy">
@@ -52,6 +91,13 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="auto_coefficient_checkbox">
+         <property name="text">
+          <string>Авто</string>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
@@ -63,45 +109,6 @@
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Сигнал калибратора</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QSpinBox" name="measure_delay_spinbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-         <property name="value">
-          <number>100</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Время измерения, с</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QCheckBox" name="auto_coefficient_checkbox">
-         <property name="text">
-          <string>Авто</string>
          </property>
         </widget>
        </item>
@@ -155,37 +162,40 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Задержка измерения, с</string>
+       <item row="1" column="2">
+        <widget class="QSpinBox" name="measure_delay_spinbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QEditDoubleClick" name="coefficient_edit">
          <property name="minimumSize">
           <size>
            <width>100</width>
            <height>0</height>
           </size>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
+         <property name="minimum">
+          <number>1</number>
          </property>
-         <property name="text">
-          <string>1</string>
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+         <property name="value">
+          <number>100</number>
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="3">
-        <widget class="QCheckBox" name="consider_output_value_checkbox">
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Учитывать выходное значение при измерении</string>
+          <string>Настройки измерителя</string>
          </property>
         </widget>
+       </item>
+       <item row="4" column="1" colspan="2">
+        <widget class="QLineEdit" name="meter_config_edit"/>
        </item>
       </layout>
      </item>
@@ -573,7 +583,7 @@ selection-background-color: rgb(170, 170, 255);</string>
  <connections/>
  <buttongroups>
   <buttongroup name="buttonGroup_2"/>
-  <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_3"/>
  </buttongroups>
 </ui>

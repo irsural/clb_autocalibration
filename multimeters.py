@@ -73,6 +73,10 @@ class MultimeterBase(abc.ABC):
     def set_range(self, a_range: float):
         pass
 
+    @abc.abstractmethod
+    def set_config(self, a_config_str):
+        pass
+
 
 class MeterType(IntEnum):
     AGILENT_3458A = 0
@@ -171,6 +175,10 @@ class Agilent3485A(MultimeterBase):
     def set_range(self, a_range: float):
         self.mxsrclib_dll.multimeter_set_range(ctypes.c_size_t(self.measure_type), a_range)
 
+    def set_config(self, a_config_str: str):
+
+        self.mxsrclib_dll.multimeter_set_config(ctypes.c_char_p(bytes(a_config_str, encoding="cp1251")))
+
 
 class MultimeterGag(MultimeterBase):
 
@@ -219,3 +227,6 @@ class MultimeterGag(MultimeterBase):
     def set_range(self, a_range: float):
         self.lower_bound = utils.decrease_by_percent(a_range, 0.04)
         self.upper_bound = utils.increase_by_percent(a_range, 0.04)
+
+    def set_config(self, a_config_str):
+        pass

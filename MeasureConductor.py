@@ -61,7 +61,7 @@ class MeasureConductor(QtCore.QObject):
         # Stage.GET_CONFIGS: "Получение конфигурации",
         # Stage.RESET_CALIBRATOR_CONFIG: "Сброс параметров калибратора",
         Stage.WAIT_CALIBRATOR_RESET: "Ждем сброс калибратора...",
-        # Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
+        Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
         # Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
         # Stage.SET_METER_CONFIG: "Установка параметров измерителя",
         Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",
@@ -478,13 +478,16 @@ class MeasureConductor(QtCore.QObject):
         elif self.__stage == MeasureConductor.Stage.SET_METER_RANGE:
             assert self.current_config.coefficient != 0, "Коэффициент преобразования не может быть равен нулю!"
 
-            if self.current_config.additional_parameters.manual_range_enabled:
-                range_ = self.current_config.additional_parameters.manual_range_value
-            else:
-                range_ = self.current_amplitude / self.current_config.coefficient
+            if not self.current_config.additional_parameters.dont_set_meter_config:
 
-            self.multimeter.set_range(range_)
-            logging.info(f"Диапазон: {range_}")
+                if self.current_config.additional_parameters.manual_range_enabled:
+                    range_ = self.current_config.additional_parameters.manual_range_value
+                else:
+                    range_ = self.current_amplitude / self.current_config.coefficient
+
+                self.multimeter.set_range(range_)
+                self.multimeter.set_config(self.current_config.meter_config_string)
+                logging.info(f"Диапазон: {range_}")
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
