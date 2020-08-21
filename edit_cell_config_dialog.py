@@ -281,9 +281,8 @@ class CellConfig:
 
         if self.auto_calc_coefficient:
             coefficient = self.calculate_coefficient(self.coil, self.divider, a_frequency, a_shared_parameters)
-            if self.coefficient != coefficient:
+            if not utils.are_float_equal(self.coefficient, coefficient):
                 self.coefficient = coefficient
-                logging.debug(f"freq {a_frequency} update coef")
                 result = True
 
         return result
@@ -330,8 +329,9 @@ class CellConfig:
                 del freq_coefs_sorted[0]
 
             if a_frequency == 0 or len(freq_coefs_sorted) < 2:
-                logging.error(f'Коэффициент для частоты 0 Гц не задан, либо количество точек для интерполяции '
-                              f'слишком мало будет использован коэффициент по-умолчанию')
+                logging.error(f'Частота {a_frequency}, коэффициент для частоты 0 Гц не задан, либо количество точек '
+                              f'для интерполяции слишком мало, будет использован коэффициент по-умолчанию. '
+                              f'(При интерполяции точка с частотой 0 не учитывается!)')
                 frequencies, coefficients = DEVICE_TO_DEFAULT_COEFS[a_device]
                 frequency_idx = frequencies.index(0.)
                 coefficient = coefficients[frequency_idx]
