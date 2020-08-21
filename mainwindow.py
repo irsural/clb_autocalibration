@@ -217,7 +217,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.open_about_action.triggered.connect(self.open_about)
 
     def set_up_logger(self):
-        log = qt_utils.QTextEditLogger(self, self.ui.log_text_edit)
+        log = qt_utils.QTextEditLogger(self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
         file_log = RotatingFileHandler("autocalibration.log", maxBytes=10*1024*1024, backupCount=3)
