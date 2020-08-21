@@ -114,7 +114,7 @@ QListWidget::item {
         </property>
         <item>
          <property name="text">
-          <string>Общий настройки</string>
+          <string>Таблица измерения</string>
          </property>
         </item>
        </widget>
@@ -150,7 +150,22 @@ QListWidget::item {
           <property name="currentIndex">
            <number>0</number>
           </property>
-          <widget class="QWidget" name="step_parameters_page"/>
+          <widget class="QWidget" name="measure_table_settings_layout">
+           <layout class="QGridLayout" name="gridLayout_3">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>

@@ -3,7 +3,7 @@ import logging
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 
-from irspy.qt.custom_widgets.EditListDialog import EditedListWithUnits
+from irspy.qt.object_fields_visualizer import ObjectFieldsVisualizer
 from ui.py.settings_form import Ui_settings_dialog as SettingsForm
 from irspy.settings_ini_parser import Settings
 import irspy.clb.calibrator_constants as clb
@@ -30,6 +30,11 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_and_exit_button.clicked.connect(self.save_and_exit)
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
+
+        visualizer = ObjectFieldsVisualizer(self.settings, self)
+        visualizer.add_setting("Точность числа при отображении", "display_data_precision")
+        visualizer.add_setting("Точность числа при редактировании", "edit_data_precision")
+        self.ui.measure_table_settings_layout.layout().addWidget(visualizer)
 
         self.open_first_tab()
 

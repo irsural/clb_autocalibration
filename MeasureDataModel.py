@@ -10,6 +10,7 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QColor
 
+from irspy.settings_ini_parser import Settings
 from irspy.clb import calibrator_constants as clb
 from irspy import metrology
 from irspy import utils
@@ -250,8 +251,8 @@ class MeasureDataModel(QAbstractTableModel):
 
     HZ_UNITS = "Гц"
 
-    DISPLAY_DATA_PRECISION = 6
-    EDIT_DATA_PRECISION = 20
+    # DISPLAY_DATA_PRECISION = 6
+    # EDIT_DATA_PRECISION = 20
 
     class Status(IntEnum):
         NOT_CHECKED = 0
@@ -261,7 +262,7 @@ class MeasureDataModel(QAbstractTableModel):
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
     status_changed = QtCore.pyqtSignal(str, Status)
 
-    def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_saved=False,
+    def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: Settings, a_saved=False,
                  a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None,
                  a_status: Status = Status.NOT_CHECKED, a_enabled=False, a_parent=None):
         super().__init__(a_parent)
@@ -283,6 +284,8 @@ class MeasureDataModel(QAbstractTableModel):
         self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
 
+        self.__settings = a_settings
+
     def __serialize_cells_to_dict(self):
         data_dict = OrderedDict()
         for row, row_data in enumerate(self.__cells):
@@ -303,7 +306,8 @@ class MeasureDataModel(QAbstractTableModel):
         return data_dict
 
     @classmethod
-    def from_dict(cls, a_measure_name: str, a_shared_parameters: SharedMeasureParameters, a_data_dict: dict):
+    def from_dict(cls, a_measure_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: Settings,
+                  a_data_dict: dict):
         name_in_dict = a_data_dict["name"]
         assert a_measure_name == name_in_dict, "Имена в измерении и в имени файла должны совпадать!"
 
@@ -326,8 +330,8 @@ class MeasureDataModel(QAbstractTableModel):
         status = MeasureDataModel.Status(a_data_dict["status"])
         enabled = a_data_dict["enabled"]
 
-        return cls(a_name=a_measure_name, a_shared_parameters=a_shared_parameters, a_saved=True, a_init_cells=cells,
-                   a_measured_parameters=measure_parameters, a_status=status, a_enabled=enabled)
+        return cls(a_name=a_measure_name, a_shared_parameters=a_shared_parameters, a_settings=a_settings, a_saved=True,
+                   a_init_cells=cells, a_measured_parameters=measure_parameters, a_status=status, a_enabled=enabled)
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -692,11 +696,11 @@ class MeasureDataModel(QAbstractTableModel):
             if role == Qt.DisplayRole:
                 cell_value = cell_data.get_value(displayed_data)
                 value = utils.float_to_string(
-                    cell_value, self.get_display_precision(cell_value, MeasureDataModel.DISPLAY_DATA_PRECISION))
+                    cell_value, self.get_display_precision(cell_value, self.__settings.display_data_precision))
             else:
                 # role == Qt.EditRole
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
-                                              a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
+                                              a_precision=self.__settings.edit_data_precision)
 
             str_value = f"{value}{units}"
 
@@ -770,7 +774,7 @@ class MeasureDataModel(QAbstractTableModel):
             cell_data.reset()
         else:
             try:
-                float_value = utils.parse_input(value, a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
+                float_value = utils.parse_input(value, a_precision=self.__settings.edit_data_precision)
                 if not utils.are_float_equal(float_value, cell_data.get_value()) or not cell_data.has_value():
                     cell_data.set_value(float_value)
                 else:

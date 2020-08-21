@@ -26,4 +26,6 @@ def get_clb_autocalibration_settings():
         Settings.VariableInfo(a_name="graph_parameters_splitter_size", a_section="PARAMETERS", a_type=Settings.ValueType.INT, a_default=500),
         Settings.VariableInfo(a_name="show_scheme_in_cell", a_section="PARAMETERS", a_type=Settings.ValueType.INT, a_default=1),
         Settings.VariableInfo(a_name="scheme_type", a_section="PARAMETERS", a_type=Settings.ValueType.INT, a_default=0),
+        Settings.VariableInfo(a_name="display_data_precision", a_section="PARAMETERS", a_type=Settings.ValueType.INT, a_default=6),
+        Settings.VariableInfo(a_name="edit_data_precision", a_section="PARAMETERS", a_type=Settings.ValueType.INT, a_default=20),
     ])
