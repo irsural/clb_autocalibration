@@ -7,8 +7,10 @@ import json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
-from irspy.settings_ini_parser import BadIniException
+from irspy.qt.custom_widgets.tstlan_dialog import TstlanDialog
+from irspy.qt.custom_widgets.graph_dialog import GraphDialog
 from irspy.clb.network_variables import NetworkVariables
+from irspy.settings_ini_parser import BadIniException
 from irspy.dlls.ftdi_control import FtdiControl
 import irspy.clb.calibrator_constants as clb
 import irspy.clb.clb_dll as clb_dll
@@ -20,9 +22,7 @@ from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
-from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
-from graph_dialog import GraphDialog
 from about_dialog import AboutDialog
 from multimeters import MeterType
 from SchemeControl import SchemeType
