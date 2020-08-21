@@ -3,7 +3,7 @@ import random
 import ctypes
 import abc
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.dlls import mxsrlib_dll
 from irspy import utils
 
@@ -83,7 +83,7 @@ class MeterType(IntEnum):
     GAG = 1
 
 
-def create_multimeter(a_meter_type: MeterType, a_settings: Settings):
+def create_multimeter(a_meter_type: MeterType, a_settings: QtSettings):
     if a_meter_type == MeterType.AGILENT_3458A:
         return Agilent3485A(a_settings)
     elif a_meter_type == MeterType.GAG:
@@ -94,7 +94,7 @@ def create_multimeter(a_meter_type: MeterType, a_settings: Settings):
 
 class Agilent3485A(MultimeterBase):
 
-    def __init__(self, a_settings: Settings):
+    def __init__(self, a_settings: QtSettings):
         assert mxsrlib_dll.mxsrclib_dll is not None, "mxsrclib_dll не инициализирована !!!"
         self.mxsrclib_dll = mxsrlib_dll.mxsrclib_dll
 

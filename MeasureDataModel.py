@@ -10,7 +10,7 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QColor
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import calibrator_constants as clb
 from irspy import metrology
 from irspy import utils
@@ -262,7 +262,7 @@ class MeasureDataModel(QAbstractTableModel):
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
     status_changed = QtCore.pyqtSignal(str, Status)
 
-    def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: Settings, a_saved=False,
+    def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: QtSettings, a_saved=False,
                  a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None,
                  a_status: Status = Status.NOT_CHECKED, a_enabled=False, a_parent=None):
         super().__init__(a_parent)
@@ -306,7 +306,7 @@ class MeasureDataModel(QAbstractTableModel):
         return data_dict
 
     @classmethod
-    def from_dict(cls, a_measure_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: Settings,
+    def from_dict(cls, a_measure_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: QtSettings,
                   a_data_dict: dict):
         name_in_dict = a_data_dict["name"]
         assert a_measure_name == name_in_dict, "Имена в измерении и в имени файла должны совпадать!"

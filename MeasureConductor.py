@@ -7,10 +7,10 @@ import logging
 from PyQt5 import QtCore
 
 from irspy.clb.network_variables import NetworkVariables, BufferedVariable, VariableInfo
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import assist_functions as clb_assists
 from irspy.clb import calibrator_constants as clb
 from CorrectionFlasher import CorrectionFlasher
-from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
 from irspy import metrology
 from irspy import utils
@@ -125,7 +125,7 @@ class MeasureConductor(QtCore.QObject):
     verify_flash_done = QtCore.pyqtSignal()
 
     def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_measure_manager: MeasureManager,
-                 a_settings: Settings, a_parent=None):
+                 a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.calibrator = a_calibrator

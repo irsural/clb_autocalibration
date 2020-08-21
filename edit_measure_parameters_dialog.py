@@ -6,8 +6,8 @@ import logging
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import calibrator_constants as clb
-from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
@@ -62,7 +62,7 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
         END_VALUE = 4
         COUNT = 5
 
-    def __init__(self, a_init_parameters: MeasureParameters, a_settings: Settings, a_lock_editing=False,
+    def __init__(self, a_init_parameters: MeasureParameters, a_settings: QtSettings, a_lock_editing=False,
                  a_parent=None):
         super().__init__(a_parent)
 

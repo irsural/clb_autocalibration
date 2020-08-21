@@ -5,10 +5,7 @@ from PyQt5.QtCore import pyqtSignal
 
 from irspy.qt.object_fields_visualizer import ObjectFieldsVisualizer
 from ui.py.settings_form import Ui_settings_dialog as SettingsForm
-from irspy.settings_ini_parser import Settings
-import irspy.clb.calibrator_constants as clb
-
-import irspy.utils as utils
+from irspy.qt.qt_settings_ini_parser import QtSettings
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -18,7 +15,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     fixed_range_changed = pyqtSignal()
 
-    def __init__(self, a_settings: Settings, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SettingsForm()

@@ -5,7 +5,7 @@ import logging
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 
 from ui.py.edit_shared_measure_parameters_dialog import Ui_shared_measure_parameters_dialog as EditSharedMeasureParametersForm
 from DeviceCoefficientsModel import DeviceCoefficientsModel
@@ -94,7 +94,7 @@ class SharedMeasureParameters:
 
 class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
 
-    def __init__(self, a_init_parameters: SharedMeasureParameters, a_settings: Settings, a_lock_editing=False,
+    def __init__(self, a_init_parameters: SharedMeasureParameters, a_settings: QtSettings, a_lock_editing=False,
                  a_parent=None):
         super().__init__(a_parent)
 

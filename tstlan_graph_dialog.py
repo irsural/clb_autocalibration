@@ -5,7 +5,7 @@ from PyQt5 import QtGui, QtWidgets
 import pyqtgraph
 
 from ui.py.tstslan_graphs_dialog import Ui_tstlan_graphs_dialog as GraphForm
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 import irspy.utils as utils
 
 
@@ -25,7 +25,7 @@ class TstlanGraphDialog(QtWidgets.QDialog):
         (204, 102, 255),
     )
 
-    def __init__(self, a_graph_data: Dict[str, Tuple[List[float], List[float]]], a_settings: Settings,
+    def __init__(self, a_graph_data: Dict[str, Tuple[List[float], List[float]]], a_settings: QtSettings,
                  a_parent=None):
         super().__init__(a_parent)
 

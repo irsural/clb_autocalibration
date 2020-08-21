@@ -9,7 +9,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import pyqtgraph
 
 from ui.py.graph_dialog import Ui_graph_dialog as GraphForm
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy import metrology
 import irspy.utils as utils
 
@@ -98,7 +98,7 @@ class GraphDialog(QtWidgets.QDialog):
         ParametersRow.STUDENT_999: "Доверительный интервал 0,999, %",
     }
 
-    def __init__(self, a_graph_data: Dict[str, Tuple[Iterable[float], Iterable[float]]], a_settings: Settings,
+    def __init__(self, a_graph_data: Dict[str, Tuple[Iterable[float], Iterable[float]]], a_settings: QtSettings,
                  a_parent=None):
         super().__init__(a_parent)
 

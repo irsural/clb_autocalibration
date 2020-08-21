@@ -5,7 +5,7 @@ import json
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 import irspy.utils as utils
 
 from ui.py.correction_tables_dialog import Ui_correction_tables_dialog as CorrectionTablesForm
@@ -15,7 +15,7 @@ from CorrectionTableModel import CorrectionTableModel
 class CorrectionTablesDialog(QtWidgets.QDialog):
     save_tables_to_file = QtCore.pyqtSignal(dict)
 
-    def __init__(self, a_correction_tables: Dict[str, List[Tuple[List, List, List]]], a_settings: Settings,
+    def __init__(self, a_correction_tables: Dict[str, List[Tuple[List, List, List]]], a_settings: QtSettings,
                  a_parent=None):
         super().__init__(a_parent)
 

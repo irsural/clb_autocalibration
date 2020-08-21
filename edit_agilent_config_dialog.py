@@ -5,7 +5,7 @@ import logging
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 
 from ui.py.edit_agilent_config_dialog import Ui_edit_agilent_config_dialog as EditAgilentConfigForm
 
@@ -44,7 +44,7 @@ class AgilentConfig:
 
 class EditAgilentConfigDialog(QtWidgets.QDialog):
 
-    def __init__(self, a_init_parameters: AgilentConfig, a_settings: Settings, a_lock_editing=False,
+    def __init__(self, a_init_parameters: AgilentConfig, a_settings: QtSettings, a_lock_editing=False,
                  a_parent=None):
         super().__init__(a_parent)
 

@@ -7,8 +7,8 @@ import time
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 from ui.py.tstlan_dialog import Ui_tstlan_dialog as TstlanForm
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from tstlan_graph_dialog import TstlanGraphDialog
-from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
 import irspy.clb.network_variables as nv
 import irspy.utils as utils
@@ -24,7 +24,7 @@ class TstlanDialog(QtWidgets.QDialog):
         TYPE = 5
         VALUE = 6
 
-    def __init__(self, a_variables: nv.NetworkVariables, a_calibrator: ClbDrv, a_settings: Settings, a_parent=None):
+    def __init__(self, a_variables: nv.NetworkVariables, a_calibrator: ClbDrv, a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = TstlanForm()

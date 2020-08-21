@@ -13,7 +13,7 @@ from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForView
 from irspy.built_in_extensions import OrderedDictInsert
 from irspy.clb.calibrator_constants import is_ac_signal
 from irspy.dlls.ftdi_control import FtdiControl
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.qt import qt_utils
 from irspy import utils
 
@@ -127,7 +127,7 @@ class MeasureManager(QtCore.QObject):
     ENABLE_COLUMN_WIDTH = 40
 
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
-                 a_settings: Settings, a_parent=None):
+                 a_settings: QtSettings, a_parent=None):
         # a_parent специально не передается в super, потому что иначе MeasureManager не удаляется в MainWindow при
         # пересоздании
         super().__init__(None)

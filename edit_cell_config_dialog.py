@@ -9,8 +9,8 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
 from irspy.qt.custom_widgets.QTableDelegates import ComboboxCellDelegate
 from irspy.qt.object_fields_visualizer import ObjectFieldsVisualizer
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import calibrator_constants as clb
-from irspy.settings_ini_parser import Settings
 from irspy.metrology import Pchip
 from irspy.qt import qt_utils
 import irspy.utils as utils
@@ -370,7 +370,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
 
     # a_shared_parameters и a_frequency нужны для автоматического рассчета коэффициента
     def __init__(self, a_init_config: CellConfig, a_shared_parameters: SharedMeasureParameters, a_frequency: float,
-                 a_signal_type: clb.SignalType, a_settings: Settings, a_lock_editing=False, a_parent=None):
+                 a_signal_type: clb.SignalType, a_settings: QtSettings, a_lock_editing=False, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = EditCellConfigForm()
