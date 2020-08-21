@@ -35,7 +35,7 @@ class TstlanDialog(QtWidgets.QDialog):
         self.calibrator = a_calibrator
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
+        self.settings.restore_qwidget_state(self)
 
         self.variables_to_graph: Dict[str, nv.BufferedVariable] = {}
         self.graphs_data: Dict[str, Tuple[List[float], List[float]]] = {}
@@ -46,8 +46,7 @@ class TstlanDialog(QtWidgets.QDialog):
         # Обязательно вызывать до восстановления состояния таблицы !!!
         self.fill_variables_table()
 
-        self.ui.variables_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
-            self.ui.variables_table.objectName()))
+        self.settings.restore_qwidget_state(self.ui.variables_table)
         self.ui.variables_table.resizeRowsToContents()
 
         self.ui.show_marked_checkbox.setChecked(self.settings.tstlan_show_marks)
@@ -245,9 +244,8 @@ class TstlanDialog(QtWidgets.QDialog):
         self.settings.tstlan_update_time = a_value
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.ui.variables_table.objectName(),
-                                    self.ui.variables_table.horizontalHeader().saveState())
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
+        self.settings.save_qwidget_state(self.ui.variables_table)
+        self.settings.save_qwidget_state(self)
 
         mark_states = [0] * self.ui.variables_table.rowCount()
         graph_states = [0] * self.ui.variables_table.rowCount()

@@ -109,11 +109,9 @@ class GraphDialog(QtWidgets.QDialog):
         self.close_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/left.png"))
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
-        self.ui.graph_dialog_splitter.restoreState(self.settings.get_last_geometry(
-            self.ui.graph_dialog_splitter.objectName()))
-        self.ui.parameters_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            self.ui.parameters_table.objectName()))
+        self.settings.restore_qwidget_state(self)
+        self.settings.restore_qwidget_state(self.ui.graph_dialog_splitter)
+        self.settings.restore_qwidget_state(self.ui.parameters_table)
 
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinMaxButtonsHint)
 
@@ -297,9 +295,8 @@ class GraphDialog(QtWidgets.QDialog):
             # Здесь сохраняются размеры сплиттера
             self.show_graph_parameters(None)
 
-        self.settings.save_geometry(self.ui.graph_dialog_splitter.objectName(),
-                                    self.ui.graph_dialog_splitter.saveState())
-        self.settings.save_geometry(self.ui.parameters_table.objectName(),
-                                    self.ui.parameters_table.horizontalHeader().saveState())
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
+        self.settings.save_qwidget_state(self.ui.parameters_table)
+        self.settings.save_qwidget_state(self.ui.graph_dialog_splitter)
+        self.settings.save_qwidget_state(self)
+
         a_event.accept()

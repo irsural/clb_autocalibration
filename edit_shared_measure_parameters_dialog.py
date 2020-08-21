@@ -106,12 +106,9 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
             self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.settings = a_settings
-
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
-        self.ui.shared_parameters_splitter.restoreState(self.settings.get_last_geometry(
-            self.ui.shared_parameters_splitter.objectName()))
-        self.ui.device_coefs_view.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            self.ui.device_coefs_view.objectName()))
+        self.settings.restore_qwidget_state(self)
+        self.settings.restore_qwidget_state(self.ui.shared_parameters_splitter)
+        self.settings.restore_qwidget_state(self.ui.device_coefs_view)
 
         self.shared_parameters: Union[None, SharedMeasureParameters] = None
         self.init_shared_parameters = a_init_parameters
@@ -199,9 +196,8 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
             self.reject()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.ui.device_coefs_view.objectName(),
-                                    self.ui.device_coefs_view.horizontalHeader().saveState())
-        self.settings.save_geometry(self.ui.shared_parameters_splitter.objectName(),
-                                    self.ui.shared_parameters_splitter.saveState())
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
+        self.settings.save_qwidget_state(self.ui.device_coefs_view)
+        self.settings.save_qwidget_state(self.ui.shared_parameters_splitter)
+        self.settings.save_qwidget_state(self)
+
         a_event.accept()

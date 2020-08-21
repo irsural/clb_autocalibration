@@ -390,13 +390,8 @@ class EditCellConfigDialog(QtWidgets.QDialog):
                                                                                     self.__allowed_extra_param_types))
 
         self.settings = a_settings
-        try:
-            size = self.settings.get_last_geometry(self.objectName()).split(";")
-            self.resize(int(size[0]), int(size[1]))
-        except ValueError:
-            pass
-        self.ui.extra_variables_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
-            self.ui.extra_variables_table.objectName()))
+        self.settings.restore_dialog_size(self)
+        self.settings.restore_qwidget_state(self.ui.extra_variables_table)
 
         self.signal_type_to_radio = {
             clb.SignalType.ACI: self.ui.aci_radio,
@@ -648,10 +643,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         qt_utils.qtablewidget_delete_selected(self.ui.extra_variables_table)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.ui.extra_variables_table.objectName(),
-                                    self.ui.extra_variables_table.horizontalHeader().saveState())
-
-        size = f"{self.size().width()};{self.size().height()}"
-        self.settings.save_geometry(self.objectName(), bytes(size, encoding='cp1251'))
+        self.settings.save_qwidget_state(self.ui.extra_variables_table)
+        self.settings.save_dialog_size(self)
 
         a_event.accept()

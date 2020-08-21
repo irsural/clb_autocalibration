@@ -63,13 +63,11 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
-            self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
-            self.ui.mainwindow_splitter.restoreState(self.settings.get_last_geometry(
-                self.ui.mainwindow_splitter.objectName()))
-            self.ui.mainwindow_splitter_2.restoreState(self.settings.get_last_geometry(
-                self.ui.mainwindow_splitter_2.objectName()))
-            self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-                self.ui.measures_table.objectName()))
+            self.settings.restore_qwidget_state(self)
+            self.settings.restore_qwidget_state(self.ui.mainwindow_splitter)
+            self.settings.restore_qwidget_state(self.ui.mainwindow_splitter_2)
+            self.settings.restore_qwidget_state(self.ui.measures_table)
+
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.ui.progress_bar_widget.setHidden(True)
@@ -837,11 +835,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                 a_event.ignore()
             else:
-                self.settings.save_geometry(self.ui.mainwindow_splitter.objectName(),
-                                            self.ui.mainwindow_splitter.saveState())
-                self.settings.save_geometry(self.ui.mainwindow_splitter_2.objectName(),
-                                            self.ui.mainwindow_splitter_2.saveState())
-                self.settings.save_geometry(self.ui.measures_table.objectName(),
-                                            self.ui.measures_table.horizontalHeader().saveState())
-                self.settings.save_geometry(self.objectName(), self.saveGeometry())
+                self.settings.save_qwidget_state(self.ui.mainwindow_splitter)
+                self.settings.save_qwidget_state(self.ui.mainwindow_splitter_2)
+                self.settings.save_qwidget_state(self.ui.measures_table)
+                self.settings.save_qwidget_state(self)
+
                 a_event.accept()

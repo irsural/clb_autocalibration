@@ -23,9 +23,8 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
-        self.ui.correction_tables_splitter.restoreState(self.settings.get_last_geometry(
-            self.ui.correction_tables_splitter.objectName()))
+        self.settings.restore_qwidget_state(self)
+        self.settings.restore_qwidget_state(self.ui.correction_tables_splitter)
 
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinMaxButtonsHint)
 
@@ -87,9 +86,6 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
         print("CorrectionTables deleted")
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.ui.correction_tables_splitter.objectName(),
-                                    self.ui.correction_tables_splitter.saveState())
-        self.settings.save_geometry(self.objectName(), self.saveGeometry())
+        self.settings.save_qwidget_state(self)
+        self.settings.save_qwidget_state(self.ui.correction_tables_splitter)
         a_event.accept()
-
-
