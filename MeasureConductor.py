@@ -208,6 +208,7 @@ class MeasureConductor(QtCore.QObject):
             self.multimeter.disconnect()
         self.multimeter = None
 
+        self.scheme_control = self.measure_manager.get_scheme()
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
 
@@ -256,15 +257,6 @@ class MeasureConductor(QtCore.QObject):
             return self.current_config.measure_delay + self.current_config.measure_time
         else:
             return 1
-
-    def set_signal_type(self, a_signal_type: clb.SignalType) -> bool:
-        current_enabled = clb.signal_type_to_current_enabled[a_signal_type]
-        dc_enabled = clb.signal_type_to_dc_enabled[a_signal_type]
-
-        current_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.current_enabled, current_enabled)
-        dc_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.dc_enabled, dc_enabled)
-
-        return current_ok and dc_ok
 
     def __retry(self):
         self.current_try += 1
@@ -522,7 +514,8 @@ class MeasureConductor(QtCore.QObject):
 
                 variables_ready = []
 
-                ready = self.set_signal_type(self.current_measure_parameters.signal_type)
+                ready = clb_assists.guaranteed_set_signal_type(self.netvars,
+                                                               self.current_measure_parameters.signal_type)
                 variables_ready.append(ready)
 
                 ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reference_amplitude,
@@ -698,7 +691,7 @@ class MeasureConductor(QtCore.QObject):
 
         logging.info(
             f"Параметры текущего измерения ({self.current_cell_position.measure_name}). "
-            f"Сигнал: {clb.enum_to_signal_type_short[signal_type]} ({clb.enum_to_signal_type[signal_type]}). "
+            f"Сигнал: {clb.signal_type_to_text_short[signal_type]} ({clb.signal_type_to_text[signal_type]}). "
             f"Амплитуда: {utils.float_to_string(self.current_amplitude)} "
             f"{clb.signal_type_to_units[signal_type]}. {frequency_str}. "
             f"Катушка: {self.current_config.coil.name}, "

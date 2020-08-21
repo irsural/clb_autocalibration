@@ -724,7 +724,7 @@ class MeasureDataModel(QAbstractTableModel):
 
         amplitude_str = f"{self.get_amplitude_with_units(a_cell_row)}; "
         frequency_str = f"{self.get_frequency_with_units(a_cell_column)}; " if self.__signal_type_is_ac else ""
-        signal_type_str = clb.enum_to_signal_type_short[self.__signal_type]
+        signal_type_str = clb.signal_type_to_text_short[self.__signal_type]
 
         coil_text = "" if cell_config.coil == CellConfig.Coil.NONE else \
             f" -> {CellConfig.COIL_TO_NAME[cell_config.coil]}"
