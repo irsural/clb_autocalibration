@@ -920,9 +920,16 @@ selection-background-color: rgb(170, 170, 255);</string>
     <addaction name="save_action"/>
     <addaction name="save_as_action"/>
    </widget>
+   <widget class="QMenu" name="menu_4">
+    <property name="title">
+     <string>Дополнительно</string>
+    </property>
+    <addaction name="calculate_divider_coefficients"/>
+   </widget>
    <addaction name="menu_3"/>
    <addaction name="menu_2"/>
    <addaction name="settings_menu"/>
+   <addaction name="menu_4"/>
    <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
@@ -941,17 +948,13 @@ selection-background-color: rgb(170, 170, 255);</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="new_configuration_action"/>
    <addaction name="open_action"/>
    <addaction name="save_action"/>
-   <addaction name="save_as_action"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="start_all_action"/>
    <addaction name="continue_all_action"/>
    <addaction name="stop_all_action"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="correction_action"/>
@@ -961,17 +964,14 @@ selection-background-color: rgb(170, 170, 255);</string>
    <addaction name="stop_flash_verify_action"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
    <addaction name="lock_action"/>
    <addaction name="unlock_action"/>
    <addaction name="lock_all_action"/>
    <addaction name="unlock_all_action"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
    <addaction name="open_tstlan_action"/>
    <addaction name="graphs_action"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="show_equal_action"/>
@@ -1452,6 +1452,16 @@ selection-background-color: rgb(170, 170, 255);</string>
    </property>
    <property name="toolTip">
     <string>Отображать схему подключения в ячейках таблицы</string>
+   </property>
+  </action>
+  <action name="calculate_divider_coefficients">
+   <property name="text">
+    <string>Рассчитать коэффициенты делителя/усилителя</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
    </property>
   </action>
  </widget>

@@ -688,7 +688,7 @@ class MeasureDataModel(QAbstractTableModel):
                 units = " " + self.__signal_type_units
             elif self.__displayed_data == CellData.GetDataType.MEASURED:
                 displayed_data = self.__displayed_data
-                units = " " + CellConfig.meter_to_units[cell_data.config.meter]
+                units = " " + self.__signal_type_units
             else:
                 displayed_data = self.__displayed_data
                 units = ""

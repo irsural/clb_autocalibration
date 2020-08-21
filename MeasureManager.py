@@ -379,7 +379,37 @@ class MeasureManager(QtCore.QObject):
 
     @utils.exception_decorator
     def open_shared_measure_parameters(self):
-        shared_parameter_dialog = EditSharedMeasureParametersDialog(self.shared_measure_parameters, self.settings,
+        self.__open_shared_measure_parameters(self.shared_measure_parameters)
+
+    @utils.exception_decorator
+    def auto_calculate_divider_coefficients(self):
+        new_shared_parameters = copy.deepcopy(self.shared_measure_parameters)
+        if self.__check_table_to_auto_calculate_coefficients():
+            self.__open_shared_measure_parameters(self.shared_measure_parameters)
+
+    def __check_table_to_auto_calculate_coefficients(self):
+        result = False
+        if self.current_data_model is not None:
+            if self.current_data_model.rowCount() > 1 and self.current_data_model.columnCount() > 1:
+                for row in range(self.current_data_model.rowCount()):
+                    row_schemes = []
+                    for column in range(self.current_data_model.columnCount()):
+                        cell_config = self.current_data_model.get_cell_config(row, column)
+                        row_schemes.append((cell_config.coil, cell_config.divider, cell_config.meter))
+
+                    if not all((scheme == row_schemes[0] for scheme in row_schemes)):
+                        logging.warning(f'Строка "{self.current_data_model.get_amplitude_with_units(row)}" '
+                                        f'содержит различные схемы')
+                        break
+
+                    pass
+            else:
+                logging.warning("Таблица измерения пуста")
+        else:
+            logging.warning("Ни одно измерение не открыто")
+
+    def __open_shared_measure_parameters(self, a_shared_parameters: SharedMeasureParameters):
+        shared_parameter_dialog = EditSharedMeasureParametersDialog(a_shared_parameters, self.settings,
                                                                     self.interface_is_locked, self.__parent)
         new_shared_parameters = shared_parameter_dialog.exec_and_get()
         if new_shared_parameters is not None and new_shared_parameters != self.shared_measure_parameters:

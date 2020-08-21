@@ -215,6 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
         self.ui.update_calculated_cells_data_button.clicked.connect(self.update_calculated_cells_data)
 
+        self.ui.calculate_divider_coefficients.triggered.connect(self.calculate_divider_coefficients_button_clicked)
         self.ui.open_about_action.triggered.connect(self.open_about)
 
     def set_up_logger(self):
@@ -663,6 +664,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_shared_measure_parameters(self, _):
         self.measure_manager.open_shared_measure_parameters()
+
+    def calculate_divider_coefficients_button_clicked(self, _):
+        pass
+        # self.measure_manager.auto_calculate_divider_coefficients()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
