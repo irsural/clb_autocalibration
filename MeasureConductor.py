@@ -60,7 +60,7 @@ class MeasureConductor(QtCore.QObject):
         # Stage.GET_CONFIGS: "Получение конфигурации",
         # Stage.RESET_CALIBRATOR_CONFIG: "Сброс параметров калибратора",
         Stage.WAIT_CALIBRATOR_RESET: "Ждем сброс калибратора...",
-        Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
+        # Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
         # Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
         # Stage.SET_METER_CONFIG: "Установка параметров измерителя",
         Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",

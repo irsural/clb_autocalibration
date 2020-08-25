@@ -30,7 +30,7 @@ def create_scheme(a_scheme_type: SchemeType, a_ftdi_control: FtdiControl):
 
 
 class SchemeControl:
-    RESET_RELAYS_TIME_S = 0.1
+    RESET_RELAYS_TIME_S = 2
 
     # Из "\\5-10\dev\Калибратор\Конструкция\Схема и плата\Тестовые платы\clb_autotest_analog\
     # Сборочная документация clb_autotest_analog Плата автотестирования калибратора Р0 И01\

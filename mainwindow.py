@@ -516,12 +516,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_correction_tables_from_file(self, _):
         tables_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Открыть таблицы коррекции", "",
                                                                    "Таблицы коррекции (*.ct)")
-        with open(tables_filename, "r") as tables_file:
-            correction_tables = json.loads(tables_file.read())
+        if tables_filename:
+            with open(tables_filename, "r") as tables_file:
+                correction_tables = json.loads(tables_file.read())
 
-        if correction_tables:
-            correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
-            correct_tables_dialog.exec()
+            if correction_tables:
+                correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.exec()
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)

@@ -466,12 +466,12 @@ class MeasureDataModel(QAbstractTableModel):
 
         statuses = []
         for row, column, cell in self.__get_cells_iterator():
-            value = cell.config.additional_parameters.deviation_threshold \
+            threshold = cell.config.additional_parameters.deviation_threshold \
                 if status_parameter == CellData.GetDataType.DEVIATION else CellData.GetDataType.STUDENT_95
-            threshold = self.get_cell_value(row, column, status_parameter)
+            value = self.get_cell_value(row, column, status_parameter)
             if value is None or threshold is None:
                 status = MeasureDataModel.Status.NOT_CHECKED
-            elif abs(value) <= threshold:
+            elif abs(value) > threshold:
                 status = MeasureDataModel.Status.BAD
             else:
                 status = MeasureDataModel.Status.GOOD
