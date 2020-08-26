@@ -6,8 +6,8 @@ import logging
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import calibrator_constants as clb
-from irspy.settings_ini_parser import Settings
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
@@ -62,7 +62,7 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
         END_VALUE = 4
         COUNT = 5
 
-    def __init__(self, a_init_parameters: MeasureParameters, a_settings: Settings, a_lock_editing=False,
+    def __init__(self, a_init_parameters: MeasureParameters, a_settings: QtSettings, a_lock_editing=False,
                  a_parent=None):
         super().__init__(a_parent)
 
@@ -74,13 +74,9 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
             self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.settings = a_settings
-        try:
-            size = self.settings.get_last_geometry(self.objectName()).split(";")
-            self.resize(int(size[0]), int(size[1]))
-        except ValueError:
-            pass
-        self.ui.flash_table.horizontalHeader().restoreState(self.settings.get_last_geometry(
-            self.ui.flash_table.objectName()))
+        self.settings.restore_dialog_size(self)
+        self.settings.restore_qwidget_state(self.ui.flash_table)
+
         self.ui.flash_table.setItemDelegate(TransparentPainterForWidget(self.ui.flash_table, "#d4d4ff"))
 
         self.signal_type_to_radio = {
@@ -165,10 +161,7 @@ class EditMeasureParametersDialog(QtWidgets.QDialog):
         qt_utils.qtablewidget_delete_selected(self.ui.flash_table)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.ui.flash_table.objectName(),
-                                    self.ui.flash_table.horizontalHeader().saveState())
-
-        size = f"{self.size().width()};{self.size().height()}"
-        self.settings.save_geometry(self.objectName(), bytes(size, encoding='cp1251'))
+        self.settings.save_qwidget_state(self.ui.flash_table)
+        self.settings.restore_dialog_size(self)
 
         a_event.accept()

@@ -7,11 +7,10 @@ import logging
 from PyQt5 import QtCore
 
 from irspy.clb.network_variables import NetworkVariables, BufferedVariable, VariableInfo
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import assist_functions as clb_assists
 from irspy.clb import calibrator_constants as clb
 from CorrectionFlasher import CorrectionFlasher
-from irspy.dlls.ftdi_control import FtdiControl
-from irspy.settings_ini_parser import Settings
 from irspy.clb.clb_dll import ClbDrv
 from irspy import metrology
 from irspy import utils
@@ -21,7 +20,6 @@ from edit_cell_config_dialog import CellConfig
 from MeasureIterator import MeasureIterator
 from MeasureManager import MeasureManager
 import allowed_schemes_lut as scheme_lut
-from SchemeControl import SchemeControl, SchemeControlGag
 import multimeters
 
 
@@ -71,7 +69,7 @@ class MeasureConductor(QtCore.QObject):
         # Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
         # Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
-        Stage.MEASURE: "Измерение...",
+        # Stage.MEASURE: "Измерение...",
         # Stage.END_MEASURE: "Конец измерения",
         # Stage.ERRORS_OUTPUT: "Вывод ошибок",
         # Stage.START_FLASH: "Начало прошивки",
@@ -126,12 +124,11 @@ class MeasureConductor(QtCore.QObject):
 
     verify_flash_done = QtCore.pyqtSignal()
 
-    def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_ftdi_control: FtdiControl,
-                 a_measure_manager: MeasureManager, a_settings: Settings, a_parent=None):
+    def __init__(self, a_calibrator: ClbDrv, a_netvars: NetworkVariables, a_measure_manager: MeasureManager,
+                 a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.calibrator = a_calibrator
-        self.ftdi_control = a_ftdi_control
         self.netvars = a_netvars
         self.settings = a_settings
         self.measure_manager = a_measure_manager
@@ -149,15 +146,16 @@ class MeasureConductor(QtCore.QObject):
         self.current_frequency = clb.MIN_FREQUENCY
         self.current_try = 0
 
+        self.current_cell_is_the_last_in_table = False
+
         self.auto_flash_to_calibrator = False
         self.flash_current_measure = False
 
         self.calibrator_hold_ready_timer = utils.Timer(0)
+        self.calibrator_not_ready_message_time = utils.Timer(20)
         self.measure_duration_timer = utils.Timer(0)
 
-        self.scheme_control_real = SchemeControl(self.ftdi_control)
-        self.scheme_control_gag = SchemeControlGag()
-        self.scheme_control = self.scheme_control_real
+        self.scheme_control = None
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
 
@@ -197,6 +195,8 @@ class MeasureConductor(QtCore.QObject):
         self.current_frequency = clb.MIN_FREQUENCY
         self.current_try = 0
 
+        self.current_cell_is_the_last_in_table = False
+
         self.auto_flash_to_calibrator = False
         self.flash_current_measure = False
 
@@ -208,6 +208,7 @@ class MeasureConductor(QtCore.QObject):
             self.multimeter.disconnect()
         self.multimeter = None
 
+        self.scheme_control = self.measure_manager.get_scheme()
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
 
@@ -257,18 +258,10 @@ class MeasureConductor(QtCore.QObject):
         else:
             return 1
 
-    def set_signal_type(self, a_signal_type: clb.SignalType) -> bool:
-        current_enabled = clb.signal_type_to_current_enabled[a_signal_type]
-        dc_enabled = clb.signal_type_to_dc_enabled[a_signal_type]
-
-        current_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.current_enabled, current_enabled)
-        dc_ok = clb_assists.guaranteed_buffered_variable_set(self.netvars.dc_enabled, dc_enabled)
-
-        return current_ok and dc_ok
-
     def __retry(self):
         self.current_try += 1
-        logging.warning(f"Произошел сбой. Попытка:{self.current_try}/{self.current_config.retry_count}")
+        logging.warning(f"Произошел сбой. Попытка:{self.current_try}/"
+                        f"{self.current_config.additional_parameters.retry_count}")
 
         self.start_time_point = None
         # stop() чтобы таймеры возвращали верное значение time_passed()
@@ -283,8 +276,10 @@ class MeasureConductor(QtCore.QObject):
 
     @utils.exception_decorator
     def tick(self):
-        self.scheme_control.tick()
         self.correction_flasher.tick()
+
+        if self.scheme_control is not None:
+            self.scheme_control.tick()
 
         if self.multimeter is not None:
             self.multimeter.tick()
@@ -324,10 +319,7 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
-            if isinstance(self.multimeter, multimeters.MultimeterGag):
-                self.scheme_control = self.scheme_control_gag
-            else:
-                self.scheme_control = self.scheme_control_real
+            self.scheme_control = self.measure_manager.get_scheme()
 
             if self.scheme_control.connect():
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -369,16 +361,21 @@ class MeasureConductor(QtCore.QObject):
                 clb.is_dc_signal[self.current_measure_parameters.signal_type] else self.netvars.fast_adc_slow
 
             self.y_out_filter.stop()
-            self.y_out_filter.set_sampling_time(self.current_config.filter_sampling_time)
-            self.y_out_filter.resize(self.current_config.filter_samples_count)
+            self.y_out_filter.set_sampling_time(self.current_config.additional_parameters.filter_sampling_time)
+            self.y_out_filter.resize(self.current_config.additional_parameters.filter_samples_count)
+
+            self.current_cell_is_the_last_in_table = self.measure_iterator.is_the_last_cell_in_table()
 
             self.flash_current_measure = self.auto_flash_to_calibrator and \
-                                         self.measure_iterator.is_the_last_cell_in_table() and \
+                                         self.current_cell_is_the_last_in_table and \
                                          self.current_measure_parameters.flash_after_finish
 
             try:
-                self.current_measure_type = MeasureConductor.SIGNAL_TO_MEASURE_TYPE[
-                    (self.current_measure_parameters.signal_type, self.current_config.meter)]
+                if not self.current_config.additional_parameters.dont_set_meter_config:
+                    self.current_measure_type = MeasureConductor.SIGNAL_TO_MEASURE_TYPE[
+                        (self.current_measure_parameters.signal_type, self.current_config.meter)]
+                else:
+                    self.current_measure_type = multimeters.MeasureType.tm_value
             except KeyError:
                 self.current_measure_type = None
 
@@ -475,9 +472,16 @@ class MeasureConductor(QtCore.QObject):
         elif self.__stage == MeasureConductor.Stage.SET_METER_RANGE:
             assert self.current_config.coefficient != 0, "Коэффициент преобразования не может быть равен нулю!"
 
-            range_ = self.current_amplitude / self.current_config.coefficient
-            self.multimeter.set_range(range_)
-            logging.info(f"Диапазон: {range_}")
+            if not self.current_config.additional_parameters.dont_set_meter_config:
+
+                if self.current_config.additional_parameters.manual_range_enabled:
+                    range_ = self.current_config.additional_parameters.manual_range_value
+                else:
+                    range_ = self.current_amplitude / self.current_config.coefficient
+
+                self.multimeter.set_range(range_)
+                self.multimeter.set_config(self.current_config.meter_config_string)
+                logging.info(f"Диапазон: {range_}. Конфигурация мультиметра: {self.current_config.meter_config_string}")
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
@@ -487,7 +491,7 @@ class MeasureConductor(QtCore.QObject):
                                               a_meter=self.current_config.meter):
                     self.need_to_set_scheme = False
                 else:
-                    logging.error("Не удалось установить схему (FTDI), измерение остановлено")
+                    logging.error("Не удалось установить схему, измерение остановлено")
                     self.stop()
             else:
                 if self.scheme_control.ready():
@@ -510,7 +514,8 @@ class MeasureConductor(QtCore.QObject):
 
                 variables_ready = []
 
-                ready = self.set_signal_type(self.current_measure_parameters.signal_type)
+                ready = clb_assists.guaranteed_set_signal_type(self.netvars,
+                                                               self.current_measure_parameters.signal_type)
                 variables_ready.append(ready)
 
                 ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reference_amplitude,
@@ -537,6 +542,7 @@ class MeasureConductor(QtCore.QObject):
                         logging.info(f"Ожидание выхода калибратора на режим... ({self.current_config.measure_delay} с)")
                         # Сигнал включен, начинаем измерение
                         self.calibrator_hold_ready_timer.start(self.current_config.measure_delay)
+                        self.calibrator_not_ready_message_time.start()
                         self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.WAIT_CALIBRATOR_READY:
@@ -546,15 +552,15 @@ class MeasureConductor(QtCore.QObject):
             elif not self.calibrator_hold_ready_timer.check():
                 if self.calibrator.state != clb.State.READY:
                     self.calibrator_hold_ready_timer.start()
+
+                    if self.calibrator_not_ready_message_time.check():
+                        self.calibrator_not_ready_message_time.start()
+                        logging.warning("Калибратор вышел из режима ГОТОВ!")
             else:
                 measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
                 self.measure_duration_timer.start(measure_duration)
 
-                self.multimeter.start_measure()
-
-                self.y_out = self.y_out_network_variable.get()
-                if self.current_config.consider_output_value and self.current_config.enable_output_filtering:
-                    self.y_out_filter.restart()
+                self.start_multimeter_measure()
 
                 logging.info(f"Измерение... ({self.current_config.measure_time} с)")
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -576,13 +582,16 @@ class MeasureConductor(QtCore.QObject):
 
                     self.add_new_measured_value(measured, time)
 
-                    self.multimeter.start_measure()
+                    self.start_multimeter_measure()
 
                     # Лайфхак(говнокод), так будет сделано ровно одно измерение
                     if self.current_config.measure_time == 0:
                         self.measure_duration_timer.start(1e-6)
             else:
                 self.measure_manager.finalize_measure(*self.current_cell_position)
+
+                if self.current_cell_is_the_last_in_table:
+                    self.measure_manager.update_measure_status(self.current_cell_position.measure_name)
 
                 self.start_time_point = None
                 # stop() чтобы таймеры возвращали верное значение time_passed()
@@ -602,8 +611,8 @@ class MeasureConductor(QtCore.QObject):
 
                         if self.next_error_index == error_index:
                             error_code = self.netvars.error_code.get()
-                            logging.warning(f"Ошибка №{error_index + 1}: "
-                                            f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
+                            logging.error(f"Ошибка №{error_index + 1}: "
+                                          f"Код {error_code}. {clb.error_code_to_message[error_code]}.")
 
                             next_error_index = error_index + 1
                             if next_error_index < error_count:
@@ -620,7 +629,7 @@ class MeasureConductor(QtCore.QObject):
                     self.wait_error_clear_timer.start()
 
                 if self.wait_error_clear_timer.check():
-                    if self.current_try >= self.current_config.retry_count:
+                    if self.current_try >= self.current_config.additional_parameters.retry_count:
                         logging.error(f"Попытки закончились. Измерение прервано.")
                         self.stop()
                     else:
@@ -658,6 +667,14 @@ class MeasureConductor(QtCore.QObject):
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
+    def start_multimeter_measure(self):
+        self.multimeter.start_measure()
+        self.y_out = self.y_out_network_variable.get()
+
+        if self.current_config.consider_output_value and \
+                self.current_config.additional_parameters.enable_output_filtering:
+            self.y_out_filter.restart()
+
     def set_extra_variables(self, a_state: CellConfig.ExtraParameterState):
         variables_ready = []
         for variable in self.extra_variables:
@@ -674,15 +691,17 @@ class MeasureConductor(QtCore.QObject):
 
         logging.info(
             f"Параметры текущего измерения ({self.current_cell_position.measure_name}). "
-            f"Сигнал: {signal_type.name}. Амплитуда: {utils.float_to_string(self.current_amplitude)} "
+            f"Сигнал: {clb.signal_type_to_text_short[signal_type]} ({clb.signal_type_to_text[signal_type]}). "
+            f"Амплитуда: {utils.float_to_string(self.current_amplitude)} "
             f"{clb.signal_type_to_units[signal_type]}. {frequency_str}. "
-            f"Катушка: {self.current_config.coil.name}, делитель: {self.current_config.divider.name}, "
+            f"Катушка: {self.current_config.coil.name}, "
+            f"делитель: {self.current_config.divider.name}, "
             f"измеритель: {self.current_config.meter.name}"
         )
 
     def add_new_measured_value(self, a_measured_value: float, a_time: float):
         self.y_out_filter.stop()
-        if self.current_config.consider_output_value and self.current_config.enable_output_filtering:
+        if self.current_config.consider_output_value and self.current_config.additional_parameters.enable_output_filtering:
             out_on_device = self.y_out_filter.get_value()
         else:
             out_on_device = self.y_out
@@ -739,7 +758,18 @@ class MeasureConductor(QtCore.QObject):
         for measure_name in a_measures_to_flash:
             measure_params = self.measure_manager.get_measure_parameters(measure_name)
             if measure_params.flash_after_finish:
-                data_to_flash.append((measure_params.flash_table, self.measure_manager.get_table_values(measure_name)))
+                table_data: List[List[Union[None, float]]] = self.measure_manager.get_table_values(measure_name)
+
+                if table_data:
+                    if clb.is_dc_signal[measure_params.signal_type] and len(table_data[0]) == 2:
+                        # Особый случай, потому что на постоянном токе должно быть 2 одинаковых столбца и измерять
+                        # достаточно только один, а прошивать нужно оба
+                        for row in table_data:
+                            row.append(row[1])
+                        # Заголовок столбца может быть любой, главно чтобы отличался от столбца-предка
+                        table_data[0][2] = table_data[0][1] + 1
+
+                data_to_flash.append((measure_params.flash_table, table_data))
             else:
                 logging.warning(f'Измерение "{measure_name}" не предназначено для прошивки и '
                                 f'прошито/верифицировано не будет')

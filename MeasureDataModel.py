@@ -10,10 +10,12 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QColor
 
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.clb import calibrator_constants as clb
 from irspy import metrology
 from irspy import utils
 
+from edit_shared_measure_parameters_dialog import SharedMeasureParameters
 from edit_measure_parameters_dialog import MeasureParameters
 from edit_cell_config_dialog import CellConfig
 
@@ -147,8 +149,8 @@ class CellData:
         """
         if self.has_value():
             if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
-                logging.info("Количество измеренных значений слишком мало для импульсного фильтра! "
-                             "Результат будет вычислен по среднему значению")
+                logging.warning("Количество измеренных значений слишком мало для импульсного фильтра! "
+                                "Результат будет вычислен по среднему значению")
                 self.__result = self.__average.get()
             else:
                 self.__impulse_filter.assign(self.__measured_values)
@@ -229,6 +231,10 @@ class CellData:
     def is_marked_as_equal(self):
         return self.__marked_as_equal
 
+    def update_coefficient(self, a_frequency: float, a_shared_parameters: SharedMeasureParameters) -> bool:
+        # Рассчитывает self.coefficient в классе CellConfig и возвращает True, если значение изменилось
+        return self.config.update_coefficient(a_frequency, a_shared_parameters)
+
 
 class MeasureDataModel(QAbstractTableModel):
     HEADER_ROW = 0
@@ -245,27 +251,40 @@ class MeasureDataModel(QAbstractTableModel):
 
     HZ_UNITS = "Гц"
 
-    DISPLAY_DATA_PRECISION = 9
-    EDIT_DATA_PRECISION = 20
+    # DISPLAY_DATA_PRECISION = 6
+    # EDIT_DATA_PRECISION = 20
+
+    class Status(IntEnum):
+        NOT_CHECKED = 0
+        BAD = 1
+        GOOD = 2
 
     data_save_state_changed = QtCore.pyqtSignal(str, bool)
+    status_changed = QtCore.pyqtSignal(str, Status)
 
-    def __init__(self, a_name: str, a_saved=False, a_init_cells: [List[List[CellData]]] = None,
-                 a_measured_parameters=None, a_enabled=False, a_parent=None):
+    def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: QtSettings, a_saved=False,
+                 a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None,
+                 a_status: Status = Status.NOT_CHECKED, a_enabled=False, a_parent=None):
         super().__init__(a_parent)
 
         self.__name = a_name
         self.__saved = a_saved
         self.__cells = a_init_cells if a_init_cells is not None else [[CellData()]]
         self.__measure_parameters = a_measured_parameters if a_measured_parameters else MeasureParameters()
+        self.__status: MeasureDataModel.Status = a_status
         self.__enabled = a_enabled
         self.__show_equal_cells = False
         self.__cell_to_compare: Union[None, CellConfig] = None
         self.__displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
+        assert a_shared_parameters is not None, "ERROR, a_shared_parameters is None"
+        self.__shared_measure_parameters: SharedMeasureParameters = a_shared_parameters
+
         self.__signal_type = self.__measure_parameters.signal_type
         self.__signal_type_is_ac = clb.is_ac_signal[self.__measure_parameters.signal_type]
         self.__signal_type_units = clb.signal_type_to_units[self.__measure_parameters.signal_type]
+
+        self.__settings = a_settings
 
     def __serialize_cells_to_dict(self):
         data_dict = OrderedDict()
@@ -279,6 +298,7 @@ class MeasureDataModel(QAbstractTableModel):
             "name": self.__name,
             "row_count": self.rowCount(),
             "column_count": self.columnCount(),
+            "status": int(self.__status),
             "enabled": self.__enabled,
             "cells": self.__serialize_cells_to_dict(),
             "measure_parameters": self.__measure_parameters.serialize_to_dict(),
@@ -286,7 +306,8 @@ class MeasureDataModel(QAbstractTableModel):
         return data_dict
 
     @classmethod
-    def from_dict(cls, a_measure_name: str, a_data_dict: dict):
+    def from_dict(cls, a_measure_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: QtSettings,
+                  a_data_dict: dict):
         name_in_dict = a_data_dict["name"]
         assert a_measure_name == name_in_dict, "Имена в измерении и в имени файла должны совпадать!"
 
@@ -306,10 +327,11 @@ class MeasureDataModel(QAbstractTableModel):
         assert all([cell is not None for cell in cells])
 
         measure_parameters = MeasureParameters.from_dict(a_data_dict["measure_parameters"])
+        status = MeasureDataModel.Status(a_data_dict["status"])
         enabled = a_data_dict["enabled"]
 
-        return cls(a_name=a_measure_name, a_saved=True, a_init_cells=cells, a_measured_parameters=measure_parameters,
-                   a_enabled=enabled)
+        return cls(a_name=a_measure_name, a_shared_parameters=a_shared_parameters, a_settings=a_settings, a_saved=True,
+                   a_init_cells=cells, a_measured_parameters=measure_parameters, a_status=status, a_enabled=enabled)
 
     def set_name(self, a_name: str):
         self.__name = a_name
@@ -345,6 +367,9 @@ class MeasureDataModel(QAbstractTableModel):
     def set_enabled(self, a_enabled: bool):
         self.__enabled = a_enabled
         self.set_save_state(False)
+
+    def get_status(self) -> Status:
+        return self.__status
 
     @staticmethod
     def __is_cell_header(a_row, a_column):
@@ -416,6 +441,52 @@ class MeasureDataModel(QAbstractTableModel):
             self.__cell_to_compare = None
         self.__compare_cells()
 
+    def update_shared_parameters(self, a_shared_parameters: SharedMeasureParameters):
+        self.__shared_measure_parameters = a_shared_parameters
+        for _, column, cell in self.__get_cells_iterator():
+            frequency = self.get_frequency(column) if self.__signal_type_is_ac else 0
+            if cell.update_coefficient(frequency, self.__shared_measure_parameters):
+                self.set_save_state(False)
+
+    def update_status(self):
+        new_status = self.__calculate_status()
+        if self.__status != new_status:
+            self.__status = new_status
+            self.set_save_state(False)
+
+    def __reset_status(self):
+        self.__status = MeasureDataModel.Status.NOT_CHECKED
+        self.status_changed.emit(self.__name, self.__status)
+
+    def __calculate_status(self) -> Status:
+        status_parameter = CellData.GetDataType.DEVIATION if self.__measure_parameters.enable_correction else \
+            CellData.GetDataType.STUDENT_95
+
+        self.__calculate_cells_parameters(status_parameter)
+
+        statuses = []
+        for row, column, cell in self.__get_cells_iterator():
+            threshold = cell.config.additional_parameters.deviation_threshold \
+                if status_parameter == CellData.GetDataType.DEVIATION else CellData.GetDataType.STUDENT_95
+            value = self.get_cell_value(row, column, status_parameter)
+            if value is None or threshold is None:
+                status = MeasureDataModel.Status.NOT_CHECKED
+            elif abs(value) > threshold:
+                status = MeasureDataModel.Status.BAD
+            else:
+                status = MeasureDataModel.Status.GOOD
+
+            statuses.append(status)
+
+        if any((st == MeasureDataModel.Status.NOT_CHECKED for st in statuses)):
+            measure_status = MeasureDataModel.Status.NOT_CHECKED
+        elif any((st == MeasureDataModel.Status.BAD for st in statuses)):
+            measure_status = MeasureDataModel.Status.BAD
+        else:
+            measure_status = MeasureDataModel.Status.GOOD
+
+        return measure_status
+
     def add_row(self, a_row: int):
         assert a_row != 0, "Строка не должна иметь 0 индекс!"
 
@@ -430,6 +501,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.endInsertRows()
         self.set_save_state(False)
         self.__compare_cells()
+        self.__reset_status()
 
     def remove_row(self, a_row: int):
         if a_row != MeasureDataModel.HEADER_ROW:
@@ -437,6 +509,7 @@ class MeasureDataModel(QAbstractTableModel):
             del self.__cells[a_row]
             self.endRemoveRows()
             self.set_save_state(False)
+            self.__reset_status()
 
     def add_column(self, a_column: int):
         assert a_column != 0, "Столбец не должен иметь 0 индекс!"
@@ -453,6 +526,7 @@ class MeasureDataModel(QAbstractTableModel):
         self.endInsertColumns()
         self.set_save_state(False)
         self.__compare_cells()
+        self.__reset_status()
 
     def remove_column(self, a_column: int):
         if a_column != MeasureDataModel.HEADER_COLUMN:
@@ -461,19 +535,20 @@ class MeasureDataModel(QAbstractTableModel):
                 del cell_row[a_column]
             self.endRemoveColumns()
             self.set_save_state(False)
+            self.__reset_status()
 
     def get_amplitude(self, a_row):
         cell_data = self.__cells[a_row][MeasureDataModel.HEADER_COLUMN]
         return 0 if not cell_data.has_value() else cell_data.get_value()
 
-    def get_amplitude_with_units(self, a_row):
+    def get_amplitude_with_units(self, a_row) -> str:
         return self.data(self.index(a_row, MeasureDataModel.HEADER_COLUMN))
 
     def get_frequency(self, a_column):
         cell_data = self.__cells[MeasureDataModel.HEADER_ROW][a_column]
         return 0 if not cell_data.has_value() else cell_data.get_value()
 
-    def get_frequency_with_units(self, a_column):
+    def get_frequency_with_units(self, a_column) -> str:
         return self.data(self.index(MeasureDataModel.HEADER_ROW, a_column))
 
     def verify_cell_configs(self, a_signal_type: clb.SignalType, a_reset_bad_cells=False):
@@ -557,7 +632,6 @@ class MeasureDataModel(QAbstractTableModel):
         :return: Значение ячейки или None.
         """
         assert a_row < self.rowCount() and a_column < self.columnCount(), "Задан неверный индекс ячейки!"
-        # assert not self.__is_cell_header(a_row, a_column), "Этой функцией нельзя получить значения из хэдеров"
 
         cell = self.__cells[a_row][a_column]
         cell_value = None
@@ -614,31 +688,48 @@ class MeasureDataModel(QAbstractTableModel):
                 units = " " + self.__signal_type_units
             elif self.__displayed_data == CellData.GetDataType.MEASURED:
                 displayed_data = self.__displayed_data
-                units = " " + CellConfig.meter_to_units[cell_data.config.meter]
+                units = " " + self.__signal_type_units
             else:
                 displayed_data = self.__displayed_data
                 units = ""
 
             if role == Qt.DisplayRole:
+                cell_value = cell_data.get_value(displayed_data)
+                value = utils.float_to_string(
+                    cell_value, self.get_display_precision(cell_value, self.__settings.display_data_precision))
+            else:
+                # role == Qt.EditRole
                 value = utils.float_to_string(cell_data.get_value(displayed_data),
-                                              a_precision=MeasureDataModel.DISPLAY_DATA_PRECISION)
-            else: # Qt.EditRole
-                value = utils.float_to_string(cell_data.get_value(displayed_data),
-                                              a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
+                                              a_precision=self.__settings.edit_data_precision)
 
             str_value = f"{value}{units}"
 
             return str_value
+
+    @staticmethod
+    def get_display_precision(a_value: float, a_full_precision: int) -> str:
+        """
+        Конвертирует число в строку с учетом количества разрядов до запятой
+        Например для числа 0,123 precision=a_full_precision
+        Для числа 1,234 precision=a_full_precision - 1
+        Для числа 12,345 precision=a_full_precision - 2
+        """
+        value_str = f"{a_value:.9f}"
+        before_decimal_count = len(value_str.split('.')[0])
+        precision = utils.bound(a_full_precision + 1 - before_decimal_count, 0, a_full_precision)
+        return precision
 
     def get_cell_tool_tip(self, a_cell_row: int, a_cell_column: int):
         cell_config = self.__cells[a_cell_row][a_cell_column].config
 
         amplitude_str = f"{self.get_amplitude_with_units(a_cell_row)}; "
         frequency_str = f"{self.get_frequency_with_units(a_cell_column)}; " if self.__signal_type_is_ac else ""
-        signal_type_str = clb.enum_to_signal_type_short[self.__signal_type]
+        signal_type_str = clb.signal_type_to_text_short[self.__signal_type]
 
-        coil_text = "" if cell_config.coil == CellConfig.Coil.NONE else f" -> {CellConfig.COIL_TO_NAME[cell_config.coil]}"
-        divider_text = "" if cell_config.divider == CellConfig.Divider.NONE else f" -> {CellConfig.DIVIDER_TO_NAME[cell_config.divider]}"
+        coil_text = "" if cell_config.coil == CellConfig.Coil.NONE else \
+            f" -> {CellConfig.COIL_TO_NAME[cell_config.coil]}"
+        divider_text = "" if cell_config.divider == CellConfig.Divider.NONE else \
+            f" -> {CellConfig.DIVIDER_TO_NAME[cell_config.divider]}"
         meter_text = f" -> {CellConfig.METER_TO_NAME[cell_config.meter]}"
 
         cell_tool_tip = f"Время: {cell_config.measure_delay} с. /{cell_config.measure_time} с.; " \
@@ -650,16 +741,26 @@ class MeasureDataModel(QAbstractTableModel):
     def reset_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].reset()
         self.set_save_state(False)
+        self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
+
+    def reset_all_cells(self):
+        for _, _, cell in self.__get_cells_iterator():
+            cell.reset()
+
+        self.__reset_status()
+        self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.DisplayRole,))
 
     def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
         self.__cells[a_row][a_column].append_value(a_value, a_time)
         self.set_save_state(False)
+        self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def finalize_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].finalize()
         self.set_save_state(False)
+        self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
@@ -673,8 +774,8 @@ class MeasureDataModel(QAbstractTableModel):
             cell_data.reset()
         else:
             try:
-                float_value = utils.parse_input(value, a_precision=MeasureDataModel.EDIT_DATA_PRECISION)
-                if float_value != cell_data.get_value() or not cell_data.has_value():
+                float_value = utils.parse_input(value, a_precision=self.__settings.edit_data_precision)
+                if not utils.are_float_equal(float_value, cell_data.get_value()) or not cell_data.has_value():
                     cell_data.set_value(float_value)
                 else:
                     result = False
@@ -682,8 +783,16 @@ class MeasureDataModel(QAbstractTableModel):
                 result = False
 
         if result:
-            self.dataChanged.emit(index, index)
+            if index.row() == MeasureDataModel.HEADER_ROW and self.__signal_type_is_ac:
+                # Изменение частоты для переменного сигнала, нужно пересчитать коэффициент для всех авто ячеек
+                frequency = self.get_frequency(index.column())
+                for row in range(MeasureDataModel.HEADER_ROW + 1, self.rowCount()):
+                    cell_data = self.__cells[row][index.column()]
+                    cell_data.update_coefficient(frequency, self.__shared_measure_parameters)
+
+                self.dataChanged.emit(index, index)
             self.set_save_state(False)
+            self.__reset_status()
 
         return result
 

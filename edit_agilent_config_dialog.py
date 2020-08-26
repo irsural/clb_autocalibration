@@ -5,7 +5,7 @@ import logging
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 
 from ui.py.edit_agilent_config_dialog import Ui_edit_agilent_config_dialog as EditAgilentConfigForm
 
@@ -44,7 +44,7 @@ class AgilentConfig:
 
 class EditAgilentConfigDialog(QtWidgets.QDialog):
 
-    def __init__(self, a_init_parameters: AgilentConfig, a_settings: Settings, a_lock_editing=False,
+    def __init__(self, a_init_parameters: AgilentConfig, a_settings: QtSettings, a_lock_editing=False,
                  a_parent=None):
         super().__init__(a_parent)
 
@@ -56,12 +56,7 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
             self.ui.accept_button.setDisabled(a_lock_editing)
 
         self.settings = a_settings
-
-        try:
-            size = self.settings.get_last_geometry(self.objectName()).split(";")
-            self.resize(int(size[0]), int(size[1]))
-        except ValueError:
-            pass
+        self.settings.restore_dialog_size(self)
 
         self.ip_address_regex = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
         self.com_regex = re.compile(r"(?i)com\d")
@@ -110,7 +105,6 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        size = f"{self.size().width()};{self.size().height()}"
-        self.settings.save_geometry(self.objectName(), bytes(size, encoding='cp1251'))
+        self.settings.save_dialog_size(self)
 
         a_event.accept()

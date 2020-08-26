@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>409</width>
-    <height>574</height>
+    <width>423</width>
+    <height>488</height>
    </rect>
   </property>
   <property name="font">
@@ -26,11 +26,22 @@
    <item>
     <layout class="QVBoxLayout" name="main_widget_layout">
      <item>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_3">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="3" column="2">
+        <widget class="QEditDoubleClick" name="coefficient_edit">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
          <property name="text">
-          <string>Количество попыток</string>
+          <string>1</string>
          </property>
         </widget>
        </item>
@@ -41,21 +52,21 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
+       <item row="5" column="0" colspan="3">
+        <widget class="QCheckBox" name="consider_output_value_checkbox">
          <property name="text">
-          <string>Сигнал калибратора</string>
+          <string>Учитывать выходное значение при измерении</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_2">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>Коэффициент преобразования</string>
+          <string>Время измерения, с</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="2" column="2">
         <widget class="QSpinBox" name="measure_time_spinbox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -80,79 +91,28 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QEditDoubleClick" name="coefficient_edit">
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="1">
-        <widget class="QSpinBox" name="retry_count_spinbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="value">
-          <number>3</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_5">
+        <widget class="QCheckBox" name="auto_coefficient_checkbox">
          <property name="text">
-          <string>Время измерения, с</string>
+          <string>Авто</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="measure_delay_spinbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-         <property name="value">
-          <number>100</number>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Коэффициент</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1" colspan="2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Сигнал калибратора</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="spacing">
           <number>15</number>
@@ -202,70 +162,42 @@
          </item>
         </layout>
        </item>
+       <item row="1" column="2">
+        <widget class="QSpinBox" name="measure_delay_spinbox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+         <property name="value">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Настройки измерителя</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1" colspan="2">
+        <widget class="QLineEdit" name="meter_config_edit"/>
+       </item>
       </layout>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="consider_output_value_checkbox">
-       <property name="title">
-        <string>Учитывать выходное значение при измерении</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QCheckBox" name="enable_output_filtering_checkbox">
-          <property name="text">
-           <string>Включить фильтрацию выходного значения</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Время дискретизации</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QDoubleSpinBox" name="sampling_time_spinbox">
-            <property name="decimals">
-             <number>4</number>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.100000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Количество точек</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="filter_points_count_spinbox">
-            <property name="maximum">
-             <number>9999</number>
-            </property>
-            <property name="value">
-             <number>100</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
      </item>
      <item>
       <widget class="QTabWidget" name="tabWidget">
@@ -471,9 +403,19 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tab_3">
+        <attribute name="title">
+         <string>Доп. параметры</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="additional_parameters_layout"/>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="tab_2">
         <attribute name="title">
-         <string>Дополнительные переменные</string>
+         <string>Сетевые перем.</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <item>
@@ -619,10 +561,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>dci_radio</tabstop>
   <tabstop>acv_radio</tabstop>
   <tabstop>dcv_radio</tabstop>
-  <tabstop>measure_delay_spinbox</tabstop>
-  <tabstop>retry_count_spinbox</tabstop>
-  <tabstop>consider_output_value_checkbox</tabstop>
-  <tabstop>enable_output_filtering_checkbox</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>coil_no_radio</tabstop>
   <tabstop>coil_001_radio</tabstop>
@@ -644,8 +582,8 @@ selection-background-color: rgb(170, 170, 255);</string>
  </resources>
  <connections/>
  <buttongroups>
+  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

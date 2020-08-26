@@ -7,24 +7,26 @@ import json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForWidget, TransparentPainterForView
-from irspy.settings_ini_parser import Settings, BadIniException
+from irspy.qt.custom_widgets.tstlan_dialog import TstlanDialog
+from irspy.qt.custom_widgets.graph_dialog import GraphDialog
 from irspy.clb.network_variables import NetworkVariables
+from irspy.settings_ini_parser import BadIniException
 from irspy.dlls.ftdi_control import FtdiControl
 import irspy.clb.calibrator_constants as clb
 import irspy.clb.clb_dll as clb_dll
 from irspy.qt import qt_utils
 import irspy.utils as utils
 
-from MeasureManager import MeasureManager, ChemeInCellPainter
+from MeasureManager import MeasureManager, SchemeInCellPainter
 from correction_tables_dialog import CorrectionTablesDialog
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from MeasureConductor import MeasureConductor
 from settings_dialog import SettingsDialog
-from tstlan_dialog import TstlanDialog
 from MeasureDataModel import CellData
-from graph_dialog import GraphDialog
 from about_dialog import AboutDialog
 from multimeters import MeterType
+from SchemeControl import SchemeType
+import settings
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -54,65 +56,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         try:
-            self.settings = Settings("./settings.ini", [
-                Settings.VariableInfo(a_name="fixed_step_list", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_FLOAT,
-                                      a_default=[0.0001, 0.01, 0.1, 1, 10, 20, 100]),
-                Settings.VariableInfo(a_name="checkbox_states", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="fixed_step_idx", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT),
-                Settings.VariableInfo(a_name="rough_step", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.5),
-                Settings.VariableInfo(a_name="common_step", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.05),
-                Settings.VariableInfo(a_name="exact_step", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.002),
-                Settings.VariableInfo(a_name="tstlan_update_time", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.FLOAT, a_default=0.2),
-                Settings.VariableInfo(a_name="tstlan_show_marks", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="tstlan_marks", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="tstlan_graphs", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.LIST_INT),
-                Settings.VariableInfo(a_name="last_configuration_path", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.STRING),
-                Settings.VariableInfo(a_name="meter_type", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="agilent_connect_type", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="agilent_gpib_index", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="agilent_gpib_address", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=22),
-                Settings.VariableInfo(a_name="agilent_com_name", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.STRING, a_default="com4"),
-                Settings.VariableInfo(a_name="agilent_ip_address", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.STRING, a_default="0.0.0.0"),
-                Settings.VariableInfo(a_name="agilent_port", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="switch_to_active_cell", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=0),
-                Settings.VariableInfo(a_name="graph_parameters_splitter_size", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=500),
-                Settings.VariableInfo(a_name="show_scheme_in_cell", a_section="PARAMETERS",
-                                      a_type=Settings.ValueType.INT, a_default=1),
-            ])
-
+            self.settings = settings.get_clb_autocalibration_settings()
             ini_ok = True
         except BadIniException:
             ini_ok = False
             QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
-            self.restoreGeometry(self.settings.get_last_geometry(self.objectName()))
-            self.ui.mainwindow_splitter.restoreState(self.settings.get_last_geometry(
-                self.ui.mainwindow_splitter.objectName()))
-            self.ui.mainwindow_splitter_2.restoreState(self.settings.get_last_geometry(
-                self.ui.mainwindow_splitter_2.objectName()))
-            self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-                self.ui.measures_table.objectName()))
+            self.settings.restore_qwidget_state(self)
+            self.settings.restore_qwidget_state(self.ui.mainwindow_splitter)
+            self.settings.restore_qwidget_state(self.ui.mainwindow_splitter_2)
+            self.settings.restore_qwidget_state(self.ui.measures_table)
+
             self.ui.measures_table.setItemDelegate(TransparentPainterForWidget(self.ui.measures_table, "#d4d4ff"))
 
             self.ui.progress_bar_widget.setHidden(True)
@@ -132,8 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
 
-            self.netvars = NetworkVariables(f"./{clb.CLB_CONFIG_NAME}", self.calibrator,
-                                            a_variables_read_delay=0)
+            self.netvars = NetworkVariables(f"./{clb.CLB_CONFIG_NAME}", self.calibrator, a_variables_read_delay=0)
 
             self.clb_signal_off_timer = QtCore.QTimer()
             # noinspection PyTypeChecker
@@ -152,96 +106,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.show()
 
-            self.measure_manager = MeasureManager(self.ui.measures_table,
-                                                  self.ui.measure_data_view, self.settings, self)
+            self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings,
+                                                  self)
             self.open_configuration_by_name(self.settings.last_configuration_path)
 
-            self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
-                                                      self.measure_manager, self.settings)
+            self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.measure_manager,
+                                                      self.settings)
             self.measure_conductor.all_measures_done.connect(self.measure_done)
             self.measure_conductor.single_measure_started.connect(self.single_measure_started)
             self.measure_conductor.single_measure_done.connect(self.single_measure_done)
             self.measure_conductor.verify_flash_done.connect(self.verify_flash_done)
 
-            self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
-            self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
-            self.ui.lock_all_action.triggered.connect(self.lock_all_cells_button_clicked)
-            self.ui.unlock_all_action.triggered.connect(self.unlock_all_cells_button_clicked)
-            self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
-
-            self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
-            self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
-
-            self.ui.show_scheme_in_cell_action.setChecked(self.settings.show_scheme_in_cell)
-            self.ui.show_scheme_in_cell_action.triggered.connect(self.show_scheme_in_cell_toggled)
-            self.show_scheme_in_cell_toggled(self.settings.show_scheme_in_cell)
-
-            self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
-            self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
-            self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
-            self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
-
-            self.ui.start_all_action.triggered.connect(self.start_all_measures_button_clicked)
-            self.ui.continue_all_action.triggered.connect(self.continue_all_measures_button_clicked)
-            self.ui.start_current_measure_button.clicked.connect(self.start_current_measure_button_clicked)
-            self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
-            self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
-
-            self.ui.flash_all_action.triggered.connect(self.flash_all_button_clicked)
-            self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
-            self.ui.read_correction_tables_action.triggered.connect(self.read_correction_tables_button_clicked)
-            self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
-            self.ui.get_correction_tables_from_file_action.triggered.connect(self.open_correction_tables_from_file)
-
-            self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
-            self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
-
-            self.ui.measures_table.customContextMenuRequested.connect(self.show_measures_table_context_menu)
-
-            self.ui.enter_settings_action.triggered.connect(self.open_settings)
-            self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
-            self.ui.graphs_action.triggered.connect(self.open_graphs)
-            self.ui.save_action.triggered.connect(self.save_configuration)
-            self.ui.save_as_action.triggered.connect(self.save_configuration_as)
-            self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
-            self.ui.open_cell_config_button.clicked.connect(self.open_cell_configuration)
-            self.ui.open_action.triggered.connect(self.open_configuration)
-            self.ui.new_configuration_action.triggered.connect(self.create_new_configuration)
-            self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
-            self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
-            self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
-            self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
-
-            self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
-
-            self.ui.copy_cell_config_action.triggered.connect(self.copy_cell_config)
-            self.ui.measure_data_view.addAction(self.ui.copy_cell_config_action)
-            self.ui.paste_cell_config_action.triggered.connect(self.paste_cell_config)
-            self.ui.measure_data_view.addAction(self.ui.paste_cell_config_action)
-
-            self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
-            self.ui.measure_data_view.addAction(self.ui.copy_cell_value_action)
-            self.ui.paste_cell_value_action.triggered.connect(self.paste_cell_value)
-            self.ui.measure_data_view.addAction(self.ui.paste_cell_value_action)
-
-            self.ui.show_cell_graph_action.triggered.connect(self.open_cell_graph)
-            self.ui.measure_data_view.addAction(self.ui.show_cell_graph_action)
-
-            self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
-            self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
-            self.ui.verify_current_measure_action.triggered.connect(self.verify_table)
-            self.ui.measure_data_view.addAction(self.ui.verify_current_measure_action)
-            self.ui.verify_diapason_of_cell_action.triggered.connect(self.verify_diapason_of_cell)
-            self.ui.measure_data_view.addAction(self.ui.verify_diapason_of_cell_action)
-            self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
-            self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
-
-            self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
-            self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
-
-            self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
-
-            self.ui.open_about_action.triggered.connect(self.open_about)
+            self.connect_all()
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
@@ -250,11 +126,101 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.close()
 
+    def connect_all(self):
+        self.ui.lock_action.triggered.connect(self.lock_cell_button_clicked)
+        self.ui.unlock_action.triggered.connect(self.unlock_cell_button_clicked)
+        self.ui.lock_all_action.triggered.connect(self.lock_all_cells_button_clicked)
+        self.ui.unlock_all_action.triggered.connect(self.unlock_all_cells_button_clicked)
+        self.ui.show_equal_action.toggled.connect(self.show_equal_cell_configs_button_toggled)
+
+        self.ui.switch_to_active_cell_action.setChecked(self.settings.switch_to_active_cell)
+        self.ui.switch_to_active_cell_action.triggered.connect(self.switch_to_active_cell_action_toggled)
+
+        self.ui.show_scheme_in_cell_action.setChecked(self.settings.show_scheme_in_cell)
+        self.ui.show_scheme_in_cell_action.triggered.connect(self.show_scheme_in_cell_toggled)
+        self.show_scheme_in_cell_toggled(self.settings.show_scheme_in_cell)
+
+        self.ui.add_row_button.clicked.connect(self.add_row_button_clicked)
+        self.ui.remove_row_button.clicked.connect(self.remove_row_button_clicked)
+        self.ui.add_column_button.clicked.connect(self.add_column_button_clicked)
+        self.ui.remove_column_button.clicked.connect(self.remove_column_button_clicked)
+        self.ui.clear_table_button.clicked.connect(self.clear_table_button_clicked)
+
+        self.ui.start_all_action.triggered.connect(self.start_all_measures_button_clicked)
+        self.ui.continue_all_action.triggered.connect(self.continue_all_measures_button_clicked)
+        self.ui.start_current_measure_button.clicked.connect(self.start_current_measure_button_clicked)
+        self.ui.continue_current_measure_button.clicked.connect(self.continue_current_measure_button_clicked)
+        self.ui.stop_all_action.triggered.connect(self.stop_measure_button_clicked)
+
+        self.ui.flash_all_action.triggered.connect(self.flash_all_button_clicked)
+        self.ui.verify_all_action.triggered.connect(self.verify_all_button_clicked)
+        self.ui.read_correction_tables_action.triggered.connect(self.read_correction_tables_button_clicked)
+        self.ui.stop_flash_verify_action.triggered.connect(self.stop_flash_verify_button_clicked)
+        self.ui.get_correction_tables_from_file_action.triggered.connect(self.open_correction_tables_from_file)
+
+        self.ui.measure_data_view.clicked.connect(self.measure_data_cell_clicked)
+        self.ui.measure_data_view.customContextMenuRequested.connect(self.show_data_table_context_menu)
+
+        self.ui.measures_table.customContextMenuRequested.connect(self.show_measures_table_context_menu)
+
+        self.ui.enter_settings_action.triggered.connect(self.open_settings)
+        self.ui.open_tstlan_action.triggered.connect(self.open_tstlan)
+        self.ui.graphs_action.triggered.connect(self.open_graphs)
+        self.ui.save_action.triggered.connect(self.save_configuration)
+        self.ui.save_as_action.triggered.connect(self.save_configuration_as)
+        self.ui.save_current_measure_button.clicked.connect(self.save_current_configuration)
+        self.ui.open_cell_config_button.clicked.connect(self.open_cell_configuration)
+        self.ui.open_action.triggered.connect(self.open_configuration)
+        self.ui.new_configuration_action.triggered.connect(self.create_new_configuration)
+        self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+        self.ui.add_measure_button.clicked.connect(self.add_measure_button_clicked)
+        self.ui.delete_measure_button.clicked.connect(self.remove_measure_button_clicked)
+        self.ui.rename_measure_button.clicked.connect(self.rename_measure_button_clicked)
+        self.ui.open_shared_measure_parameters_button.clicked.connect(self.open_shared_measure_parameters)
+        self.ui.update_measure_status_button.clicked.connect(self.update_measure_status_button_clicked)
+
+        self.ui.enable_all_button.clicked.connect(self.enable_all_button_clicked)
+
+        self.ui.copy_cell_config_action.triggered.connect(self.copy_cell_config)
+        self.ui.measure_data_view.addAction(self.ui.copy_cell_config_action)
+        self.ui.paste_cell_config_action.triggered.connect(self.paste_cell_config)
+        self.ui.measure_data_view.addAction(self.ui.paste_cell_config_action)
+
+        self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
+        self.ui.measure_data_view.addAction(self.ui.copy_cell_value_action)
+        self.ui.paste_cell_value_action.triggered.connect(self.paste_cell_value)
+        self.ui.measure_data_view.addAction(self.ui.paste_cell_value_action)
+
+        self.ui.show_cell_graph_action.triggered.connect(self.open_cell_graph)
+        self.ui.measure_data_view.addAction(self.ui.show_cell_graph_action)
+
+        self.ui.flash_current_measure_action.triggered.connect(self.flash_table)
+        self.ui.measure_data_view.addAction(self.ui.flash_current_measure_action)
+        self.ui.verify_current_measure_action.triggered.connect(self.verify_table)
+        self.ui.measure_data_view.addAction(self.ui.verify_current_measure_action)
+        self.ui.verify_diapason_of_cell_action.triggered.connect(self.verify_diapason_of_cell)
+        self.ui.measure_data_view.addAction(self.ui.verify_diapason_of_cell_action)
+        self.ui.flash_diapason_of_cell_action.triggered.connect(self.flash_diapason_of_cell)
+        self.ui.measure_data_view.addAction(self.ui.flash_diapason_of_cell_action)
+
+        self.ui.meter_combobox.currentIndexChanged.connect(self.set_meter)
+        self.ui.meter_settings_button.clicked.connect(self.open_meter_settings)
+
+        self.ui.scheme_combobox.setCurrentIndex(self.settings.scheme_type)
+        self.ui.scheme_combobox.currentIndexChanged.connect(self.set_scheme_type)
+        self.set_scheme_type(self.ui.scheme_combobox.currentIndex())
+
+        self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
+        self.ui.update_calculated_cells_data_button.clicked.connect(self.update_calculated_cells_data)
+
+        self.ui.calculate_divider_coefficients.triggered.connect(self.calculate_divider_coefficients_button_clicked)
+        self.ui.open_about_action.triggered.connect(self.open_about)
+
     def set_up_logger(self):
-        log = qt_utils.QTextEditLogger(self, self.ui.log_text_edit)
+        log = qt_utils.QTextEditLogger(self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
-        file_log = RotatingFileHandler("autocalibration.log", maxBytes=512*1024*1024, backupCount=3)
+        file_log = RotatingFileHandler("autocalibration.log", maxBytes=10*1024*1024, backupCount=3)
         file_log.setLevel(logging.DEBUG)
         file_log.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S'))
 
@@ -271,7 +237,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.start_all_action.setDisabled(a_lock)
         self.ui.continue_all_action.setDisabled(a_lock)
 
-        self.ui.correction_action.setDisabled(a_lock)
         self.ui.flash_all_action.setDisabled(a_lock)
         self.ui.verify_all_action.setDisabled(a_lock)
         self.ui.read_correction_tables_action.setDisabled(a_lock)
@@ -291,13 +256,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.remove_row_button.setDisabled(a_lock)
         self.ui.add_column_button.setDisabled(a_lock)
         self.ui.remove_column_button.setDisabled(a_lock)
+        self.ui.clear_table_button.setDisabled(a_lock)
 
         self.ui.clb_list_combobox.setDisabled(a_lock)
         self.ui.meter_combobox.setDisabled(a_lock)
+        self.ui.scheme_combobox.setDisabled(a_lock)
 
         self.ui.add_measure_button.setDisabled(a_lock)
         self.ui.delete_measure_button.setDisabled(a_lock)
         self.ui.rename_measure_button.setDisabled(a_lock)
+        self.ui.update_measure_status_button.setDisabled(a_lock)
         self.ui.enable_all_button.setDisabled(a_lock)
 
         self.ui.paste_cell_value_action.setDisabled(a_lock)
@@ -407,7 +375,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # "Переливаем" прогресс маленького прогресс бара в большой
         self.measure_progress_bar_value += self.ui.curent_cell_progress_bar.maximum()
         self.ui.curent_cell_progress_bar.setValue(0)
-        self.save_current_configuration()
+        if not self.save_current_configuration():
+            logging.warning("Не удалось сохранить результат после завершения измерения ячейки")
 
     def measure_done(self):
         self.ui.curent_cell_progress_bar.setValue(0)
@@ -547,12 +516,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_correction_tables_from_file(self, _):
         tables_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Открыть таблицы коррекции", "",
                                                                    "Таблицы коррекции (*.ct)")
-        with open(tables_filename, "r") as tables_file:
-            correction_tables = json.loads(tables_file.read())
+        if tables_filename:
+            with open(tables_filename, "r") as tables_file:
+                correction_tables = json.loads(tables_file.read())
 
-        if correction_tables:
-            correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
-            correct_tables_dialog.exec()
+            if correction_tables:
+                correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.exec()
 
     def show_data_table_context_menu(self):
         menu = QtWidgets.QMenu(self)
@@ -608,6 +578,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def rename_measure_button_clicked(self, _):
         self.measure_manager.rename_current_measure(self.current_configuration_path)
 
+    def update_measure_status_button_clicked(self, _):
+        self.measure_manager.update_all_measures_status()
+
     def show_equal_cell_configs_button_toggled(self, a_enable: bool):
         self.measure_manager.show_equal_cell_configs(a_enable)
 
@@ -616,7 +589,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_scheme_in_cell_toggled(self, a_enable: bool):
         if a_enable:
-            self.ui.measure_data_view.setItemDelegate(ChemeInCellPainter(self.ui.measure_data_view, "#d4d4ff"))
+            self.ui.measure_data_view.setItemDelegate(SchemeInCellPainter(self.ui.measure_data_view, "#d4d4ff"))
         else:
             self.ui.measure_data_view.setItemDelegate(TransparentPainterForView(self.ui.measure_data_view, "#d4d4ff"))
 
@@ -647,6 +620,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def remove_column_button_clicked(self, _):
         self.measure_manager.remove_column_from_current_measure()
+
+    def clear_table_button_clicked(self, _):
+        self.measure_manager.clear_table_content()
 
     @utils.exception_decorator
     def open_tstlan(self, _):
@@ -685,17 +661,32 @@ class MainWindow(QtWidgets.QMainWindow):
         about_dialog = AboutDialog(self)
         about_dialog.exec()
 
+    def open_shared_measure_parameters(self, _):
+        self.measure_manager.open_shared_measure_parameters()
+
+    def calculate_divider_coefficients_button_clicked(self, _):
+        pass
+        # self.measure_manager.auto_calculate_divider_coefficients()
+
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
 
     def set_meter(self, a_index: int):
         self.measure_manager.set_meter(MeterType(a_index))
 
+    def set_scheme_type(self, a_index: int):
+        self.measure_manager.set_scheme(SchemeType(a_index), self.ftdi_control)
+        self.settings.scheme_type = a_index
+
     def open_meter_settings(self):
         self.measure_manager.open_meter_settings()
 
     def set_displayed_data(self, a_displayed_data: int):
         self.measure_manager.set_displayed_data(CellData.GetDataType(a_displayed_data))
+
+    def update_calculated_cells_data(self, _):
+        displayed_data = self.ui.displayed_data_type_combobox.currentIndex()
+        self.measure_manager.set_displayed_data(CellData.GetDataType(displayed_data))
 
     def save_configuration(self):
         result = True
@@ -749,9 +740,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def reset_measure_manager(self):
         self.measure_manager = MeasureManager(self.ui.measures_table, self.ui.measure_data_view, self.settings, self)
+        self.set_scheme_type(self.ui.scheme_combobox.currentIndex())
 
-        self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.ftdi_control,
-                                                  self.measure_manager, self.settings)
+        self.measure_conductor = MeasureConductor(self.calibrator, self.netvars, self.measure_manager, self.settings)
         self.measure_conductor.all_measures_done.connect(self.measure_done)
         self.measure_conductor.single_measure_started.connect(self.single_measure_started)
         self.measure_conductor.single_measure_done.connect(self.single_measure_done)
@@ -845,11 +836,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                 a_event.ignore()
             else:
-                self.settings.save_geometry(self.ui.mainwindow_splitter.objectName(),
-                                            self.ui.mainwindow_splitter.saveState())
-                self.settings.save_geometry(self.ui.mainwindow_splitter_2.objectName(),
-                                            self.ui.mainwindow_splitter_2.saveState())
-                self.settings.save_geometry(self.ui.measures_table.objectName(),
-                                            self.ui.measures_table.horizontalHeader().saveState())
-                self.settings.save_geometry(self.objectName(), self.saveGeometry())
+                self.settings.save_qwidget_state(self.ui.mainwindow_splitter)
+                self.settings.save_qwidget_state(self.ui.mainwindow_splitter_2)
+                self.settings.save_qwidget_state(self.ui.measures_table)
+                self.settings.save_qwidget_state(self)
+
                 a_event.accept()

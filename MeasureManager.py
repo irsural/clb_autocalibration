@@ -11,18 +11,22 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForView
 from irspy.built_in_extensions import OrderedDictInsert
-from irspy.settings_ini_parser import Settings
+from irspy.clb.calibrator_constants import is_ac_signal
+from irspy.dlls.ftdi_control import FtdiControl
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.qt import qt_utils
 from irspy import utils
 
+from edit_shared_measure_parameters_dialog import EditSharedMeasureParametersDialog, SharedMeasureParameters
 from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
 from MeasureDataModel import MeasureDataModel, CellData
+import SchemeControl
 import multimeters
 
 
-class ChemeInCellPainter(TransparentPainterForView):
+class SchemeInCellPainter(TransparentPainterForView):
     COIL_TO_ICON = {
         CellConfig.Coil.NONE: "",
         CellConfig.Coil.VAL_0_01_OHM: ":/scheme/icons/scheme/coil_001.png",
@@ -89,7 +93,8 @@ class MeasureManager(QtCore.QObject):
     class MeasureColumn(IntEnum):
         NAME = 0
         SETTINGS = 1
-        ENABLE = 2
+        STATUS = 2
+        ENABLE = 3
 
     class IterationType(IntEnum):
         START_ALL = 0
@@ -104,14 +109,25 @@ class MeasureManager(QtCore.QObject):
 
     MEASURE_FILE_EXTENSION = "measure"
     MEASURES_ORDER_FILENAME = "measures_order.json"
+    SHARED_PARAMETERS_FILENAME = "shared_measure_parameters.json"
 
     SAVED_COLOR = QtCore.Qt.white
     UNSAVED_COLOR = QtGui.QColor(255, 235, 179)
 
     new_value_measured = QtCore.pyqtSignal(float, float)
 
+    STATUS_TO_PIXMAP = {
+        MeasureDataModel.Status.NOT_CHECKED: "",
+        MeasureDataModel.Status.BAD: ":/icons/icons/warning_2.png",
+        MeasureDataModel.Status.GOOD: ":/icons/icons/medal.png",
+    }
+
+    SETTINGS_COLUMN_WIDTH = 55
+    STATUS_COLUMN_WIDTH = 40
+    ENABLE_COLUMN_WIDTH = 40
+
     def __init__(self, a_measures_table: QtWidgets.QTableWidget, a_data_view: QtWidgets.QTableView,
-                 a_settings: Settings, a_parent=None):
+                 a_settings: QtSettings, a_parent=None):
         # a_parent специально не передается в super, потому что иначе MeasureManager не удаляется в MainWindow при
         # пересоздании
         super().__init__(None)
@@ -121,21 +137,27 @@ class MeasureManager(QtCore.QObject):
         self.measures_table = a_measures_table
         self.measures_table.setRowCount(0)
 
-        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.SETTINGS, 70)
-        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.ENABLE, 50)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.SETTINGS, MeasureManager.SETTINGS_COLUMN_WIDTH)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.STATUS, MeasureManager.STATUS_COLUMN_WIDTH)
+        self.measures_table.horizontalHeader().resizeSection(MeasureManager.MeasureColumn.ENABLE, MeasureManager.ENABLE_COLUMN_WIDTH)
 
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.NAME,
-                                                                       QtWidgets.QHeaderView.Stretch)
+                                                                    QtWidgets.QHeaderView.Stretch)
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.ENABLE,
-                                                                       QtWidgets.QHeaderView.Fixed)
+                                                                    QtWidgets.QHeaderView.Fixed)
+        self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.STATUS,
+                                                                    QtWidgets.QHeaderView.Fixed)
         self.measures_table.horizontalHeader().setSectionResizeMode(MeasureManager.MeasureColumn.SETTINGS,
-                                                                       QtWidgets.QHeaderView.Fixed)
+                                                                    QtWidgets.QHeaderView.Fixed)
 
         self.data_view = a_data_view
         self.data_view.setModel(None)
 
         self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
+
+        self.shared_measure_parameters: Union[None, SharedMeasureParameters] = None
+        self.shared_measure_parameters_changed: bool = False
 
         self.show_equal_cells = False
         self.copied_cell_config: Union[None, CellConfig] = None
@@ -144,6 +166,8 @@ class MeasureManager(QtCore.QObject):
 
         self.meter: Union[None, multimeters.MultimeterBase] = None
         self.set_meter(multimeters.MeterType.AGILENT_3458A)
+
+        self.scheme = None
 
         self.displayed_data: CellData.GetDataType = CellData.GetDataType.MEASURED
 
@@ -232,20 +256,25 @@ class MeasureManager(QtCore.QObject):
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
         new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
-        measure_data_model = a_measure_data_model if a_measure_data_model else MeasureDataModel(new_name)
+        measure_data_model = a_measure_data_model if a_measure_data_model else \
+            MeasureDataModel(new_name, self.shared_measure_parameters, self.settings)
+
         self.measures.insert(row_index, new_name, measure_data_model)
         measure_data_model.data_save_state_changed.connect(self.set_measure_save_state)
+        measure_data_model.status_changed.connect(self.__set_measure_status)
 
-        self.add_measure_in_table(row_index, new_name, measure_data_model.is_enabled())
+        self.add_measure_in_table(row_index, new_name, measure_data_model.is_enabled(), measure_data_model.get_status())
 
         self.set_measure_save_state(new_name, measure_data_model.is_saved())
         self.measures_table.setCurrentCell(row_index, MeasureManager.MeasureColumn.NAME)
 
-    def add_measure_in_table(self, a_row_index: int, a_name: str, a_enabled: bool):
+    def add_measure_in_table(self, a_row_index: int, a_name: str, a_enabled: bool, a_status: MeasureDataModel.Status):
         self.measures_table.insertRow(a_row_index)
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.NAME,
                                     QtWidgets.QTableWidgetItem(a_name))
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.SETTINGS,
+                                    QtWidgets.QTableWidgetItem())
+        self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.STATUS,
                                     QtWidgets.QTableWidgetItem())
         self.measures_table.setItem(a_row_index, MeasureManager.MeasureColumn.ENABLE,
                                     QtWidgets.QTableWidgetItem())
@@ -255,6 +284,11 @@ class MeasureManager(QtCore.QObject):
         self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.SETTINGS,
                                           qt_utils.wrap_in_layout(button))
         button.clicked.connect(self.edit_measure_parameters_button_clicked)
+
+        status_label = QtWidgets.QLabel()
+        self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.STATUS,
+                                          qt_utils.wrap_in_layout(status_label))
+        self.__set_status_icon(status_label, a_status)
 
         cb = QtWidgets.QCheckBox()
         self.measures_table.setCellWidget(a_row_index, MeasureManager.MeasureColumn.ENABLE, qt_utils.wrap_in_layout(cb))
@@ -331,14 +365,63 @@ class MeasureManager(QtCore.QObject):
             if cell_config is not None:
                 measure_name = self.current_data_model.get_name()
                 signal_type = self.current_data_model.get_measure_parameters().signal_type
+                frequency = self.current_data_model.get_frequency(column) if is_ac_signal[signal_type] else 0
 
-                edit_cell_config_dialog = EditCellConfigDialog(cell_config, signal_type, self.settings,
+                edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
+                                                               frequency, signal_type, self.settings,
                                                                self.interface_is_locked, self.__parent)
+
                 new_cell_config = edit_cell_config_dialog.exec_and_get()
                 if new_cell_config is not None and new_cell_config != cell_config:
                     self.measures[measure_name].set_cell_config(row, column, new_cell_config)
 
                 edit_cell_config_dialog.close()
+
+    @utils.exception_decorator
+    def open_shared_measure_parameters(self):
+        self.__open_shared_measure_parameters(self.shared_measure_parameters)
+
+    @utils.exception_decorator
+    def auto_calculate_divider_coefficients(self):
+        new_shared_parameters = copy.deepcopy(self.shared_measure_parameters)
+        if self.__check_table_to_auto_calculate_coefficients():
+            self.__open_shared_measure_parameters(self.shared_measure_parameters)
+
+    def __check_table_to_auto_calculate_coefficients(self):
+        result = False
+        if self.current_data_model is not None:
+            if self.current_data_model.rowCount() > 1 and self.current_data_model.columnCount() > 1:
+                for row in range(self.current_data_model.rowCount()):
+                    row_schemes = []
+                    for column in range(self.current_data_model.columnCount()):
+                        cell_config = self.current_data_model.get_cell_config(row, column)
+                        row_schemes.append((cell_config.coil, cell_config.divider, cell_config.meter))
+
+                    if not all((scheme == row_schemes[0] for scheme in row_schemes)):
+                        logging.warning(f'Строка "{self.current_data_model.get_amplitude_with_units(row)}" '
+                                        f'содержит различные схемы')
+                        break
+
+                    pass
+            else:
+                logging.warning("Таблица измерения пуста")
+        else:
+            logging.warning("Ни одно измерение не открыто")
+
+    def __open_shared_measure_parameters(self, a_shared_parameters: SharedMeasureParameters):
+        shared_parameter_dialog = EditSharedMeasureParametersDialog(a_shared_parameters, self.settings,
+                                                                    self.interface_is_locked, self.__parent)
+        new_shared_parameters = shared_parameter_dialog.exec_and_get()
+        if new_shared_parameters is not None and new_shared_parameters != self.shared_measure_parameters:
+            self.shared_measure_parameters_changed = True
+            self.shared_measure_parameters = new_shared_parameters
+            self.__calculate_coefficients_for_all_auto_cells()
+        shared_parameter_dialog.close()
+
+    def __calculate_coefficients_for_all_auto_cells(self):
+        if self.current_data_model is not None:
+            for data_model in self.measures.values():
+                data_model.update_shared_parameters(self.shared_measure_parameters)
 
     def lock_selected_cells(self, a_lock):
         if self.current_data_model is not None:
@@ -398,6 +481,17 @@ class MeasureManager(QtCore.QObject):
             for column in reversed(removing_cols):
                 self.current_data_model.remove_column(column)
 
+    def clear_table_content(self):
+        if self.current_data_model is not None:
+            # noinspection PyTypeChecker
+            res = QtWidgets.QMessageBox.question(None, "Подтвердите действие",
+                                                 f"Очистить содержимое таблицы? Заголовки таблицы не изменятся.",
+                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                 QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                self.current_data_model.reset_all_cells()
+                self.current_data_model.set_save_state(False)
+
     def copy_cell_config(self):
         if self.current_data_model is not None:
             index = self.get_only_selected_cell()
@@ -412,6 +506,7 @@ class MeasureManager(QtCore.QObject):
                 if self.copied_cell_config != self.current_data_model.get_cell_config(index.row(), index.column()):
                     scheme_is_ok = self.copied_cell_config.verify_scheme(current_signal_type)
                     exec_paste = True
+
                     if not scheme_is_ok and not always_paste:
                         amplitude = self.current_data_model.get_amplitude_with_units(index.row())
                         frequency = self.current_data_model.get_frequency_with_units(index.column())
@@ -433,21 +528,35 @@ class MeasureManager(QtCore.QObject):
 
                     if exec_paste or always_paste:
                         if not scheme_is_ok:
-                            new_cell_config = copy.deepcopy(self.copied_cell_config)
+                            new_cell_config = self.copied_cell_config
                             new_cell_config.reset_scheme(current_signal_type)
                         else:
                             new_cell_config = self.copied_cell_config
+
+                        if self.copied_cell_config.auto_calc_coefficient:
+                            freq = self.current_data_model.get_frequency(index.column())
+                            self.copied_cell_config.update_coefficient(freq, self.shared_measure_parameters)
 
                         self.current_data_model.set_cell_config(index.row(), index.column(), new_cell_config)
 
     def copy_cell_value(self):
         if self.current_data_model is not None:
-            selected_index = self.get_only_selected_cell()
-            if selected_index:
-                value: str = self.current_data_model.data(selected_index)
-                if value:
-                    value_without_units = value.split(" ")[0]
-                    QtWidgets.QApplication.clipboard().setText(value_without_units)
+            selected_indices = sorted(self.data_view.selectionModel().selectedIndexes())
+            if selected_indices:
+                copy_str = ""
+                prev_row = selected_indices[0].row()
+                for num, cell_idx in enumerate(selected_indices):
+                    if prev_row != cell_idx.row():
+                        prev_row = cell_idx.row()
+                        copy_str += "\n"
+                    elif num != 0:
+                        copy_str += "\t"
+
+                    cell_value = self.current_data_model.get_cell_value(cell_idx.row(), cell_idx.column())
+                    value_str = utils.float_to_string(cell_value, a_precision=15) if cell_value is not None else "0"
+                    copy_str += f"{value_str}"
+
+                QtWidgets.QApplication.clipboard().setText(copy_str)
 
     def paste_cell_value(self):
         if self.current_data_model is not None:
@@ -567,17 +676,52 @@ class MeasureManager(QtCore.QObject):
 
     def set_measure_save_state(self, a_measure_name: str, a_saved: bool):
         for row in range(self.measures_table.rowCount()):
-            name_item, param_item, enable_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME), \
-                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS), \
-                                                 self.measures_table.item(row, MeasureManager.MeasureColumn.ENABLE),
+            name_item, param_item, status_item, enable_item = \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.NAME), \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.SETTINGS), \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.STATUS), \
+                self.measures_table.item(row, MeasureManager.MeasureColumn.ENABLE),
+
             if name_item.text() == a_measure_name:
                 color = MeasureManager.SAVED_COLOR if a_saved else MeasureManager.UNSAVED_COLOR
                 name_item.setBackground(color)
                 param_item.setBackground(color)
+                status_item.setBackground(color)
                 enable_item.setBackground(color)
                 break
         else:
             assert False, f"Не найдено измерение с именем {a_measure_name}"
+
+    def update_all_measures_status(self):
+        if self.current_data_model is not None:
+            for measure_name, data_model in self.measures.items():
+                data_model.update_status()
+                self.__set_measure_status(measure_name, data_model.get_status())
+
+    def update_measure_status(self, a_measure_name: str):
+        data_model = self.measures[a_measure_name]
+        data_model.update_status()
+        self.__set_measure_status(a_measure_name, data_model.get_status())
+
+    def __set_measure_status(self, a_measure_name: str, a_status: MeasureDataModel.Status):
+        for row in range(self.measures_table.rowCount()):
+            name_item = self.measures_table.item(row, MeasureManager.MeasureColumn.NAME)
+
+            if name_item.text() == a_measure_name:
+                status_widget = self.measures_table.cellWidget(row, MeasureManager.MeasureColumn.STATUS)
+                status_label: QtWidgets.QLabel = qt_utils.unwrap_from_layout(status_widget)
+                self.__set_status_icon(status_label, a_status)
+                break
+        else:
+            assert False, f"Не найдено измерение с именем {a_measure_name}"
+
+    @staticmethod
+    def __set_status_icon(a_status_label: QtWidgets.QLabel, a_status: MeasureDataModel.Status):
+        pixmap = QtGui.QPixmap(MeasureManager.STATUS_TO_PIXMAP[a_status])
+        # noinspection PyTypeChecker
+        a_status_label.setPixmap(pixmap.scaled(MeasureManager.STATUS_COLUMN_WIDTH / 1.5,
+                                               MeasureManager.STATUS_COLUMN_WIDTH / 1.5,
+                                               QtCore.Qt.KeepAspectRatio))
 
     @utils.exception_decorator
     def edit_measure_parameters_button_clicked(self, _):
@@ -635,9 +779,16 @@ class MeasureManager(QtCore.QObject):
     def get_meter(self) -> multimeters.MultimeterBase:
         return self.meter
 
+    def set_scheme(self, a_scheme_type: SchemeControl, a_ftdi_control: FtdiControl):
+        self.scheme = SchemeControl.create_scheme(a_scheme_type, a_ftdi_control)
+        assert self.scheme is not None, f"Не реализованная схема подключения '{a_scheme_type.name}'"
+
+    def get_scheme(self):
+        return self.scheme
+
     def set_displayed_data(self, a_displayed_data: CellData.GetDataType):
         self.displayed_data = a_displayed_data
-        if self.current_data_model:
+        if self.current_data_model is not None:
             lock_table = self.displayed_data != CellData.GetDataType.MEASURED or self.interface_is_locked
             self.__lock_measure_table(lock_table)
 
@@ -746,7 +897,8 @@ class MeasureManager(QtCore.QObject):
         return graphs
 
     def is_saved(self):
-        return all([data_model.is_saved() for data_model in self.measures.values()])
+        return all([data_model.is_saved() for data_model in self.measures.values()]) and \
+               not self.shared_measure_parameters_changed
 
     def is_current_saved(self):
         saved = True if self.current_data_model is None else self.current_data_model.is_saved()
@@ -761,9 +913,19 @@ class MeasureManager(QtCore.QObject):
             measures_order = json.dumps(measures_list, ensure_ascii=False, indent=4)
             measure_order_file.write(measures_order)
 
+    def __save_shared_measure_parameters(self, a_folder):
+        shared_parameters_filename = f"{a_folder}/{MeasureManager.SHARED_PARAMETERS_FILENAME}"
+
+        with open(shared_parameters_filename, "w") as shared_parameters_file:
+            shared_parameters = json.dumps(self.shared_measure_parameters.serialize_to_dict(),
+                                           ensure_ascii=False, indent=4)
+            shared_parameters_file.write(shared_parameters)
+            self.shared_measure_parameters_changed = False
+
     def save_current(self, a_folder):
         if self.current_data_model is not None:
             self.__save_measures_order_list(a_folder)
+            self.__save_shared_measure_parameters(a_folder)
             measure_filename = self.__get_full_path_to_measure(a_folder, self.current_data_model.get_name())
             try:
                 with open(measure_filename, "w") as measure_file:
@@ -779,6 +941,7 @@ class MeasureManager(QtCore.QObject):
 
     def save(self, a_folder: str):
         self.__save_measures_order_list(a_folder)
+        self.__save_shared_measure_parameters(a_folder)
         for measure_name in self.measures.keys():
             measure_data_model = self.measures[measure_name]
             measure_filename = f"{a_folder}/{measure_name}.{MeasureManager.MEASURE_FILE_EXTENSION}"
@@ -813,6 +976,20 @@ class MeasureManager(QtCore.QObject):
             self.current_data_model = None
             self.measures.clear()
 
+            shared_parameters_filename = f"{a_folder}/{MeasureManager.SHARED_PARAMETERS_FILENAME}"
+            if os.path.exists(shared_parameters_filename):
+                with open(shared_parameters_filename, 'r') as shared_parameters_file:
+                    shared_parameters_dict = json.loads(shared_parameters_file.read())
+                    self.shared_measure_parameters = SharedMeasureParameters.from_dict(shared_parameters_dict)
+            else:
+                self.shared_measure_parameters = SharedMeasureParameters()
+                QtWidgets.QMessageBox.warning(None, "Предупреждение", f"Файл общих параметров измерения не найден! "
+                                                                      f"Будут использованы параметры по-умолчанию",
+                                              QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                # Сразу сохраняем если отсутствуют
+                self.shared_measure_parameters_changed = True
+                self.__save_shared_measure_parameters(a_folder)
+
             for measure_filename in measures_list:
                 measure_full_path = f"{a_folder}/{measure_filename}"
                 if os.path.exists(measure_full_path):
@@ -820,7 +997,8 @@ class MeasureManager(QtCore.QObject):
                         data_dict = json.loads(measure_file.read())
 
                         measure_name = measure_filename[:measure_filename.find(MeasureManager.MEASURE_FILE_EXTENSION) - 1]
-                        data_model = MeasureDataModel.from_dict(measure_name, data_dict)
+                        data_model = MeasureDataModel.from_dict(measure_name, self.shared_measure_parameters,
+                                                                self.settings, data_dict)
                         self.new_measure(measure_name, data_model)
                 else:
                     QtWidgets.QMessageBox.warning(None, "Предупреждение",

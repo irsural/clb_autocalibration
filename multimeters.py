@@ -3,7 +3,7 @@ import random
 import ctypes
 import abc
 
-from irspy.settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.dlls import mxsrlib_dll
 from irspy import utils
 
@@ -73,13 +73,17 @@ class MultimeterBase(abc.ABC):
     def set_range(self, a_range: float):
         pass
 
+    @abc.abstractmethod
+    def set_config(self, a_config_str):
+        pass
+
 
 class MeterType(IntEnum):
     AGILENT_3458A = 0
     GAG = 1
 
 
-def create_multimeter(a_meter_type: MeterType, a_settings: Settings):
+def create_multimeter(a_meter_type: MeterType, a_settings: QtSettings):
     if a_meter_type == MeterType.AGILENT_3458A:
         return Agilent3485A(a_settings)
     elif a_meter_type == MeterType.GAG:
@@ -90,7 +94,7 @@ def create_multimeter(a_meter_type: MeterType, a_settings: Settings):
 
 class Agilent3485A(MultimeterBase):
 
-    def __init__(self, a_settings: Settings):
+    def __init__(self, a_settings: QtSettings):
         assert mxsrlib_dll.mxsrclib_dll is not None, "mxsrclib_dll не инициализирована !!!"
         self.mxsrclib_dll = mxsrlib_dll.mxsrclib_dll
 
@@ -171,6 +175,10 @@ class Agilent3485A(MultimeterBase):
     def set_range(self, a_range: float):
         self.mxsrclib_dll.multimeter_set_range(ctypes.c_size_t(self.measure_type), a_range)
 
+    def set_config(self, a_config_str: str):
+
+        self.mxsrclib_dll.multimeter_set_config(ctypes.c_char_p(bytes(a_config_str, encoding="cp1251")))
+
 
 class MultimeterGag(MultimeterBase):
 
@@ -179,7 +187,7 @@ class MultimeterGag(MultimeterBase):
         self.lower_bound = 0.
         self.upper_bound = 0.
 
-        self.measure_value_timer = utils.Timer(0.5)
+        self.measure_value_timer = utils.Timer(2)
         self.measure_value_timer.start()
 
     def edit_settings(self, a_lock_changes: bool, a_parent):
@@ -201,12 +209,13 @@ class MultimeterGag(MultimeterBase):
 
     def measure_status(self) -> MultimeterBase.MeasureStatus:
         if self.measure_value_timer.check():
-            self.measure_value_timer.start()
+            self.measure_value_timer.stop()
             return MultimeterBase.MeasureStatus.SUCCESS
         else:
             return MultimeterBase.MeasureStatus.BUSY
 
     def start_measure(self) -> bool:
+        self.measure_value_timer.start()
         return True
 
     def get_measured_value(self) -> float:
@@ -216,5 +225,8 @@ class MultimeterGag(MultimeterBase):
         return self.measure_type
 
     def set_range(self, a_range: float):
-        self.lower_bound = utils.decrease_by_percent(a_range, 2)
-        self.upper_bound = utils.increase_by_percent(a_range, 2)
+        self.lower_bound = utils.decrease_by_percent(a_range, 0.04)
+        self.upper_bound = utils.increase_by_percent(a_range, 0.04)
+
+    def set_config(self, a_config_str):
+        pass

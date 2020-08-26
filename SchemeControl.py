@@ -6,14 +6,31 @@ import logging
 from irspy.dlls.ftdi_control import FtdiControl, FtdiPin
 from irspy import utils
 
-
 from edit_cell_config_dialog import CellConfig
+
 
 BistableRelay = namedtuple("BistableRelay", "set_pin reset_pin")
 
 
+class SchemeType(IntEnum):
+    AUTOCALIBRATOR = 0
+    DIRECT = 1
+    GAG = 2
+
+
+def create_scheme(a_scheme_type: SchemeType, a_ftdi_control: FtdiControl):
+    if a_scheme_type == SchemeType.AUTOCALIBRATOR:
+        return SchemeControl(a_ftdi_control)
+    elif a_scheme_type == SchemeType.DIRECT:
+        return DirectSchemeControl()
+    elif a_scheme_type == SchemeType.GAG:
+        return DirectSchemeControl()
+    else:
+        return None
+
+
 class SchemeControl:
-    RESET_RELAYS_TIME_S = 0.1
+    RESET_RELAYS_TIME_S = 2
 
     # Из "\\5-10\dev\Калибратор\Конструкция\Схема и плата\Тестовые платы\clb_autotest_analog\
     # Сборочная документация clb_autotest_analog Плата автотестирования калибратора Р0 И01\
@@ -251,7 +268,7 @@ class SchemeControl:
         return self.__ready
 
 
-class SchemeControlGag:
+class DirectSchemeControl:
     def __init__(self):
         pass
 
@@ -268,4 +285,7 @@ class SchemeControlGag:
         return True
 
     def set_up(self, a_coil: CellConfig.Coil, a_divider: CellConfig.Divider, a_meter: CellConfig.Meter) -> bool:
-        return True
+        if a_coil is CellConfig.Coil.NONE and a_divider is CellConfig.Divider.NONE:
+            return True
+        else:
+            return True

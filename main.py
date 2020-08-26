@@ -1,8 +1,9 @@
 import traceback
 
 from irspy.qt import ui_to_py
+ui_to_py.convert_resources("../irspy/qt/resources", ".")
 ui_to_py.convert_ui("./ui", "./ui/py")
-ui_to_py.convert_resources("./resources", ".")
+ui_to_py.convert_ui("../irspy/qt/custom_widgets/ui_forms", "../irspy/qt/custom_widgets/ui_py")
 
 
 def main():
@@ -13,10 +14,6 @@ def main():
     from PyQt5 import QtCore, QtGui
 
     from mainwindow import MainWindow
-
-    # Попробовать это, если будут проблемы с размерами иконок на дисплеях с высоким разрешением
-    # os.environ["QT_SCALE_FACTOR"] = "1"
-    # app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
 
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
