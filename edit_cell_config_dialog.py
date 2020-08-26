@@ -16,8 +16,7 @@ from irspy.qt import qt_utils
 import irspy.utils as utils
 
 from ui.py.edit_cell_config_dialog import Ui_edit_cell_config_dialog as EditCellConfigForm
-from edit_shared_measure_parameters_dialog import \
-    SharedMeasureParameters, Device, DEVICE_TO_NAME, DEVICE_TO_DEFAULT_COEFS
+from edit_shared_measure_parameters_dialog import SharedMeasureParameters, Device, DEVICE_TO_DEFAULT_COEFS
 
 
 class CellConfig:
@@ -205,7 +204,7 @@ class CellConfig:
 
         self.meter_config_string = "NPLC 100;LFILTER ON;SETACV SYNC"
 
-        self.consider_output_value = False
+        self.consider_output_value = True
 
         self.coil = CellConfig.Coil.NONE
         self.divider = CellConfig.Divider.NONE

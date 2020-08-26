@@ -740,6 +740,9 @@ class MeasureDataModel(QAbstractTableModel):
 
     def reset_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].reset()
+        # Чтобы пересчитались весовые коэффициенты calculated_parameters ячеек
+        self.set_displayed_data(self.__displayed_data)
+
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
@@ -753,12 +756,18 @@ class MeasureDataModel(QAbstractTableModel):
 
     def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
         self.__cells[a_row][a_column].append_value(a_value, a_time)
+        if self.__displayed_data != CellData.GetDataType.MEASURED:
+            self.__cells[a_row][a_column].calculate_parameters(self.get_amplitude(a_row), self.__displayed_data)
+
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
     def finalize_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].finalize()
+        # Чтобы пересчитались весовые коэффициенты calculated_parameters ячеек
+        self.set_displayed_data(self.__displayed_data)
+
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
