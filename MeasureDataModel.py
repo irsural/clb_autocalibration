@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from typing import List, Union, Generator, Tuple
 from statistics import stdev, mean
+from datetime import datetime
 from enum import IntEnum
 from array import array
 import logging
@@ -50,7 +51,7 @@ class CellData:
         COUNT = 7
 
     def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0., a_calculations=None,
-                 a_have_result=False, a_config=None):
+                 a_have_result=False, a_measure_date="", a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
@@ -67,6 +68,8 @@ class CellData:
         self.__calculated = False
         self.__weight = 0
 
+        self.__measure_date = a_measure_date
+
         self.config = a_config if a_config is not None else CellConfig()
 
     def serialize_to_dict(self):
@@ -76,6 +79,7 @@ class CellData:
             "measured_times": utils.bytes_to_base64(self.__measured_times.tobytes()),
             "result": self.__result,
             "have_result": self.__have_result,
+            "measure_date": self.__measure_date,
             "config": self.config.serialize_to_dict(),
         }
         return data_dict
@@ -93,6 +97,7 @@ class CellData:
                    a_init_times=init_times,
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
+                   a_measure_date=a_data_dict["measure_date"],
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
@@ -105,6 +110,7 @@ class CellData:
         self.__have_result = False
         self.__calculations.reset()
         self.__calculated = False
+        self.__measure_date = ""
 
     def get_measured_values(self) -> Tuple[array, array]:
         return self.__measured_times, self.__measured_values
@@ -143,6 +149,9 @@ class CellData:
         self.__result = a_value
         self.__have_result = True
 
+    def get_measure_date(self) -> str:
+        return self.__measure_date
+
     def finalize(self):
         """
         Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
@@ -155,6 +164,8 @@ class CellData:
             else:
                 self.__impulse_filter.assign(self.__measured_values)
                 self.__result = self.__impulse_filter.get()
+
+            self.__measure_date = datetime.now().strftime("%d.%m.%Y %H:%M")
 
     def calculate_parameters(self, a_setpoint: float, a_data_type: GetDataType):
         assert a_data_type != CellData.GetDataType.MEASURED, "MEASURED не нужно пересчитывать"
@@ -720,7 +731,8 @@ class MeasureDataModel(QAbstractTableModel):
         return precision
 
     def get_cell_tool_tip(self, a_cell_row: int, a_cell_column: int):
-        cell_config = self.__cells[a_cell_row][a_cell_column].config
+        cell_data = self.__cells[a_cell_row][a_cell_column]
+        cell_config = cell_data.config
 
         amplitude_str = f"{self.get_amplitude_with_units(a_cell_row)}; "
         frequency_str = f"{self.get_frequency_with_units(a_cell_column)}; " if self.__signal_type_is_ac else ""
@@ -734,7 +746,8 @@ class MeasureDataModel(QAbstractTableModel):
 
         cell_tool_tip = f"Время: {cell_config.measure_delay} с. /{cell_config.measure_time} с.; " \
                         f"Коэффициент: {utils.float_to_string(cell_config.coefficient, a_precision=4)}\n" \
-                        f"Схема: ({amplitude_str}{frequency_str}{signal_type_str}){coil_text}{divider_text}{meter_text}"
+                        f"Схема: ({amplitude_str}{frequency_str}{signal_type_str}){coil_text}{divider_text}{meter_text}\n" \
+                        f"Время измерения: {cell_data.get_measure_date()}"
 
         return cell_tool_tip
 
