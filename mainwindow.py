@@ -219,7 +219,7 @@ class MainWindow(QtWidgets.QMainWindow):
         log = qt_utils.QTextEditLogger(self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
-        file_log = RotatingFileHandler("autocalibration.log", maxBytes=10*1024*1024, backupCount=3)
+        file_log = RotatingFileHandler("autocalibration.log", maxBytes=10*1024*1024, backupCount=3, encoding='utf8')
         file_log.setLevel(logging.DEBUG)
         file_log.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S'))
 
@@ -664,8 +664,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.open_shared_measure_parameters()
 
     def calculate_divider_coefficients_button_clicked(self, _):
-        pass
-        # self.measure_manager.auto_calculate_divider_coefficients()
+        logging.error("Не реализовано ¯\\_(ツ)_/¯")
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
