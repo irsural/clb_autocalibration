@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
-    <height>279</height>
+    <width>305</width>
+    <height>214</height>
    </rect>
   </property>
   <property name="font">
@@ -19,7 +19,7 @@
    <string>Параметры Agilent3458A</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/icons.qrc">
+   <iconset resource="../../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -157,11 +157,17 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>connect_type_combobox</tabstop>
+  <tabstop>gpib_index_spinbox</tabstop>
+  <tabstop>gpib_address_spinbox</tabstop>
+  <tabstop>com_name_edit</tabstop>
+  <tabstop>ip_address_edit</tabstop>
+  <tabstop>port_spinbox</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>cancel_button</tabstop>
  </tabstops>
  <resources>
-  <include location="../resources/icons.qrc"/>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

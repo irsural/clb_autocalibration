@@ -19,7 +19,7 @@
    <string>Общие параметры для всех измерений</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/icons.qrc">
+   <iconset resource="../../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -119,7 +119,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../resources/icons.qrc">
+                <iconset resource="../../irspy/qt/resources/icons.qrc">
                  <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
                </property>
               </widget>
@@ -136,7 +136,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../resources/icons.qrc">
+                <iconset resource="../../irspy/qt/resources/icons.qrc">
                  <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
                </property>
               </widget>
@@ -201,11 +201,16 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>devices_list</tabstop>
+  <tabstop>device_coefs_view</tabstop>
+  <tabstop>add_coefficient_button</tabstop>
+  <tabstop>remove_coefficient_button</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>cancel_button</tabstop>
  </tabstops>
  <resources>
-  <include location="../resources/icons.qrc"/>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

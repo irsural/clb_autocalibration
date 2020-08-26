@@ -601,6 +601,28 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.clb_list_combobox, self.scheme_combobox)
+        MainWindow.setTabOrder(self.scheme_combobox, self.meter_combobox)
+        MainWindow.setTabOrder(self.meter_combobox, self.meter_settings_button)
+        MainWindow.setTabOrder(self.meter_settings_button, self.add_measure_button)
+        MainWindow.setTabOrder(self.add_measure_button, self.delete_measure_button)
+        MainWindow.setTabOrder(self.delete_measure_button, self.rename_measure_button)
+        MainWindow.setTabOrder(self.rename_measure_button, self.open_shared_measure_parameters_button)
+        MainWindow.setTabOrder(self.open_shared_measure_parameters_button, self.update_measure_status_button)
+        MainWindow.setTabOrder(self.update_measure_status_button, self.enable_all_button)
+        MainWindow.setTabOrder(self.enable_all_button, self.measures_table)
+        MainWindow.setTabOrder(self.measures_table, self.save_current_measure_button)
+        MainWindow.setTabOrder(self.save_current_measure_button, self.open_cell_config_button)
+        MainWindow.setTabOrder(self.open_cell_config_button, self.start_current_measure_button)
+        MainWindow.setTabOrder(self.start_current_measure_button, self.continue_current_measure_button)
+        MainWindow.setTabOrder(self.continue_current_measure_button, self.add_row_button)
+        MainWindow.setTabOrder(self.add_row_button, self.remove_row_button)
+        MainWindow.setTabOrder(self.remove_row_button, self.add_column_button)
+        MainWindow.setTabOrder(self.add_column_button, self.remove_column_button)
+        MainWindow.setTabOrder(self.remove_column_button, self.clear_table_button)
+        MainWindow.setTabOrder(self.clear_table_button, self.displayed_data_type_combobox)
+        MainWindow.setTabOrder(self.displayed_data_type_combobox, self.measure_data_view)
+        MainWindow.setTabOrder(self.measure_data_view, self.log_text_edit)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

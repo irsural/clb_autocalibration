@@ -1434,6 +1434,31 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>clb_list_combobox</tabstop>
+  <tabstop>scheme_combobox</tabstop>
+  <tabstop>meter_combobox</tabstop>
+  <tabstop>meter_settings_button</tabstop>
+  <tabstop>add_measure_button</tabstop>
+  <tabstop>delete_measure_button</tabstop>
+  <tabstop>rename_measure_button</tabstop>
+  <tabstop>open_shared_measure_parameters_button</tabstop>
+  <tabstop>update_measure_status_button</tabstop>
+  <tabstop>enable_all_button</tabstop>
+  <tabstop>measures_table</tabstop>
+  <tabstop>save_current_measure_button</tabstop>
+  <tabstop>open_cell_config_button</tabstop>
+  <tabstop>start_current_measure_button</tabstop>
+  <tabstop>continue_current_measure_button</tabstop>
+  <tabstop>add_row_button</tabstop>
+  <tabstop>remove_row_button</tabstop>
+  <tabstop>add_column_button</tabstop>
+  <tabstop>remove_column_button</tabstop>
+  <tabstop>clear_table_button</tabstop>
+  <tabstop>displayed_data_type_combobox</tabstop>
+  <tabstop>measure_data_view</tabstop>
+  <tabstop>log_text_edit</tabstop>
+ </tabstops>
  <resources>
   <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>

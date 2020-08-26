@@ -19,7 +19,7 @@
    <string>Таблицы коррекции</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/icons.qrc">
+   <iconset resource="../../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -28,7 +28,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QListWidget" name="table_names_list">
@@ -70,7 +70,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../resources/icons.qrc"/>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

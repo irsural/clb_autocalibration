@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_edit_agilent_config_dialog(object):
     def setupUi(self, edit_agilent_config_dialog):
         edit_agilent_config_dialog.setObjectName("edit_agilent_config_dialog")
-        edit_agilent_config_dialog.resize(391, 279)
+        edit_agilent_config_dialog.resize(305, 214)
         font = QtGui.QFont()
         font.setPointSize(10)
         edit_agilent_config_dialog.setFont(font)
@@ -84,6 +84,12 @@ class Ui_edit_agilent_config_dialog(object):
 
         self.retranslateUi(edit_agilent_config_dialog)
         QtCore.QMetaObject.connectSlotsByName(edit_agilent_config_dialog)
+        edit_agilent_config_dialog.setTabOrder(self.connect_type_combobox, self.gpib_index_spinbox)
+        edit_agilent_config_dialog.setTabOrder(self.gpib_index_spinbox, self.gpib_address_spinbox)
+        edit_agilent_config_dialog.setTabOrder(self.gpib_address_spinbox, self.com_name_edit)
+        edit_agilent_config_dialog.setTabOrder(self.com_name_edit, self.ip_address_edit)
+        edit_agilent_config_dialog.setTabOrder(self.ip_address_edit, self.port_spinbox)
+        edit_agilent_config_dialog.setTabOrder(self.port_spinbox, self.accept_button)
         edit_agilent_config_dialog.setTabOrder(self.accept_button, self.cancel_button)
 
     def retranslateUi(self, edit_agilent_config_dialog):

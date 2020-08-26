@@ -32,7 +32,7 @@
    <string>О программе clb_autocalibration</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/icons.qrc">
+   <iconset resource="../../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -48,7 +48,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="../resources/icons.qrc">:/images/images/just_for_fun.png</pixmap>
+      <pixmap resource="../../irspy/qt/resources/icons.qrc">:/images/images/just_for_fun.png</pixmap>
      </property>
     </widget>
    </item>
@@ -140,6 +140,7 @@
   </layout>
  </widget>
  <resources>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
   <include location="../resources/icons.qrc"/>
  </resources>
  <connections/>
