@@ -28,11 +28,13 @@ class MeasureParameters:
         self.flash_table: List[FlashTableRow] = a_flash_table if a_flash_table is not None else []
 
     def __eq__(self, other):
-        return other is not None and \
-               self.signal_type == other.signal_type and \
-               self.flash_after_finish == other.flash_after_finish and \
-               self.enable_correction == other.enable_correction and \
-               self.flash_table == other.flash_table
+        if isinstance(other, MeasureParameters):
+            return self.signal_type == other.signal_type and \
+                   self.flash_after_finish == other.flash_after_finish and \
+                   self.enable_correction == other.enable_correction and \
+                   self.flash_table == other.flash_table
+        else:
+            return NotImplemented
 
     def serialize_to_dict(self):
         data_dict = {

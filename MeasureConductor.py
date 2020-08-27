@@ -762,7 +762,7 @@ class MeasureConductor(QtCore.QObject):
 
                 if table_data:
                     if clb.is_dc_signal[measure_params.signal_type] and len(table_data[0]) == 2:
-                        # Особый случай, потому что на постоянном токе должно быть 2 одинаковых столбца и измерять
+                        # Особый случай, потому что на постоянных сигналах должно быть 2 одинаковых столбца и измерять
                         # достаточно только один, а прошивать нужно оба
                         for row in table_data:
                             row.append(row[1])

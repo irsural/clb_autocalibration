@@ -148,16 +148,18 @@ class CellConfig:
             self.filter_samples_count = 100
 
         def __eq__(self, other):
-            return other is not None and \
-                utils.are_float_equal(self.deviation_threshold, other.deviation_threshold) and \
-                utils.are_float_equal(self.confidence_interval_threshold, other.confidence_interval_threshold) and \
-                self.retry_count == other.retry_count and \
-                self.manual_range_enabled == other.manual_range_enabled and \
-                self.manual_range_value == other.manual_range_value and \
-                self.dont_set_meter_config == other.dont_set_meter_config and \
-                self.enable_output_filtering == other.enable_output_filtering and \
-                self.filter_sampling_time == other.filter_sampling_time and \
-                self.filter_samples_count == other.filter_samples_count
+            if isinstance(other, CellConfig.AdditionalParameters):
+                return utils.are_float_equal(self.deviation_threshold, other.deviation_threshold) and \
+                    utils.are_float_equal(self.confidence_interval_threshold, other.confidence_interval_threshold) and \
+                    self.retry_count == other.retry_count and \
+                    self.manual_range_enabled == other.manual_range_enabled and \
+                    self.manual_range_value == other.manual_range_value and \
+                    self.dont_set_meter_config == other.dont_set_meter_config and \
+                    self.enable_output_filtering == other.enable_output_filtering and \
+                    self.filter_sampling_time == other.filter_sampling_time and \
+                    self.filter_samples_count == other.filter_samples_count
+            else:
+                return NotImplemented
 
         def serialize_to_dict(self):
             data_dict = {
@@ -343,18 +345,20 @@ class CellConfig:
         return coefficient
 
     def __eq__(self, other):
-        return other is not None and \
-            utils.are_float_equal(self.coefficient, other.coefficient) and \
-            self.measure_delay == other.measure_delay and \
-            self.measure_time == other.measure_time and \
-            self.auto_calc_coefficient == other.auto_calc_coefficient and \
-            self.consider_output_value == other.consider_output_value and \
-            self.meter_config_string == other.meter_config_string and \
-            self.coil == other.coil and \
-            self.divider == other.divider and \
-            self.meter == other.meter and \
-            self.extra_parameters == other.extra_parameters and \
-            self.additional_parameters == other.additional_parameters
+        if isinstance(other, CellConfig):
+            return utils.are_float_equal(self.coefficient, other.coefficient) and \
+                   self.measure_delay == other.measure_delay and \
+                   self.measure_time == other.measure_time and \
+                   self.auto_calc_coefficient == other.auto_calc_coefficient and \
+                   self.consider_output_value == other.consider_output_value and \
+                   self.meter_config_string == other.meter_config_string and \
+                   self.coil == other.coil and \
+                   self.divider == other.divider and \
+                   self.meter == other.meter and \
+                   self.extra_parameters == other.extra_parameters and \
+                   self.additional_parameters == other.additional_parameters
+        else:
+            return NotImplemented
 
 
 class EditCellConfigDialog(QtWidgets.QDialog):

@@ -4,7 +4,7 @@
 *.db
 *.spec
 *.ini
-*.log
+*.log*
 icons_rc.py
 /build
 /venv
