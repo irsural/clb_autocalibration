@@ -143,9 +143,7 @@ class CellConfig:
             self.manual_range_value = 1.
             self.dont_set_meter_config = False
 
-            self.enable_output_filtering = True
             self.filter_sampling_time = 0.1
-            self.filter_samples_count = 100
 
         def __eq__(self, other):
             if isinstance(other, CellConfig.AdditionalParameters):
@@ -155,9 +153,7 @@ class CellConfig:
                     self.manual_range_enabled == other.manual_range_enabled and \
                     self.manual_range_value == other.manual_range_value and \
                     self.dont_set_meter_config == other.dont_set_meter_config and \
-                    self.enable_output_filtering == other.enable_output_filtering and \
-                    self.filter_sampling_time == other.filter_sampling_time and \
-                    self.filter_samples_count == other.filter_samples_count
+                    self.filter_sampling_time == other.filter_sampling_time
             else:
                 return NotImplemented
 
@@ -172,9 +168,7 @@ class CellConfig:
                 "manual_range_value": self.manual_range_value,
                 "dont_set_meter_config": self.dont_set_meter_config,
 
-                "enable_output_filtering": self.enable_output_filtering,
                 "filter_sampling_time": self.filter_sampling_time,
-                "filter_samples_count": self.filter_samples_count,
             }
             return data_dict
 
@@ -191,9 +185,7 @@ class CellConfig:
             additional_parameters.manual_range_value = float(a_data_dict["manual_range_value"])
             additional_parameters.dont_set_meter_config = bool(a_data_dict["dont_set_meter_config"])
 
-            additional_parameters.enable_output_filtering = bool(a_data_dict["enable_output_filtering"])
             additional_parameters.filter_sampling_time = float(a_data_dict["filter_sampling_time"])
-            additional_parameters.filter_samples_count = int(a_data_dict["filter_samples_count"])
 
             return additional_parameters
 
@@ -204,7 +196,7 @@ class CellConfig:
 
         self.auto_calc_coefficient = True
 
-        self.meter_config_string = "NPLC 100;LFILTER ON;SETACV SYNC"
+        self.meter_config_string = "NPLC 100;SETACV SYNC;RES .001;LFILTER ON"
 
         self.consider_output_value = True
 
@@ -445,9 +437,7 @@ class EditCellConfigDialog(QtWidgets.QDialog):
         visualizer.add_setting("Вкл. ручной диапазон измерителя", "manual_range_enabled")
         visualizer.add_setting("Ручной диапазон", "manual_range_value")
         visualizer.add_setting("Не выставлять парам-ры измерителя", "dont_set_meter_config")
-        visualizer.add_setting("Фильтрация выходного значения", "enable_output_filtering")
-        visualizer.add_setting("Время дискретизации (фильтр)", "filter_sampling_time")
-        visualizer.add_setting("Количество точек (фильтр)", "filter_samples_count")
+        visualizer.add_setting("Время дискретизации выходного знач.", "filter_sampling_time")
         self.ui.additional_parameters_layout.addWidget(visualizer)
 
         self.lock_scheme_radios()

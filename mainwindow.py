@@ -47,6 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         CellData.GetDataType.STUDENT_95: "Доверительный интервал 0.95, %",
         CellData.GetDataType.STUDENT_99: "Доверительный интервал 0.99, %",
         CellData.GetDataType.STUDENT_999: "Доверительный интервал 0.999, %",
+        # CellData.GetDataType.MEASURE_DATE: "Дата измерения",
     }
 
     def __init__(self):

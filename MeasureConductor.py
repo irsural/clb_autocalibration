@@ -165,8 +165,11 @@ class MeasureConductor(QtCore.QObject):
         self.wait_error_clear_timer = utils.Timer(2)
 
         self.y_out = 0
-        self.y_out_filter = metrology.ParamFilter()
         self.y_out_network_variable = self.netvars.fast_adc_slow
+
+        self.out_filter_take_sample_timer = utils.Timer(0.1)
+        self.calibrator_out_filter = metrology.MovingAverage(a_window_size=0)
+        self.multimeter_out_filter = metrology.MovingAverage(a_window_size=0)
 
         self.calibrator_signal_off_timer = utils.Timer(2)
         self.wait_scheme_settle_down_timer = utils.Timer(1)
@@ -230,7 +233,8 @@ class MeasureConductor(QtCore.QObject):
     def stop(self):
         if self.is_started():
             if self.current_cell_position is not None:
-                self.measure_manager.finalize_measure(*self.current_cell_position)
+                measure_result = self.calculate_result()
+                self.measure_manager.finalize_measure(*self.current_cell_position, measure_result)
 
             if self.correction_flasher.is_started():
                 self.correction_flasher.stop()
@@ -283,10 +287,6 @@ class MeasureConductor(QtCore.QObject):
 
         if self.multimeter is not None:
             self.multimeter.tick()
-
-        if self.calibrator.state != clb.State.DISCONNECTED:
-            self.y_out_filter.add(self.y_out_network_variable.get())
-            self.y_out_filter.tick()
 
         if self.correction_flasher_started != self.correction_flasher.is_started():
             self.correction_flasher_started = self.correction_flasher.is_started()
@@ -359,10 +359,6 @@ class MeasureConductor(QtCore.QObject):
 
             self.y_out_network_variable = self.netvars.final_stabilizer_dac_dc_level if \
                 clb.is_dc_signal[self.current_measure_parameters.signal_type] else self.netvars.fast_adc_slow
-
-            self.y_out_filter.stop()
-            self.y_out_filter.set_sampling_time(self.current_config.additional_parameters.filter_sampling_time)
-            self.y_out_filter.resize(self.current_config.additional_parameters.filter_samples_count)
 
             self.current_cell_is_the_last_in_table = self.measure_iterator.is_the_last_cell_in_table()
 
@@ -560,7 +556,11 @@ class MeasureConductor(QtCore.QObject):
                 measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
                 self.measure_duration_timer.start(measure_duration)
 
-                self.start_multimeter_measure()
+                self.out_filter_take_sample_timer.start(self.current_config.additional_parameters.filter_sampling_time)
+                self.calibrator_out_filter.reset()
+                self.multimeter_out_filter.reset()
+
+                self.multimeter.start_measure()
 
                 logging.info(f"Измерение... ({self.current_config.measure_time} с)")
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
@@ -570,6 +570,12 @@ class MeasureConductor(QtCore.QObject):
                 self.__retry()
 
             elif not self.measure_duration_timer.check():
+
+                if self.out_filter_take_sample_timer.check():
+                    self.out_filter_take_sample_timer.start()
+
+                    self.calibrator_out_filter.add(self.y_out_network_variable.get())
+
                 if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
                     measured = self.multimeter.get_measured_value()
                     time_of_measure = perf_counter()
@@ -582,13 +588,14 @@ class MeasureConductor(QtCore.QObject):
 
                     self.add_new_measured_value(measured, time)
 
-                    self.start_multimeter_measure()
+                    self.multimeter.start_measure()
 
                     # Лайфхак(говнокод), так будет сделано ровно одно измерение
                     if self.current_config.measure_time == 0:
                         self.measure_duration_timer.start(1e-6)
             else:
-                self.measure_manager.finalize_measure(*self.current_cell_position)
+                measure_result = self.calculate_result()
+                self.measure_manager.finalize_measure(*self.current_cell_position, measure_result)
 
                 if self.current_cell_is_the_last_in_table:
                     self.measure_manager.update_measure_status(self.current_cell_position.measure_name)
@@ -667,14 +674,6 @@ class MeasureConductor(QtCore.QObject):
             self.all_measures_done.emit()
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
-    def start_multimeter_measure(self):
-        self.multimeter.start_measure()
-        self.y_out = self.y_out_network_variable.get()
-
-        if self.current_config.consider_output_value and \
-                self.current_config.additional_parameters.enable_output_filtering:
-            self.y_out_filter.restart()
-
     def set_extra_variables(self, a_state: CellConfig.ExtraParameterState):
         variables_ready = []
         for variable in self.extra_variables:
@@ -700,21 +699,23 @@ class MeasureConductor(QtCore.QObject):
         )
 
     def add_new_measured_value(self, a_measured_value: float, a_time: float):
-        self.y_out_filter.stop()
-        if self.current_config.consider_output_value and self.current_config.additional_parameters.enable_output_filtering:
-            out_on_device = self.y_out_filter.get_value()
-        else:
-            out_on_device = self.y_out
-
         out_measured = a_measured_value * self.current_config.coefficient
+        self.multimeter_out_filter.add(out_measured)
+        self.measure_manager.add_measured_value(*self.current_cell_position, out_measured, a_time)
+
+    def calculate_result(self):
+        calibrator_out = self.calibrator_out_filter.get()
+        multimeter_out = self.multimeter_out_filter.get()
 
         if self.current_config.consider_output_value:
-            if out_on_device != 0:
-                out_measured = out_measured / out_on_device * self.current_amplitude
-            else:
+            if calibrator_out == 0:
                 logging.warning("Ошибка, выходное значение с устройства равно нулю и не будет учтено")
+            elif multimeter_out == 0:
+                logging.warning("Ошибка, с мультиметра не было считано ни одного значения")
+            else:
+                multimeter_out = multimeter_out / calibrator_out * self.current_amplitude
 
-        self.measure_manager.add_measured_value(*self.current_cell_position, out_measured, a_time)
+        return multimeter_out
 
     def start_flash(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash=None):
         data_to_flash = self.get_data_to_flash_verify(a_measures_to_flash, amplitude_of_cell_to_flash)

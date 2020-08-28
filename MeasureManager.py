@@ -661,8 +661,8 @@ class MeasureManager(QtCore.QObject):
         # Используется для обновления графиков
         self.new_value_measured.emit(a_value, a_time)
 
-    def finalize_measure(self, a_name: str, a_row, a_column):
-        self.measures[a_name].finalize_cell(a_row, a_column)
+    def finalize_measure(self, a_name: str, a_row, a_column, a_result: float):
+        self.measures[a_name].finalize_cell(a_row, a_column, a_result)
 
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:

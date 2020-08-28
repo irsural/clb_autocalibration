@@ -48,6 +48,7 @@ class CellData:
         STUDENT_95 = 4
         STUDENT_99 = 5
         STUDENT_999 = 6
+        # MEASURE_DATE = 7
         COUNT = 7
 
     def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0., a_calculations=None,
@@ -58,8 +59,6 @@ class CellData:
         self.__measured_values = a_init_values if a_init_values is not None else array('d')
         self.__measured_times = a_init_times if a_init_times is not None else array('d')
         self.__start_time_point = 0
-        self.__average = metrology.MovingAverage()
-        self.__impulse_filter = metrology.ImpulseFilter()
 
         self.__result = a_result
         self.__have_result = a_have_result
@@ -101,11 +100,9 @@ class CellData:
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
-        self.__average.reset()
         self.__measured_values = array('d')
         self.__measured_times = array('d')
         self.__start_time_point = 0
-        self.__impulse_filter.clear()
         self.__result = 0
         self.__have_result = False
         self.__calculations.reset()
@@ -133,6 +130,8 @@ class CellData:
             return self.__calculations.student_99
         elif a_data_type == CellData.GetDataType.STUDENT_999:
             return self.__calculations.student_999
+        # elif a_data_type == CellData.GetDataType.MEASURE_DATE:
+        #     return self.__measure_date
 
     def set_value(self, a_value: float):
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
@@ -144,7 +143,6 @@ class CellData:
         self.__measured_values.append(a_value)
         self.__measured_times.append(a_time)
 
-        self.__average.add(a_value)
         # До вызова self.finalize в __result хранится последнее добавленное значение
         self.__result = a_value
         self.__have_result = True
@@ -152,18 +150,12 @@ class CellData:
     def get_measure_date(self) -> str:
         return self.__measure_date
 
-    def finalize(self):
+    def finalize(self, a_final_result: float):
         """
         Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
         """
-        if self.has_value():
-            if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
-                logging.warning("Количество измеренных значений слишком мало для импульсного фильтра! "
-                                "Результат будет вычислен по среднему значению")
-                self.__result = self.__average.get()
-            else:
-                self.__impulse_filter.assign(self.__measured_values)
-                self.__result = self.__impulse_filter.get()
+        if self.has_value() and a_final_result:
+            self.__result = a_final_result
 
             self.__measure_date = datetime.now().strftime("%d.%m.%Y %H:%M")
 
@@ -776,8 +768,8 @@ class MeasureDataModel(QAbstractTableModel):
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
-    def finalize_cell(self, a_row, a_column):
-        self.__cells[a_row][a_column].finalize()
+    def finalize_cell(self, a_row, a_column, a_result: float):
+        self.__cells[a_row][a_column].finalize(a_result)
         # Чтобы пересчитались весовые коэффициенты calculated_parameters ячеек
         self.set_displayed_data(self.__displayed_data)
 
