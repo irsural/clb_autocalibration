@@ -176,7 +176,6 @@ class Agilent3485A(MultimeterBase):
         self.mxsrclib_dll.multimeter_set_range(ctypes.c_size_t(self.measure_type), a_range)
 
     def set_config(self, a_config_str: str):
-
         self.mxsrclib_dll.multimeter_set_config(ctypes.c_char_p(bytes(a_config_str, encoding="cp1251")))
 
 

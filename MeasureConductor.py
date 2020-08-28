@@ -481,7 +481,7 @@ class MeasureConductor(QtCore.QObject):
 
                 self.multimeter.set_range(range_)
                 self.multimeter.set_config(self.current_config.meter_config_string)
-                logging.info(f"Диапазон: {range_}. Конфигурация мультиметра: {self.current_config.meter_config_string}")
+                logging.info(f"Конфигурация мультиметра: {self.current_config.meter_config_string}, диапазон: {range_}")
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
