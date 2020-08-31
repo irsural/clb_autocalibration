@@ -662,7 +662,8 @@ class MeasureManager(QtCore.QObject):
         self.new_value_measured.emit(a_value, a_time)
 
     def finalize_measure(self, a_name: str, a_row, a_column, a_result: float):
-        self.measures[a_name].finalize_cell(a_row, a_column, a_result)
+        other_info = "\nПодключение: " + SchemeControl.SCHEME_TYPE_TO_TEXT[self.settings.scheme_type]
+        self.measures[a_name].finalize_cell(a_row, a_column, a_result, other_info)
 
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:

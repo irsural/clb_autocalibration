@@ -52,7 +52,7 @@ class CellData:
         COUNT = 7
 
     def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0., a_calculations=None,
-                 a_have_result=False, a_measure_date="", a_config=None):
+                 a_have_result=False, a_measure_date="", a_other_text_info="", a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
@@ -68,6 +68,7 @@ class CellData:
         self.__weight = 0
 
         self.__measure_date = a_measure_date
+        self.__other_text_info = a_other_text_info
 
         self.config = a_config if a_config is not None else CellConfig()
 
@@ -79,6 +80,7 @@ class CellData:
             "result": self.__result,
             "have_result": self.__have_result,
             "measure_date": self.__measure_date,
+            "other_text_info": self.__other_text_info,
             "config": self.config.serialize_to_dict(),
         }
         return data_dict
@@ -97,6 +99,7 @@ class CellData:
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
                    a_measure_date=a_data_dict["measure_date"],
+                   a_other_text_info=a_data_dict["other_text_info"],
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
@@ -108,6 +111,7 @@ class CellData:
         self.__calculations.reset()
         self.__calculated = False
         self.__measure_date = ""
+        self.__other_text_info = ""
 
     def get_measured_values(self) -> Tuple[array, array]:
         return self.__measured_times, self.__measured_values
@@ -150,7 +154,13 @@ class CellData:
     def get_measure_date(self) -> str:
         return self.__measure_date
 
-    def finalize(self, a_final_result: float):
+    def add_other_info(self, a_info: str):
+        self.__other_text_info += a_info
+
+    def get_other_info(self) -> str:
+        return self.__other_text_info
+
+    def finalize(self, a_final_result: float, a_other_info: str = ""):
         """
         Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
         """
@@ -158,6 +168,7 @@ class CellData:
             self.__result = a_final_result
 
             self.__measure_date = datetime.now().strftime("%d.%m.%Y %H:%M")
+            self.add_other_info(a_other_info)
 
     def calculate_parameters(self, a_setpoint: float, a_data_type: GetDataType):
         assert a_data_type != CellData.GetDataType.MEASURED, "MEASURED не нужно пересчитывать"
@@ -739,7 +750,8 @@ class MeasureDataModel(QAbstractTableModel):
         cell_tool_tip = f"Время: {cell_config.measure_delay} с. /{cell_config.measure_time} с.; " \
                         f"Коэффициент: {utils.float_to_string(cell_config.coefficient, a_precision=4)}\n" \
                         f"Схема: ({amplitude_str}{frequency_str}{signal_type_str}){coil_text}{divider_text}{meter_text}\n" \
-                        f"Время измерения: {cell_data.get_measure_date()}"
+                        f"Время измерения: {cell_data.get_measure_date()}" \
+                        f"{cell_data.get_other_info()}"
 
         return cell_tool_tip
 
@@ -768,8 +780,8 @@ class MeasureDataModel(QAbstractTableModel):
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
-    def finalize_cell(self, a_row, a_column, a_result: float):
-        self.__cells[a_row][a_column].finalize(a_result)
+    def finalize_cell(self, a_row, a_column, a_result: float, a_other_info: str = ""):
+        self.__cells[a_row][a_column].finalize(a_result, a_other_info)
         # Чтобы пересчитались весовые коэффициенты calculated_parameters ячеек
         self.set_displayed_data(self.__displayed_data)
 
