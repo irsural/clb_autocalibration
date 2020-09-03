@@ -800,7 +800,7 @@ class MeasureDataModel(QAbstractTableModel):
             cell_data.reset()
         else:
             try:
-                float_value = utils.parse_input(value, a_precision=self.__settings.edit_data_precision)
+                float_value = utils.parse_input(value, a_precision=20)
                 if not utils.are_float_equal(float_value, cell_data.get_value()) or not cell_data.has_value():
                     cell_data.set_value(float_value)
                 else:

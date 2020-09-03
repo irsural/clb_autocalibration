@@ -632,7 +632,7 @@ class Ui_MainWindow(object):
         self.meter_settings_button.setText(_translate("MainWindow", "..."))
         self.label.setText(_translate("MainWindow", "Калибратор"))
         self.label_2.setText(_translate("MainWindow", "Измеритель"))
-        self.label_3.setText(_translate("MainWindow", "Схема"))
+        self.label_3.setText(_translate("MainWindow", "Подключение"))
         self.scheme_combobox.setItemText(0, _translate("MainWindow", "Через автокалибратор"))
         self.scheme_combobox.setItemText(1, _translate("MainWindow", "Прямое подключение"))
         self.add_measure_button.setToolTip(_translate("MainWindow", "Добавить измерение"))

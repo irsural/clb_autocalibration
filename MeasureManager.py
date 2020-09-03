@@ -2,6 +2,7 @@ from typing import Union, Dict, List, Tuple
 from collections import OrderedDict
 from enum import IntEnum
 from array import array
+import itertools
 import logging
 import copy
 import json
@@ -860,22 +861,31 @@ class MeasureManager(QtCore.QObject):
 
                 if graphs_type == MeasureManager.GraphType.Z_X:
                     for row in selected_rows:
-                        graph_name = self.current_data_model.get_amplitude_with_units(row)
+                        graph_name = self.get_graph_name(self.current_data_model.get_amplitude_with_units(row), data)
                         graph_data = self.__extract_z_x_graph(row)
                         if graph_data[0]:
+                            graph_name = self.get_graph_name(graph_name, data)
                             data[graph_name] = graph_data
                 elif graphs_type == MeasureManager.GraphType.Z_Y:
                     for column in selected_columns:
-                        graph_name = self.current_data_model.get_frequency_with_units(column)
+                        graph_name = self.get_graph_name(self.current_data_model.get_frequency_with_units(column), data)
                         graph_data = self.__extract_z_y_graph(column)
                         if graph_data[0]:
                             data[graph_name] = graph_data
-
             else:
                 QtWidgets.QMessageBox.information(None, "Информация",
                                                   f"Для построения графиков необходимо выделить соответствующие ячейки",
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         return data
+
+    @staticmethod
+    def get_graph_name(a_graph_name: str, a_graphs_data):
+        graph_name = a_graph_name
+        for i in itertools.count(1):
+            if graph_name not in a_graphs_data:
+                break
+            graph_name = f"{a_graph_name} ({i})"
+        return graph_name
 
     def get_cell_measurement_graph(self) -> Dict[str, Tuple[array, array]]:
         graphs = OrderedDict()
