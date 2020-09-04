@@ -806,9 +806,7 @@ class MeasureManager(QtCore.QObject):
 
             if amplitude and x_val and y_val is not None:
                 x.append(x_val)
-                normalized_y = y_val / amplitude
-                y.append(normalized_y)
-
+                y.append(y_val)
         return x, y
 
     def __extract_z_y_graph(self, a_column: int) -> Tuple[List, List]:
@@ -820,9 +818,7 @@ class MeasureManager(QtCore.QObject):
 
             if x_val and y_val is not None:
                 x.append(x_val)
-                normalized_y = y_val / x_val
-                y.append(normalized_y)
-
+                y.append(y_val)
         return x, y
 
     def get_data_for_graphs(self) -> Dict[str, Tuple[List, List]]:
