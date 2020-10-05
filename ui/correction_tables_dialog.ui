@@ -55,6 +55,9 @@
       </layout>
      </widget>
      <widget class="QTableView" name="correction_table_view">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
@@ -68,6 +71,14 @@
     </widget>
    </item>
   </layout>
+  <action name="copy_cell_value_action">
+   <property name="text">
+    <string>Копировать значение</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../../irspy/qt/resources/icons.qrc"/>

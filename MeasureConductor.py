@@ -1,4 +1,4 @@
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict
 from collections import namedtuple
 from time import perf_counter
 from enum import IntEnum
@@ -752,8 +752,44 @@ class MeasureConductor(QtCore.QObject):
 
         return self.correction_flasher.start_read_by_flash_data(flash_data_list, self.calibrator.get_mxdata_address())
 
-    def get_correction_tables(self):
-        return self.correction_flasher.get_read_data()
+    def get_correction_tables(self) -> Dict[str, Tuple]:
+        read_data: Dict[str, List[Tuple[List, List, List]]] = self.correction_flasher.get_read_data()
+
+        number = 0
+        correction_tables = {}
+        for idx, (name, data) in enumerate(read_data.items()):
+            logging.debug(name)
+            united_numbers = []
+
+            prev_x_points = []
+            y_united = []
+            coefs_united = []
+
+            # Объединяем коррекции, у которых совпадает имя и x_points в одну таблицу
+            for sub_idx, (x_points, y_points, coefs) in enumerate(data):
+                if x_points == prev_x_points:
+                    united_numbers.append(number)
+
+                    y_united += y_points
+                    coefs_united += coefs
+                else:
+                    if united_numbers:
+                        table_name = f"[{united_numbers[0]}-{united_numbers[-1]}]. {name}"
+                        correction_tables[table_name] = (prev_x_points, y_united, coefs_united)
+
+                    united_numbers = [number]
+
+                    prev_x_points = list(x_points)
+                    y_united = list(y_points)
+                    coefs_united = list(coefs)
+
+                number += 1
+
+                if sub_idx == len(data) - 1:
+                    correction_tables[f"[{united_numbers[0]}-{united_numbers[-1]}]. {name}"] = \
+                        (x_points, y_united, coefs_united)
+
+        return correction_tables
 
     def get_data_to_flash_verify(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash):
         if len(a_measures_to_flash) > 1:

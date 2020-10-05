@@ -81,5 +81,10 @@ class CorrectionTableModel(QAbstractTableModel):
             str_value = f"{value}{units}"
             return str_value
 
+    def get_cell_value(self, a_row: int, a_column: int) -> float:
+        assert a_row < self.rowCount() and a_column < self.columnCount(), "Задан неверный индекс ячейки!"
+
+        return self.__values[a_row][a_column]
+
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
         return False

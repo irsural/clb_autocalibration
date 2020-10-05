@@ -43,11 +43,14 @@ class Ui_correction_tables_dialog(object):
         self.save_to_file_button.setObjectName("save_to_file_button")
         self.verticalLayout.addWidget(self.save_to_file_button)
         self.correction_table_view = QtWidgets.QTableView(self.correction_tables_splitter)
+        self.correction_table_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.correction_table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.correction_table_view.setAlternatingRowColors(False)
         self.correction_table_view.setObjectName("correction_table_view")
         self.correction_table_view.verticalHeader().setVisible(False)
         self.gridLayout.addWidget(self.correction_tables_splitter, 0, 0, 1, 1)
+        self.copy_cell_value_action = QtWidgets.QAction(correction_tables_dialog)
+        self.copy_cell_value_action.setObjectName("copy_cell_value_action")
 
         self.retranslateUi(correction_tables_dialog)
         QtCore.QMetaObject.connectSlotsByName(correction_tables_dialog)
@@ -56,4 +59,6 @@ class Ui_correction_tables_dialog(object):
         _translate = QtCore.QCoreApplication.translate
         correction_tables_dialog.setWindowTitle(_translate("correction_tables_dialog", "Таблицы коррекции"))
         self.save_to_file_button.setText(_translate("correction_tables_dialog", "Сохранить в файл"))
+        self.copy_cell_value_action.setText(_translate("correction_tables_dialog", "Копировать значение"))
+        self.copy_cell_value_action.setShortcut(_translate("correction_tables_dialog", "Ctrl+C"))
 import icons_rc
