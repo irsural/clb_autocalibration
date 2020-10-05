@@ -566,6 +566,10 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
         self.measure_manager.new_measure()
+        if self.current_configuration_path:
+            self.save_current_configuration()
+        else:
+            self.save_configuration()
 
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):

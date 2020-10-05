@@ -157,7 +157,7 @@ class MeasureManager(QtCore.QObject):
         self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
 
-        self.shared_measure_parameters: Union[None, SharedMeasureParameters] = None
+        self.shared_measure_parameters: Union[None, SharedMeasureParameters] = SharedMeasureParameters()
         self.shared_measure_parameters_changed: bool = False
 
         self.show_equal_cells = False
@@ -256,6 +256,9 @@ class MeasureManager(QtCore.QObject):
         selected_row = qt_utils.get_selected_row(self.measures_table)
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
         new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
+
+        if self.shared_measure_parameters is None:
+            self.shared_measure_parameters = SharedMeasureParameters()
 
         measure_data_model = a_measure_data_model if a_measure_data_model else \
             MeasureDataModel(new_name, self.shared_measure_parameters, self.settings)
