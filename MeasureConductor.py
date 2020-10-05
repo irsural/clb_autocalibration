@@ -383,7 +383,7 @@ class MeasureConductor(QtCore.QObject):
                                                                  self.current_config.coil, self.current_config.divider,
                                                                  self.current_config.meter)
 
-                    if self.current_amplitude <= max_amplitude:
+                    if abs(self.current_amplitude) <= max_amplitude:
                         self.measure_manager.reset_measure(*self.current_cell_position)
                         self.single_measure_started.emit()
 
@@ -473,7 +473,7 @@ class MeasureConductor(QtCore.QObject):
                 if self.current_config.additional_parameters.manual_range_enabled:
                     range_ = self.current_config.additional_parameters.manual_range_value
                 else:
-                    range_ = self.current_amplitude / self.current_config.coefficient
+                    range_ = abs(self.current_amplitude) / self.current_config.coefficient
 
                 self.multimeter.set_range(range_)
                 self.multimeter.set_config(self.current_config.meter_config_string)
@@ -515,7 +515,7 @@ class MeasureConductor(QtCore.QObject):
                 variables_ready.append(ready)
 
                 ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reference_amplitude,
-                                                                     self.current_amplitude)
+                                                                     abs(self.current_amplitude))
                 variables_ready.append(ready)
 
                 if clb.is_ac_signal[self.current_measure_parameters.signal_type]:
@@ -527,7 +527,11 @@ class MeasureConductor(QtCore.QObject):
                 variables_ready.append(ready)
 
                 # На Agilent лучше не подавать инверсный сигнал
-                ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, False)
+                if self.current_amplitude >= 0:
+                    ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, False)
+                else:
+                    ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, True)
+
                 variables_ready.append(ready)
 
                 ready = self.set_extra_variables(CellConfig.ExtraParameterState.WORK_VALUE)
