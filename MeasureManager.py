@@ -362,24 +362,30 @@ class MeasureManager(QtCore.QObject):
         return table
 
     def open_cell_configuration(self):
-        selected_index = self.get_only_selected_cell()
-        if selected_index:
-            row, column = selected_index.row(), selected_index.column()
-            cell_config = self.current_data_model.get_cell_config(row, column)
-            if cell_config is not None:
-                measure_name = self.current_data_model.get_name()
-                signal_type = self.current_data_model.get_measure_parameters().signal_type
-                frequency = self.current_data_model.get_frequency(column) if is_ac_signal[signal_type] else 0
+        if self.current_data_model is not None:
+            selected_indices = sorted(self.data_view.selectionModel().selectedIndexes())
+            # Хэдеры не учитываем
+            selected_indices = [idx for idx in selected_indices if idx.row() != 0 and idx.column() != 0]
 
-                edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
-                                                               frequency, signal_type, self.settings,
-                                                               self.interface_is_locked, self.__parent)
+            if selected_indices:
+                # Берем настройки от верхней левой ячейки
+                row, column = selected_indices[0].row(), selected_indices[0].column()
+                cell_config = self.current_data_model.get_cell_config(row, column)
+                if cell_config is not None:
+                    measure_name = self.current_data_model.get_name()
+                    signal_type = self.current_data_model.get_measure_parameters().signal_type
+                    frequency = self.current_data_model.get_frequency(column) if is_ac_signal[signal_type] else 0
 
-                new_cell_config = edit_cell_config_dialog.exec_and_get()
-                if new_cell_config is not None and new_cell_config != cell_config:
-                    self.measures[measure_name].set_cell_config(row, column, new_cell_config)
+                    edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
+                                                                   frequency, signal_type, self.settings,
+                                                                   self.interface_is_locked, self.__parent)
 
-                edit_cell_config_dialog.close()
+                    new_cell_config = edit_cell_config_dialog.exec_and_get()
+                    if new_cell_config is not None and new_cell_config != cell_config:
+                        for idx in selected_indices:
+                            self.measures[measure_name].set_cell_config(idx.row(), idx.column(), new_cell_config)
+
+                    edit_cell_config_dialog.close()
 
     @utils.exception_decorator
     def open_shared_measure_parameters(self):

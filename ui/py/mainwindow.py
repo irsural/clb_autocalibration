@@ -143,8 +143,6 @@ class Ui_MainWindow(object):
         self.measures_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measures_table.setStyleSheet("")
         self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.measures_table.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
-        self.measures_table.setDefaultDropAction(QtCore.Qt.CopyAction)
         self.measures_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.measures_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.measures_table.setObjectName("measures_table")
