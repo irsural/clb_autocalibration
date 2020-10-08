@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>493</width>
+    <width>435</width>
     <height>347</height>
    </rect>
   </property>
@@ -43,6 +43,12 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:#3f8cb6;</string>
      </property>
      <property name="text">
       <string/>
@@ -141,7 +147,7 @@
  </widget>
  <resources>
   <include location="../../irspy/qt/resources/icons.qrc"/>
-  <include location="../resources/icons.qrc"/>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>
