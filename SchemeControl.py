@@ -18,6 +18,13 @@ class SchemeType(IntEnum):
     GAG = 2
 
 
+SCHEME_TYPE_TO_TEXT = {
+    SchemeType.AUTOCALIBRATOR: "Через автокалибратор",
+    SchemeType.DIRECT: "Напрямую",
+    SchemeType.GAG: "Затычка",
+}
+
+
 def create_scheme(a_scheme_type: SchemeType, a_ftdi_control: FtdiControl):
     if a_scheme_type == SchemeType.AUTOCALIBRATOR:
         return SchemeControl(a_ftdi_control)

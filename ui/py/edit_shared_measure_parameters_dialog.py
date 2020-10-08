@@ -114,6 +114,11 @@ class Ui_shared_measure_parameters_dialog(object):
         self.retranslateUi(shared_measure_parameters_dialog)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(shared_measure_parameters_dialog)
+        shared_measure_parameters_dialog.setTabOrder(self.tabWidget, self.devices_list)
+        shared_measure_parameters_dialog.setTabOrder(self.devices_list, self.device_coefs_view)
+        shared_measure_parameters_dialog.setTabOrder(self.device_coefs_view, self.add_coefficient_button)
+        shared_measure_parameters_dialog.setTabOrder(self.add_coefficient_button, self.remove_coefficient_button)
+        shared_measure_parameters_dialog.setTabOrder(self.remove_coefficient_button, self.accept_button)
         shared_measure_parameters_dialog.setTabOrder(self.accept_button, self.cancel_button)
 
     def retranslateUi(self, shared_measure_parameters_dialog):

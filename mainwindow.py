@@ -47,6 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         CellData.GetDataType.STUDENT_95: "Доверительный интервал 0.95, %",
         CellData.GetDataType.STUDENT_99: "Доверительный интервал 0.99, %",
         CellData.GetDataType.STUDENT_999: "Доверительный интервал 0.999, %",
+        # CellData.GetDataType.MEASURE_DATE: "Дата измерения",
     }
 
     def __init__(self):
@@ -211,7 +212,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.set_scheme_type(self.ui.scheme_combobox.currentIndex())
 
         self.ui.displayed_data_type_combobox.currentIndexChanged.connect(self.set_displayed_data)
-        self.ui.update_calculated_cells_data_button.clicked.connect(self.update_calculated_cells_data)
 
         self.ui.calculate_divider_coefficients.triggered.connect(self.calculate_divider_coefficients_button_clicked)
         self.ui.open_about_action.triggered.connect(self.open_about)
@@ -220,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow):
         log = qt_utils.QTextEditLogger(self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
 
-        file_log = RotatingFileHandler("autocalibration.log", maxBytes=10*1024*1024, backupCount=3)
+        file_log = RotatingFileHandler("autocalibration.log", maxBytes=30*1024*1024, backupCount=3, encoding='utf8')
         file_log.setLevel(logging.DEBUG)
         file_log.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S'))
 
@@ -566,6 +566,10 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
         self.measure_manager.new_measure()
+        if self.current_configuration_path:
+            self.save_current_configuration()
+        else:
+            self.save_configuration()
 
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):
@@ -665,8 +669,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.open_shared_measure_parameters()
 
     def calculate_divider_coefficients_button_clicked(self, _):
-        pass
-        # self.measure_manager.auto_calculate_divider_coefficients()
+        logging.error("Не реализовано ¯\\_(ツ)_/¯")
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
@@ -683,10 +686,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_displayed_data(self, a_displayed_data: int):
         self.measure_manager.set_displayed_data(CellData.GetDataType(a_displayed_data))
-
-    def update_calculated_cells_data(self, _):
-        displayed_data = self.ui.displayed_data_type_combobox.currentIndex()
-        self.measure_manager.set_displayed_data(CellData.GetDataType(displayed_data))
 
     def save_configuration(self):
         result = True

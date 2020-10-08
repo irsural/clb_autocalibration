@@ -25,7 +25,7 @@
    <string>Настройки</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/icons.qrc">
+   <iconset resource="../../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -226,7 +226,7 @@ QListWidget::item {
   </layout>
  </widget>
  <resources>
-  <include location="../resources/icons.qrc"/>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections>
   <connection>

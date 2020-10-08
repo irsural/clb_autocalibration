@@ -19,7 +19,7 @@
    <string>Автокалибровка N4-25</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/icons.qrc">
+   <iconset resource="../../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/robot_1.png</normaloff>:/icons/icons/robot_1.png</iconset>
   </property>
   <property name="animated">
@@ -126,7 +126,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Схема</string>
+              <string>Подключение</string>
              </property>
             </widget>
            </item>
@@ -157,7 +157,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
              </property>
              <property name="iconSize">
@@ -177,7 +177,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
              </property>
              <property name="iconSize">
@@ -197,7 +197,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/edit.png</normaloff>:/icons/icons/edit.png</iconset>
              </property>
              <property name="iconSize">
@@ -217,7 +217,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
              </property>
              <property name="iconSize">
@@ -250,7 +250,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
              </property>
              <property name="iconSize">
@@ -270,7 +270,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/checkboxes.png</normaloff>:/icons/icons/checkboxes.png</iconset>
              </property>
              <property name="iconSize">
@@ -293,12 +293,6 @@
            </property>
            <property name="editTriggers">
             <set>QAbstractItemView::NoEditTriggers</set>
-           </property>
-           <property name="dragDropMode">
-            <enum>QAbstractItemView::NoDragDrop</enum>
-           </property>
-           <property name="defaultDropAction">
-            <enum>Qt::CopyAction</enum>
            </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
@@ -391,7 +385,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
              </property>
              <property name="iconSize">
@@ -423,7 +417,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
              </property>
              <property name="iconSize">
@@ -468,7 +462,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/play.png</normaloff>:/icons/icons/play.png</iconset>
              </property>
              <property name="iconSize">
@@ -500,7 +494,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/next.png</normaloff>:/icons/icons/next.png</iconset>
              </property>
              <property name="iconSize">
@@ -542,7 +536,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/add_row.png</normaloff>:/icons/icons/add_row.png</iconset>
              </property>
              <property name="iconSize">
@@ -571,7 +565,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/remove_row.png</normaloff>:/icons/icons/remove_row.png</iconset>
              </property>
              <property name="iconSize">
@@ -600,7 +594,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/add_col.png</normaloff>:/icons/icons/add_col.png</iconset>
              </property>
              <property name="iconSize">
@@ -629,7 +623,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/remove_col.png</normaloff>:/icons/icons/remove_col.png</iconset>
              </property>
              <property name="iconSize">
@@ -674,7 +668,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/icons.qrc">
+              <iconset resource="../../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/clear_table.png</normaloff>:/icons/icons/clear_table.png</iconset>
              </property>
              <property name="iconSize">
@@ -701,42 +695,10 @@
            <item>
             <widget class="QComboBox" name="displayed_data_type_combobox">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="update_calculated_cells_data_button">
-             <property name="minimumSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Обновить значения в ячейках таблицы</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/icons/icons/update.png</normaloff>:/icons/icons/update.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
              </property>
             </widget>
            </item>
@@ -1005,7 +967,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="open_tstlan_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/tstlan.png</normaloff>:/icons/icons/tstlan.png</iconset>
    </property>
    <property name="text">
@@ -1025,7 +987,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="save_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
    </property>
    <property name="text">
@@ -1048,7 +1010,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="open_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/open.png</normaloff>:/icons/icons/open.png</iconset>
    </property>
    <property name="text">
@@ -1068,7 +1030,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="save_as_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/save_as.png</normaloff>:/icons/icons/save_as.png</iconset>
    </property>
    <property name="text">
@@ -1091,7 +1053,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="start_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/play.png</normaloff>:/icons/icons/play.png</iconset>
    </property>
    <property name="text">
@@ -1108,7 +1070,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="continue_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/next.png</normaloff>:/icons/icons/next.png</iconset>
    </property>
    <property name="text">
@@ -1125,7 +1087,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="stop_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/stop.png</normaloff>:/icons/icons/stop.png</iconset>
    </property>
    <property name="text">
@@ -1140,7 +1102,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/correction.png</normaloff>:/icons/icons/correction.png</iconset>
    </property>
    <property name="text">
@@ -1157,7 +1119,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="flash_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/memory.png</normaloff>:/icons/icons/memory.png</iconset>
    </property>
    <property name="text">
@@ -1174,7 +1136,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="verify_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
    </property>
    <property name="text">
@@ -1191,7 +1153,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="graphs_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
    </property>
    <property name="text">
@@ -1211,7 +1173,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="lock_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/lock.png</normaloff>:/icons/icons/lock.png</iconset>
    </property>
    <property name="text">
@@ -1231,7 +1193,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="unlock_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/unlock.png</normaloff>:/icons/icons/unlock.png</iconset>
    </property>
    <property name="text">
@@ -1254,7 +1216,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/squares.png</normaloff>:/icons/icons/squares.png</iconset>
    </property>
    <property name="text">
@@ -1297,7 +1259,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="show_cell_graph_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
    </property>
    <property name="text">
@@ -1306,7 +1268,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="flash_current_measure_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/memory.png</normaloff>:/icons/icons/memory.png</iconset>
    </property>
    <property name="text">
@@ -1315,7 +1277,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="flash_diapason_of_cell_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/memory.png</normaloff>:/icons/icons/memory.png</iconset>
    </property>
    <property name="text">
@@ -1324,7 +1286,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="new_configuration_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/add_file.png</normaloff>:/icons/icons/add_file.png</iconset>
    </property>
    <property name="text">
@@ -1347,7 +1309,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/tracker.png</normaloff>:/icons/icons/tracker.png</iconset>
    </property>
    <property name="text">
@@ -1359,7 +1321,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="lock_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/multi_lock.png</normaloff>:/icons/icons/multi_lock.png</iconset>
    </property>
    <property name="text">
@@ -1374,7 +1336,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="unlock_all_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/multi_unlock.png</normaloff>:/icons/icons/multi_unlock.png</iconset>
    </property>
    <property name="text">
@@ -1389,7 +1351,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="stop_flash_verify_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/close.png</normaloff>:/icons/icons/close.png</iconset>
    </property>
    <property name="text">
@@ -1401,7 +1363,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="verify_current_measure_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
    </property>
    <property name="text">
@@ -1410,7 +1372,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="verify_diapason_of_cell_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/eye_checked.png</normaloff>:/icons/icons/eye_checked.png</iconset>
    </property>
    <property name="text">
@@ -1419,7 +1381,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="read_correction_tables_action">
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/table_check.png</normaloff>:/icons/icons/table_check.png</iconset>
    </property>
    <property name="text">
@@ -1444,7 +1406,7 @@ selection-background-color: rgb(170, 170, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../resources/icons.qrc">
+    <iconset resource="../../irspy/qt/resources/icons.qrc">
      <normaloff>:/icons/icons/scheme.png</normaloff>:/icons/icons/scheme.png</iconset>
    </property>
    <property name="text">
@@ -1466,8 +1428,33 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>clb_list_combobox</tabstop>
+  <tabstop>scheme_combobox</tabstop>
+  <tabstop>meter_combobox</tabstop>
+  <tabstop>meter_settings_button</tabstop>
+  <tabstop>add_measure_button</tabstop>
+  <tabstop>delete_measure_button</tabstop>
+  <tabstop>rename_measure_button</tabstop>
+  <tabstop>open_shared_measure_parameters_button</tabstop>
+  <tabstop>update_measure_status_button</tabstop>
+  <tabstop>enable_all_button</tabstop>
+  <tabstop>measures_table</tabstop>
+  <tabstop>save_current_measure_button</tabstop>
+  <tabstop>open_cell_config_button</tabstop>
+  <tabstop>start_current_measure_button</tabstop>
+  <tabstop>continue_current_measure_button</tabstop>
+  <tabstop>add_row_button</tabstop>
+  <tabstop>remove_row_button</tabstop>
+  <tabstop>add_column_button</tabstop>
+  <tabstop>remove_column_button</tabstop>
+  <tabstop>clear_table_button</tabstop>
+  <tabstop>displayed_data_type_combobox</tabstop>
+  <tabstop>measure_data_view</tabstop>
+  <tabstop>log_text_edit</tabstop>
+ </tabstops>
  <resources>
-  <include location="../resources/icons.qrc"/>
+  <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

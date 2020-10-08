@@ -3,6 +3,7 @@ from collections import OrderedDict
 import logging
 import json
 
+from irspy.qt.custom_widgets.QTableDelegates import TransparentPainterForView
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 from irspy.qt.qt_settings_ini_parser import QtSettings
@@ -15,12 +16,19 @@ from CorrectionTableModel import CorrectionTableModel
 class CorrectionTablesDialog(QtWidgets.QDialog):
     save_tables_to_file = QtCore.pyqtSignal(dict)
 
-    def __init__(self, a_correction_tables: Dict[str, List[Tuple[List, List, List]]], a_settings: QtSettings,
+    def __init__(self, a_correction_tables: Dict[str, Tuple], a_settings: QtSettings,
                  a_parent=None):
         super().__init__(a_parent)
 
         self.ui = CorrectionTablesForm()
         self.ui.setupUi(self)
+
+        self.ui.correction_table_view.setItemDelegate(TransparentPainterForView(self.ui.correction_table_view,
+                                                                                "#d4d4ff"))
+        self.ui.correction_table_view.customContextMenuRequested.connect(self.show_table_context_menu)
+
+        self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
+        self.ui.correction_table_view.addAction(self.ui.copy_cell_value_action)
 
         self.settings = a_settings
         self.settings.restore_qwidget_state(self)
@@ -37,41 +45,36 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
 
         self.show()
 
-    def fill_correction_tables(self, a_correction_tables: Dict[str, List[Tuple[List, List, List]]]):
-        number = 0
-        for idx, (name, data) in enumerate(a_correction_tables.items()):
-            united_numbers = []
-            united = {}
+    def fill_correction_tables(self, a_correction_tables: Dict[str, Tuple]):
+        for table_name, (x_points, y_points, coefs_points) in a_correction_tables.items():
+            self.ui.table_names_list.addItem(table_name)
+            self.correction_table_models[table_name] = CorrectionTableModel(x_points, y_points, coefs_points)
 
-            prev_x_points = []
-            y_united = []
-            coefs_united = []
+    def show_table_context_menu(self):
+        menu = QtWidgets.QMenu(self)
+        menu.addAction(self.ui.copy_cell_value_action)
+        menu.popup(QtGui.QCursor.pos())
 
-            # Объединяем коррекции, у которых совпадает имя и x_points в одну таблицу
-            for sub_idx, (x_points, y_points, coefs) in enumerate(data):
-                if x_points == prev_x_points:
-                    united_numbers.append(number)
+    def copy_cell_value(self):
+        data_model = self.ui.correction_table_view.model()
 
-                    y_united += y_points
-                    coefs_united += coefs
-                else:
-                    if united_numbers:
-                        united[f"{united_numbers[0]}-{united_numbers[-1]}. {name}"] = (prev_x_points, y_united, coefs_united)
+        if data_model is not None:
+            selected_indices = sorted(self.ui.correction_table_view.selectionModel().selectedIndexes())
+            if selected_indices:
+                copy_str = ""
+                prev_row = selected_indices[0].row()
+                for num, cell_idx in enumerate(selected_indices):
+                    if prev_row != cell_idx.row():
+                        prev_row = cell_idx.row()
+                        copy_str += "\n"
+                    elif num != 0:
+                        copy_str += "\t"
 
-                    united_numbers = [number]
+                    cell_value = data_model.get_cell_value(cell_idx.row(), cell_idx.column())
+                    value_str = utils.float_to_string(cell_value, a_precision=15) if cell_value is not None else "0"
+                    copy_str += f"{value_str}"
 
-                    prev_x_points = list(x_points)
-                    y_united = list(y_points)
-                    coefs_united = list(coefs)
-
-                number += 1
-
-                if sub_idx == len(data) - 1:
-                    united[f"[{united_numbers[0]}-{united_numbers[-1]}] {name}"] = (x_points, y_united, coefs_united)
-
-            for united_name, (x_points, y_points, coefs_points) in united.items():
-                self.ui.table_names_list.addItem(united_name)
-                self.correction_table_models[united_name] = CorrectionTableModel(x_points, y_points, coefs_points)
+                QtWidgets.QApplication.clipboard().setText(copy_str)
 
     def change_table(self, a_name):
         self.ui.correction_table_view.setModel(self.correction_table_models[a_name])

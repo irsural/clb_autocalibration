@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_edit_measure_parameters_dialog(object):
     def setupUi(self, edit_measure_parameters_dialog):
         edit_measure_parameters_dialog.setObjectName("edit_measure_parameters_dialog")
-        edit_measure_parameters_dialog.resize(531, 529)
+        edit_measure_parameters_dialog.resize(520, 530)
         font = QtGui.QFont()
         font.setPointSize(10)
         edit_measure_parameters_dialog.setFont(font)
@@ -137,7 +137,11 @@ class Ui_edit_measure_parameters_dialog(object):
         edit_measure_parameters_dialog.setTabOrder(self.aci_radio, self.dci_radio)
         edit_measure_parameters_dialog.setTabOrder(self.dci_radio, self.acv_radio)
         edit_measure_parameters_dialog.setTabOrder(self.acv_radio, self.dcv_radio)
-        edit_measure_parameters_dialog.setTabOrder(self.dcv_radio, self.flash_table)
+        edit_measure_parameters_dialog.setTabOrder(self.dcv_radio, self.enable_correction_checkbox)
+        edit_measure_parameters_dialog.setTabOrder(self.enable_correction_checkbox, self.flash_after_finish_checkbox)
+        edit_measure_parameters_dialog.setTabOrder(self.flash_after_finish_checkbox, self.add_flash_table_row_button)
+        edit_measure_parameters_dialog.setTabOrder(self.add_flash_table_row_button, self.remove_flash_table_row_button)
+        edit_measure_parameters_dialog.setTabOrder(self.remove_flash_table_row_button, self.flash_table)
         edit_measure_parameters_dialog.setTabOrder(self.flash_table, self.accept_button)
         edit_measure_parameters_dialog.setTabOrder(self.accept_button, self.cancel_button)
 

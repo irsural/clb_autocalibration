@@ -2,6 +2,7 @@ from typing import Union, Dict, List, Tuple
 from collections import OrderedDict
 from enum import IntEnum
 from array import array
+import itertools
 import logging
 import copy
 import json
@@ -156,7 +157,7 @@ class MeasureManager(QtCore.QObject):
         self.measures: Dict[str, MeasureDataModel] = OrderedDictInsert()
         self.current_data_model: Union[None, MeasureDataModel] = None
 
-        self.shared_measure_parameters: Union[None, SharedMeasureParameters] = None
+        self.shared_measure_parameters: Union[None, SharedMeasureParameters] = SharedMeasureParameters()
         self.shared_measure_parameters_changed: bool = False
 
         self.show_equal_cells = False
@@ -255,6 +256,9 @@ class MeasureManager(QtCore.QObject):
         selected_row = qt_utils.get_selected_row(self.measures_table)
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
         new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
+
+        if self.shared_measure_parameters is None:
+            self.shared_measure_parameters = SharedMeasureParameters()
 
         measure_data_model = a_measure_data_model if a_measure_data_model else \
             MeasureDataModel(new_name, self.shared_measure_parameters, self.settings)
@@ -358,24 +362,30 @@ class MeasureManager(QtCore.QObject):
         return table
 
     def open_cell_configuration(self):
-        selected_index = self.get_only_selected_cell()
-        if selected_index:
-            row, column = selected_index.row(), selected_index.column()
-            cell_config = self.current_data_model.get_cell_config(row, column)
-            if cell_config is not None:
-                measure_name = self.current_data_model.get_name()
-                signal_type = self.current_data_model.get_measure_parameters().signal_type
-                frequency = self.current_data_model.get_frequency(column) if is_ac_signal[signal_type] else 0
+        if self.current_data_model is not None:
+            selected_indices = sorted(self.data_view.selectionModel().selectedIndexes())
+            # Хэдеры не учитываем
+            selected_indices = [idx for idx in selected_indices if idx.row() != 0 and idx.column() != 0]
 
-                edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
-                                                               frequency, signal_type, self.settings,
-                                                               self.interface_is_locked, self.__parent)
+            if selected_indices:
+                # Берем настройки от верхней левой ячейки
+                row, column = selected_indices[0].row(), selected_indices[0].column()
+                cell_config = self.current_data_model.get_cell_config(row, column)
+                if cell_config is not None:
+                    measure_name = self.current_data_model.get_name()
+                    signal_type = self.current_data_model.get_measure_parameters().signal_type
+                    frequency = self.current_data_model.get_frequency(column) if is_ac_signal[signal_type] else 0
 
-                new_cell_config = edit_cell_config_dialog.exec_and_get()
-                if new_cell_config is not None and new_cell_config != cell_config:
-                    self.measures[measure_name].set_cell_config(row, column, new_cell_config)
+                    edit_cell_config_dialog = EditCellConfigDialog(cell_config, self.shared_measure_parameters,
+                                                                   frequency, signal_type, self.settings,
+                                                                   self.interface_is_locked, self.__parent)
 
-                edit_cell_config_dialog.close()
+                    new_cell_config = edit_cell_config_dialog.exec_and_get()
+                    if new_cell_config is not None and new_cell_config != cell_config:
+                        for idx in selected_indices:
+                            self.measures[measure_name].set_cell_config(idx.row(), idx.column(), new_cell_config)
+
+                    edit_cell_config_dialog.close()
 
     @utils.exception_decorator
     def open_shared_measure_parameters(self):
@@ -661,8 +671,9 @@ class MeasureManager(QtCore.QObject):
         # Используется для обновления графиков
         self.new_value_measured.emit(a_value, a_time)
 
-    def finalize_measure(self, a_name: str, a_row, a_column):
-        self.measures[a_name].finalize_cell(a_row, a_column)
+    def finalize_measure(self, a_name: str, a_row, a_column, a_result: float):
+        other_info = "\nПодключение: " + SchemeControl.SCHEME_TYPE_TO_TEXT[self.settings.scheme_type]
+        self.measures[a_name].finalize_cell(a_row, a_column, a_result, other_info)
 
     def current_measure_changed(self, a_current: QtWidgets.QTableWidgetItem, _):
         if a_current is not None:
@@ -804,9 +815,7 @@ class MeasureManager(QtCore.QObject):
 
             if amplitude and x_val and y_val is not None:
                 x.append(x_val)
-                normalized_y = y_val / amplitude
-                y.append(normalized_y)
-
+                y.append(y_val)
         return x, y
 
     def __extract_z_y_graph(self, a_column: int) -> Tuple[List, List]:
@@ -818,9 +827,7 @@ class MeasureManager(QtCore.QObject):
 
             if x_val and y_val is not None:
                 x.append(x_val)
-                normalized_y = y_val / x_val
-                y.append(normalized_y)
-
+                y.append(y_val)
         return x, y
 
     def get_data_for_graphs(self) -> Dict[str, Tuple[List, List]]:
@@ -859,22 +866,31 @@ class MeasureManager(QtCore.QObject):
 
                 if graphs_type == MeasureManager.GraphType.Z_X:
                     for row in selected_rows:
-                        graph_name = self.current_data_model.get_amplitude_with_units(row)
+                        graph_name = self.get_graph_name(self.current_data_model.get_amplitude_with_units(row), data)
                         graph_data = self.__extract_z_x_graph(row)
                         if graph_data[0]:
+                            graph_name = self.get_graph_name(graph_name, data)
                             data[graph_name] = graph_data
                 elif graphs_type == MeasureManager.GraphType.Z_Y:
                     for column in selected_columns:
-                        graph_name = self.current_data_model.get_frequency_with_units(column)
+                        graph_name = self.get_graph_name(self.current_data_model.get_frequency_with_units(column), data)
                         graph_data = self.__extract_z_y_graph(column)
                         if graph_data[0]:
                             data[graph_name] = graph_data
-
             else:
                 QtWidgets.QMessageBox.information(None, "Информация",
                                                   f"Для построения графиков необходимо выделить соответствующие ячейки",
                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         return data
+
+    @staticmethod
+    def get_graph_name(a_graph_name: str, a_graphs_data):
+        graph_name = a_graph_name
+        for i in itertools.count(1):
+            if graph_name not in a_graphs_data:
+                break
+            graph_name = f"{a_graph_name} ({i})"
+        return graph_name
 
     def get_cell_measurement_graph(self) -> Dict[str, Tuple[array, array]]:
         graphs = OrderedDict()

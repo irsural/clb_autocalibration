@@ -33,13 +33,15 @@ class AgilentConfig:
         self.port = 0
 
     def __eq__(self, other):
-        return other is not None and \
-               self.connect_type == other.connect_type and \
-               self.gpib_index == other.gpib_index and \
-               self.gpib_address == other.gpib_address and \
-               self.com_name == other.com_name and \
-               self.ip_address == other.ip_address and \
-               self.port == other.port
+        if isinstance(other, AgilentConfig):
+            return self.connect_type == other.connect_type and \
+                   self.gpib_index == other.gpib_index and \
+                   self.gpib_address == other.gpib_address and \
+                   self.com_name == other.com_name and \
+                   self.ip_address == other.ip_address and \
+                   self.port == other.port
+        else:
+            return NotImplemented
 
 
 class EditAgilentConfigDialog(QtWidgets.QDialog):

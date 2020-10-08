@@ -71,8 +71,11 @@ class SharedMeasureParameters:
             self.device_coefs[device] = (frequencies, coefficients)
 
     def __eq__(self, other):
-        return other is not None and \
-            self.device_coefs == other.device_coefs
+        if isinstance(other, SharedMeasureParameters):
+            return self.device_coefs == other.device_coefs
+        else:
+            return NotImplemented
+
 
     def serialize_to_dict(self):
         data_dict = {

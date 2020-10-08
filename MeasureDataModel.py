@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from typing import List, Union, Generator, Tuple
 from statistics import stdev, mean
+from datetime import datetime
 from enum import IntEnum
 from array import array
 import logging
@@ -47,18 +48,17 @@ class CellData:
         STUDENT_95 = 4
         STUDENT_99 = 5
         STUDENT_999 = 6
+        # MEASURE_DATE = 7
         COUNT = 7
 
     def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0., a_calculations=None,
-                 a_have_result=False, a_config=None):
+                 a_have_result=False, a_measure_date="", a_other_text_info="", a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
         self.__measured_values = a_init_values if a_init_values is not None else array('d')
         self.__measured_times = a_init_times if a_init_times is not None else array('d')
         self.__start_time_point = 0
-        self.__average = metrology.MovingAverage()
-        self.__impulse_filter = metrology.ImpulseFilter()
 
         self.__result = a_result
         self.__have_result = a_have_result
@@ -66,6 +66,9 @@ class CellData:
         self.__calculations = a_calculations if a_calculations is not None else CellCalculations()
         self.__calculated = False
         self.__weight = 0
+
+        self.__measure_date = a_measure_date
+        self.__other_text_info = a_other_text_info
 
         self.config = a_config if a_config is not None else CellConfig()
 
@@ -76,6 +79,8 @@ class CellData:
             "measured_times": utils.bytes_to_base64(self.__measured_times.tobytes()),
             "result": self.__result,
             "have_result": self.__have_result,
+            "measure_date": self.__measure_date,
+            "other_text_info": self.__other_text_info,
             "config": self.config.serialize_to_dict(),
         }
         return data_dict
@@ -93,18 +98,20 @@ class CellData:
                    a_init_times=init_times,
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
+                   a_measure_date=a_data_dict["measure_date"],
+                   a_other_text_info=a_data_dict["other_text_info"],
                    a_config=CellConfig.from_dict(a_data_dict["config"]))
 
     def reset(self):
-        self.__average.reset()
         self.__measured_values = array('d')
         self.__measured_times = array('d')
         self.__start_time_point = 0
-        self.__impulse_filter.clear()
         self.__result = 0
         self.__have_result = False
         self.__calculations.reset()
         self.__calculated = False
+        self.__measure_date = ""
+        self.__other_text_info = ""
 
     def get_measured_values(self) -> Tuple[array, array]:
         return self.__measured_times, self.__measured_values
@@ -127,6 +134,8 @@ class CellData:
             return self.__calculations.student_99
         elif a_data_type == CellData.GetDataType.STUDENT_999:
             return self.__calculations.student_999
+        # elif a_data_type == CellData.GetDataType.MEASURE_DATE:
+        #     return self.__measure_date
 
     def set_value(self, a_value: float):
         # Сбрасывает состояние ячейки, без сброса нужно добавлять значения через append_value
@@ -138,23 +147,28 @@ class CellData:
         self.__measured_values.append(a_value)
         self.__measured_times.append(a_time)
 
-        self.__average.add(a_value)
         # До вызова self.finalize в __result хранится последнее добавленное значение
         self.__result = a_value
         self.__have_result = True
 
-    def finalize(self):
+    def get_measure_date(self) -> str:
+        return self.__measure_date
+
+    def add_other_info(self, a_info: str):
+        self.__other_text_info += a_info
+
+    def get_other_info(self) -> str:
+        return self.__other_text_info
+
+    def finalize(self, a_final_result: float, a_other_info: str = ""):
         """
         Вызывается, когда все значения считаны, чтобы рассчитать некоторые параметры
         """
-        if self.has_value():
-            if len(self.__measured_values) < metrology.ImpulseFilter.MIN_SIZE:
-                logging.warning("Количество измеренных значений слишком мало для импульсного фильтра! "
-                                "Результат будет вычислен по среднему значению")
-                self.__result = self.__average.get()
-            else:
-                self.__impulse_filter.assign(self.__measured_values)
-                self.__result = self.__impulse_filter.get()
+        if self.has_value() and a_final_result:
+            self.__result = a_final_result
+
+            self.__measure_date = datetime.now().strftime("%d.%m.%Y %H:%M")
+            self.add_other_info(a_other_info)
 
     def calculate_parameters(self, a_setpoint: float, a_data_type: GetDataType):
         assert a_data_type != CellData.GetDataType.MEASURED, "MEASURED не нужно пересчитывать"
@@ -720,7 +734,8 @@ class MeasureDataModel(QAbstractTableModel):
         return precision
 
     def get_cell_tool_tip(self, a_cell_row: int, a_cell_column: int):
-        cell_config = self.__cells[a_cell_row][a_cell_column].config
+        cell_data = self.__cells[a_cell_row][a_cell_column]
+        cell_config = cell_data.config
 
         amplitude_str = f"{self.get_amplitude_with_units(a_cell_row)}; "
         frequency_str = f"{self.get_frequency_with_units(a_cell_column)}; " if self.__signal_type_is_ac else ""
@@ -734,12 +749,17 @@ class MeasureDataModel(QAbstractTableModel):
 
         cell_tool_tip = f"Время: {cell_config.measure_delay} с. /{cell_config.measure_time} с.; " \
                         f"Коэффициент: {utils.float_to_string(cell_config.coefficient, a_precision=4)}\n" \
-                        f"Схема: ({amplitude_str}{frequency_str}{signal_type_str}){coil_text}{divider_text}{meter_text}"
+                        f"Схема: ({amplitude_str}{frequency_str}{signal_type_str}){coil_text}{divider_text}{meter_text}\n" \
+                        f"Время измерения: {cell_data.get_measure_date()}" \
+                        f"{cell_data.get_other_info()}"
 
         return cell_tool_tip
 
     def reset_cell(self, a_row, a_column):
         self.__cells[a_row][a_column].reset()
+        # Чтобы пересчитались весовые коэффициенты calculated_parameters ячеек
+        self.set_displayed_data(self.__displayed_data)
+
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
@@ -753,12 +773,18 @@ class MeasureDataModel(QAbstractTableModel):
 
     def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
         self.__cells[a_row][a_column].append_value(a_value, a_time)
+        if self.__displayed_data != CellData.GetDataType.MEASURED:
+            self.__cells[a_row][a_column].calculate_parameters(self.get_amplitude(a_row), self.__displayed_data)
+
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
 
-    def finalize_cell(self, a_row, a_column):
-        self.__cells[a_row][a_column].finalize()
+    def finalize_cell(self, a_row, a_column, a_result: float, a_other_info: str = ""):
+        self.__cells[a_row][a_column].finalize(a_result, a_other_info)
+        # Чтобы пересчитались весовые коэффициенты calculated_parameters ячеек
+        self.set_displayed_data(self.__displayed_data)
+
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
@@ -774,7 +800,7 @@ class MeasureDataModel(QAbstractTableModel):
             cell_data.reset()
         else:
             try:
-                float_value = utils.parse_input(value, a_precision=self.__settings.edit_data_precision)
+                float_value = utils.parse_input(value, a_precision=20)
                 if not utils.are_float_equal(float_value, cell_data.get_value()) or not cell_data.has_value():
                     cell_data.set_value(float_value)
                 else:
