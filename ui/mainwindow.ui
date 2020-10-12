@@ -1393,7 +1393,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   </action>
   <action name="get_correction_tables_from_file_action">
    <property name="text">
-    <string>Загрузить из файла</string>
+    <string>Открыть из файла</string>
    </property>
    <property name="font">
     <font>

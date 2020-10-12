@@ -208,7 +208,8 @@ class MeasureManager(QtCore.QObject):
         if a_folder:
             old_full_path = self.__get_full_path_to_measure(a_folder, a_old_name)
             new_full_path = self.__get_full_path_to_measure(a_folder, a_new_name)
-            os.rename(old_full_path, new_full_path)
+            if os.path.isfile(old_full_path):
+                os.rename(old_full_path, new_full_path)
 
         data_model = self.measures[a_old_name]
         del self.measures[a_old_name]
@@ -255,6 +256,7 @@ class MeasureManager(QtCore.QObject):
     def new_measure(self, a_name="", a_measure_data_model: MeasureDataModel = None):
         selected_row = qt_utils.get_selected_row(self.measures_table)
         row_index = selected_row + 1 if selected_row is not None else self.measures_table.rowCount()
+
         new_name = a_name if a_name else self.__get_allowable_name(self.__get_measures_list(), "Новое измерение")
 
         if self.shared_measure_parameters is None:
@@ -411,8 +413,6 @@ class MeasureManager(QtCore.QObject):
                         logging.warning(f'Строка "{self.current_data_model.get_amplitude_with_units(row)}" '
                                         f'содержит различные схемы')
                         break
-
-                    pass
             else:
                 logging.warning("Таблица измерения пуста")
         else:
@@ -665,6 +665,21 @@ class MeasureManager(QtCore.QObject):
 
     def reset_measure(self, a_name: str, a_row, a_column):
         self.measures[a_name].reset_cell(a_row, a_column)
+
+    def import_correction_table(self, a_measure_name: str, a_table_data: List[List]):
+        # if self.current_data_model is not None:
+        init_cells = []
+        for row_data in a_table_data:
+            cells_row = []
+            for cell_value in row_data:
+                cells_row.append(CellData(a_result=cell_value, a_have_result=True))
+            init_cells.append(cells_row)
+
+        measure_name = self.__get_allowable_name(self.__get_measures_list(), a_measure_name)
+        data_model = MeasureDataModel(measure_name, self.shared_measure_parameters, self.settings,
+                                      a_init_cells=init_cells)
+
+        self.new_measure(measure_name, data_model)
 
     def add_measured_value(self, a_name: str, a_row, a_column, a_value: float, a_time: float):
         self.measures[a_name].update_cell_with_value(a_row, a_column, a_value, a_time)
@@ -950,7 +965,7 @@ class MeasureManager(QtCore.QObject):
 
                 self.current_data_model.set_save_state(True)
             except OSError:
-                pass
+                logging.debug("OSError")
             return self.is_current_saved()
         else:
             return True
@@ -967,7 +982,7 @@ class MeasureManager(QtCore.QObject):
 
                 measure_data_model.set_save_state(True)
             except OSError:
-                pass
+                logging.debug("OSError")
         return self.is_saved()
 
     def load_from_file(self, a_folder: str) -> bool:

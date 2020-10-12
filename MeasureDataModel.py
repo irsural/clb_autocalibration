@@ -277,14 +277,14 @@ class MeasureDataModel(QAbstractTableModel):
     status_changed = QtCore.pyqtSignal(str, Status)
 
     def __init__(self, a_name: str, a_shared_parameters: SharedMeasureParameters, a_settings: QtSettings, a_saved=False,
-                 a_init_cells: [List[List[CellData]]] = None, a_measured_parameters=None,
+                 a_init_cells: [List[List[CellData]]] = None, a_measure_parameters=None,
                  a_status: Status = Status.NOT_CHECKED, a_enabled=False, a_parent=None):
         super().__init__(a_parent)
 
         self.__name = a_name
         self.__saved = a_saved
         self.__cells = a_init_cells if a_init_cells is not None else [[CellData()]]
-        self.__measure_parameters = a_measured_parameters if a_measured_parameters else MeasureParameters()
+        self.__measure_parameters = a_measure_parameters if a_measure_parameters else MeasureParameters()
         self.__status: MeasureDataModel.Status = a_status
         self.__enabled = a_enabled
         self.__show_equal_cells = False
@@ -345,7 +345,7 @@ class MeasureDataModel(QAbstractTableModel):
         enabled = a_data_dict["enabled"]
 
         return cls(a_name=a_measure_name, a_shared_parameters=a_shared_parameters, a_settings=a_settings, a_saved=True,
-                   a_init_cells=cells, a_measured_parameters=measure_parameters, a_status=status, a_enabled=enabled)
+                   a_init_cells=cells, a_measure_parameters=measure_parameters, a_status=status, a_enabled=enabled)
 
     def set_name(self, a_name: str):
         self.__name = a_name

@@ -1,5 +1,6 @@
 from logging.handlers import RotatingFileHandler
 from os import system as os_system
+from typing import List
 from enum import IntEnum
 import logging
 import json
@@ -510,6 +511,7 @@ class MainWindow(QtWidgets.QMainWindow):
             correction_tables = self.measure_conductor.get_correction_tables()
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.import_table_to_measure.connect(self.measure_manager.import_correction_table)
                 correct_tables_dialog.exec()
 
     @utils.exception_decorator
@@ -522,6 +524,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.import_table_to_measure.connect(self.measure_manager.import_correction_table)
                 correct_tables_dialog.exec()
 
     def show_data_table_context_menu(self):
@@ -566,10 +569,6 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
         self.measure_manager.new_measure()
-        if self.current_configuration_path:
-            self.save_current_configuration()
-        else:
-            self.save_configuration()
 
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):
@@ -705,7 +704,6 @@ class MainWindow(QtWidgets.QMainWindow):
             config_filename = f"{config_dir}"
             if self.save_configuration_by_name(config_filename):
                 self.open_configuration_by_name(config_filename)
-                pass
             else:
                 result = False
         else:

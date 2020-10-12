@@ -35,6 +35,7 @@ class Ui_correction_tables_dialog(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.table_names_list.setFont(font)
+        self.table_names_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.table_names_list.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.table_names_list.setAlternatingRowColors(True)
         self.table_names_list.setObjectName("table_names_list")
@@ -51,6 +52,8 @@ class Ui_correction_tables_dialog(object):
         self.gridLayout.addWidget(self.correction_tables_splitter, 0, 0, 1, 1)
         self.copy_cell_value_action = QtWidgets.QAction(correction_tables_dialog)
         self.copy_cell_value_action.setObjectName("copy_cell_value_action")
+        self.copy_table_to_measure_action = QtWidgets.QAction(correction_tables_dialog)
+        self.copy_table_to_measure_action.setObjectName("copy_table_to_measure_action")
 
         self.retranslateUi(correction_tables_dialog)
         QtCore.QMetaObject.connectSlotsByName(correction_tables_dialog)
@@ -61,4 +64,5 @@ class Ui_correction_tables_dialog(object):
         self.save_to_file_button.setText(_translate("correction_tables_dialog", "Сохранить в файл"))
         self.copy_cell_value_action.setText(_translate("correction_tables_dialog", "Копировать значение"))
         self.copy_cell_value_action.setShortcut(_translate("correction_tables_dialog", "Ctrl+C"))
+        self.copy_table_to_measure_action.setText(_translate("correction_tables_dialog", "Копировать в измерение"))
 import icons_rc

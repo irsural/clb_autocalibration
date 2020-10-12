@@ -15,6 +15,7 @@ from CorrectionTableModel import CorrectionTableModel
 
 class CorrectionTablesDialog(QtWidgets.QDialog):
     save_tables_to_file = QtCore.pyqtSignal(dict)
+    import_table_to_measure = QtCore.pyqtSignal(str, list)
 
     def __init__(self, a_correction_tables: Dict[str, Tuple], a_settings: QtSettings,
                  a_parent=None):
@@ -26,9 +27,13 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
         self.ui.correction_table_view.setItemDelegate(TransparentPainterForView(self.ui.correction_table_view,
                                                                                 "#d4d4ff"))
         self.ui.correction_table_view.customContextMenuRequested.connect(self.show_table_context_menu)
+        self.ui.table_names_list.customContextMenuRequested.connect(self.show_tables_list_context_menu)
 
         self.ui.copy_cell_value_action.triggered.connect(self.copy_cell_value)
         self.ui.correction_table_view.addAction(self.ui.copy_cell_value_action)
+
+        self.ui.copy_table_to_measure_action.triggered.connect(self.copy_table_to_measure)
+        self.ui.table_names_list.addAction(self.ui.copy_cell_value_action)
 
         self.settings = a_settings
         self.settings.restore_qwidget_state(self)
@@ -55,6 +60,11 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
         menu.addAction(self.ui.copy_cell_value_action)
         menu.popup(QtGui.QCursor.pos())
 
+    def show_tables_list_context_menu(self):
+        menu = QtWidgets.QMenu(self)
+        menu.addAction(self.ui.copy_table_to_measure_action)
+        menu.popup(QtGui.QCursor.pos())
+
     def copy_cell_value(self):
         data_model = self.ui.correction_table_view.model()
 
@@ -75,6 +85,18 @@ class CorrectionTablesDialog(QtWidgets.QDialog):
                     copy_str += f"{value_str}"
 
                 QtWidgets.QApplication.clipboard().setText(copy_str)
+
+    def copy_table_to_measure(self):
+        table_model = self.ui.correction_table_view.model()
+
+        table_data = []
+        for row in range(table_model.rowCount()):
+            row_data = []
+            for column in range(table_model.columnCount()):
+                row_data.append(table_model.get_cell_value(row, column))
+            table_data.append(row_data)
+
+        self.import_table_to_measure.emit(self.ui.table_names_list.currentItem().text(), table_data)
 
     def change_table(self, a_name):
         self.ui.correction_table_view.setModel(self.correction_table_models[a_name])
