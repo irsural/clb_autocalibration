@@ -668,7 +668,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.open_shared_measure_parameters()
 
     def calculate_divider_coefficients_button_clicked(self, _):
-        logging.error("Не реализовано ¯\\_(ツ)_/¯")
+        self.measure_manager.auto_calculate_divider_coefficients()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()

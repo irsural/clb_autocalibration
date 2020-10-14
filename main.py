@@ -33,4 +33,4 @@ if __name__ == "__main__":
         main()
     except Exception as err:
         print(traceback.format_exc())
-        input("Error. Press enter to continue...")
+        # input("Error. Press enter to continue...")

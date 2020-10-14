@@ -76,7 +76,6 @@ class SharedMeasureParameters:
         else:
             return NotImplemented
 
-
     def serialize_to_dict(self):
         data_dict = {
             "device_coefs": self.device_coefs
@@ -183,20 +182,15 @@ class EditSharedMeasureParametersDialog(QtWidgets.QDialog):
 
         self.shared_parameters.device_coefs = new_device_coefs
 
-        if self.init_shared_parameters != self.shared_parameters:
-            # noinspection PyTypeChecker
-            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                                 'После применения новых значений, коэффициенты всех ячеек, в которых '
-                                                 'используются делитель/усилитель или катушка и установлен параметр '
-                                                 '"Авто рассчет коэффициента" будут автоматически пересчитаны.\n'
-                                                 'ВНИМАНИЕ! Убедитесь, что заголовки всех таблиц заполнены, иначе '
-                                                 'коэффициент может быть рассчитан неверно.',
-                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                 QtWidgets.QMessageBox.Yes)
-            if res == QtWidgets.QMessageBox.Yes:
-                self.accept()
-        else:
-            self.reject()
+        # noinspection PyTypeChecker
+        res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
+                                             'После применения новых значений, коэффициенты всех ячеек, в которых '
+                                             'используются делитель/усилитель или катушка и установлен параметр '
+                                             '"Авто рассчет коэффициента" будут автоматически пересчитаны.\n',
+                                             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                             QtWidgets.QMessageBox.Yes)
+        if res == QtWidgets.QMessageBox.Yes:
+            self.accept()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_qwidget_state(self.ui.device_coefs_view)

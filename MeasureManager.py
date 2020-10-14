@@ -19,6 +19,7 @@ from irspy.qt import qt_utils
 from irspy import utils
 
 from edit_shared_measure_parameters_dialog import EditSharedMeasureParametersDialog, SharedMeasureParameters
+from choose_auto_calculation_type_dialog import AutoCalculationTypeDialog
 from MeasureIterator import MeasureIteratorDirectByRows, MeasureIterator
 from edit_measure_parameters_dialog import EditMeasureParametersDialog
 from edit_cell_config_dialog import EditCellConfigDialog, CellConfig
@@ -89,6 +90,9 @@ class SchemeInCellPainter(TransparentPainterForView):
                 btn = self.get_button(coil_x - w, coil_y, w, h, divider_icon)
                 QtWidgets.QApplication.style().drawControl(QtWidgets.QStyle.CE_PushButton, btn, painter)
 
+
+class HeaderInvalidData(Exception):
+    """Возбуждается, когда частоты не располагаются парами при автоматическом рассчете коэффициентов автокалибратора"""
 
 class MeasureManager(QtCore.QObject):
     class MeasureColumn(IntEnum):
@@ -390,33 +394,99 @@ class MeasureManager(QtCore.QObject):
                     edit_cell_config_dialog.close()
 
     @utils.exception_decorator
-    def open_shared_measure_parameters(self):
-        self.__open_shared_measure_parameters(self.shared_measure_parameters)
-
-    @utils.exception_decorator
     def auto_calculate_divider_coefficients(self):
-        new_shared_parameters = copy.deepcopy(self.shared_measure_parameters)
-        if self.__check_table_to_auto_calculate_coefficients():
-            self.__open_shared_measure_parameters(self.shared_measure_parameters)
+        if self.current_data_model is not None:
+            row, device = self.__check_table_to_auto_calculate_coefficients()
+            if row != 0:
+                try:
+                    coefficients = self.__auto_calculate_coefficients(row)
+                except HeaderInvalidData:
+                    QtWidgets.QMessageBox.critical(None, "Ошибка", "Частоты должны располагаться парами",
+                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                else:
+                    if coefficients:
+                        dialog = AutoCalculationTypeDialog()
+                        _type = dialog.exec_and_get()
+
+                        if _type != AutoCalculationTypeDialog.Type.NONE:
+                            current_shared_parameters = copy.deepcopy(self.shared_measure_parameters)
+
+                            if _type == AutoCalculationTypeDialog.Type.ADD:
+                                current_coefs = current_shared_parameters.device_coefs[device]
+                                current_coefs_pairs = [pair for pair in zip(*current_coefs)]
+                                coefficients.extend(current_coefs_pairs)
+
+                            coefficients.sort(key=lambda pair: pair[0])
+
+                            frequencies = [coef[0] for coef in coefficients]
+                            coefs = [coef[1] for coef in coefficients]
+
+                            current_shared_parameters.device_coefs[device] = frequencies, coefs
+
+                            self.__open_shared_measure_parameters(current_shared_parameters)
+
+                    else:
+                        logging.error("Не было рассчитано ни одного коэффициента")
 
     def __check_table_to_auto_calculate_coefficients(self):
-        result = False
-        if self.current_data_model is not None:
-            if self.current_data_model.rowCount() > 1 and self.current_data_model.columnCount() > 1:
-                for row in range(self.current_data_model.rowCount()):
-                    row_schemes = []
-                    for column in range(self.current_data_model.columnCount()):
-                        cell_config = self.current_data_model.get_cell_config(row, column)
-                        row_schemes.append((cell_config.coil, cell_config.divider, cell_config.meter))
+        selected_row = 0
+        device = None
 
-                    if not all((scheme == row_schemes[0] for scheme in row_schemes)):
-                        logging.warning(f'Строка "{self.current_data_model.get_amplitude_with_units(row)}" '
-                                        f'содержит различные схемы')
-                        break
+        rows = {idx.row() for idx in self.data_view.selectedIndexes()}
+        if len(rows) == 1:
+            row = rows.pop()
+            if row != 0:
+                schemes = set()
+                for column in range(1, self.current_data_model.columnCount()):
+                    cell_config = self.current_data_model.get_cell_config(row, column)
+                    schemes.add((cell_config.coil, cell_config.divider, cell_config.meter))
+                if len(schemes) == 2:
+                    for scheme in schemes:
+                        if scheme[0] != CellConfig.Coil.NONE:
+                            device = CellConfig.COIL_TO_DEVICE[scheme[0]]
+                        elif scheme[1] != CellConfig.Divider.NONE:
+                            device = CellConfig.DIVIDER_TO_DEVICE[scheme[1]]
+
+                    assert device is not None, "device не должен быть None"
+
+                    selected_row = row
+
+                else:
+                    QtWidgets.QMessageBox.critical(None, "Ошибка", "В строке должны использоваться ровно 2 схемы",
+                                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             else:
-                logging.warning("Таблица измерения пуста")
+                QtWidgets.QMessageBox.critical(None, "Ошибка", "Необходимо выбрать строку с измеренными значениями",
+                                               QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         else:
-            logging.warning("Ни одно измерение не открыто")
+            QtWidgets.QMessageBox.critical(None, "Ошибка", "Необходимо выбрать ровно одну строку",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+        return selected_row, device
+
+    def __auto_calculate_coefficients(self, a_row: int) -> List[Tuple[float, float]]:
+        first_value = 0
+        first_frequency = 0
+        coefficients = []
+        for column in range(1, self.current_data_model.columnCount()):
+            if column % 2 == 1:
+                first_frequency = self.current_data_model.get_frequency(column)
+                first_value = self.current_data_model.get_cell_value(a_row, column, CellData.GetDataType.MEASURED)
+            else:
+                second_frequency = self.current_data_model.get_frequency(column)
+                if first_frequency != second_frequency:
+                    raise HeaderInvalidData("Wrong table header data")
+
+                second_value = self.current_data_model.get_cell_value(a_row, column, CellData.GetDataType.MEASURED)
+
+                if first_value not in (None, 0) and second_value not in (None, 0):
+                    coefficients.append((second_frequency, second_value / first_value))
+                else:
+                    logging.warning(f"Одно из значений на частоте {second_frequency} равно нулю, коэффициент "
+                                    f"для этой частоты не будет рассчитан")
+        return coefficients
+
+    @utils.exception_decorator
+    def open_shared_measure_parameters(self):
+        self.__open_shared_measure_parameters(self.shared_measure_parameters)
 
     def __open_shared_measure_parameters(self, a_shared_parameters: SharedMeasureParameters):
         shared_parameter_dialog = EditSharedMeasureParametersDialog(a_shared_parameters, self.settings,
