@@ -276,6 +276,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.flash_diapason_of_cell_action.setDisabled(a_lock)
         self.ui.verify_diapason_of_cell_action.setDisabled(a_lock)
 
+        self.ui.calculate_divider_coefficients.setDisabled(a_lock)
+
         self.ui.progress_bar_widget.setHidden(not a_lock)
 
         self.measure_manager.lock_interface(a_lock)
