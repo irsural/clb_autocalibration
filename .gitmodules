@@ -1,0 +1,4 @@
+[submodule "irspy"]
+	path = irspy
+	url = git@github.com:irsural/irspy.git
+	branch = calibrator

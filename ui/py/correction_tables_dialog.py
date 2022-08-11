@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/correction_tables_dialog.ui'
+# Form implementation generated from reading ui file 'correction_tables_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -65,4 +65,4 @@ class Ui_correction_tables_dialog(object):
         self.copy_cell_value_action.setText(_translate("correction_tables_dialog", "Копировать значение"))
         self.copy_cell_value_action.setShortcut(_translate("correction_tables_dialog", "Ctrl+C"))
         self.copy_table_to_measure_action.setText(_translate("correction_tables_dialog", "Копировать в измерение"))
-import icons_rc
+from irspy.qt.resources import icons

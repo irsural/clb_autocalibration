@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/about_dialog.ui'
+# Form implementation generated from reading ui file 'about_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -95,4 +95,4 @@ class Ui_about_dialog(object):
 ""))
         self.version_label.setText(_translate("about_dialog", "Версия программы: "))
         self.close_button.setText(_translate("about_dialog", "Закрыть"))
-import icons_rc
+from irspy.qt.resources import icons
