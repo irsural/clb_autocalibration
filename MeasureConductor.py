@@ -426,7 +426,6 @@ class MeasureConductor(QtCore.QObject):
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
-
             if self.need_to_reset_scheme:
                 if self.scheme_control.reset():
                     self.need_to_reset_scheme = False
@@ -440,6 +439,7 @@ class MeasureConductor(QtCore.QObject):
                 self.need_to_reset_scheme = True
 
                 if self.is_started():
+                    logging.info("Установка параметров мультиметра...")
                     self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
                 else:
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
@@ -527,10 +527,11 @@ class MeasureConductor(QtCore.QObject):
                 variables_ready.append(ready)
 
                 # На Agilent лучше не подавать инверсный сигнал
-                if self.current_amplitude >= 0:
-                    ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, False)
-                else:
-                    ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, True)
+                if clb.is_dc_signal[self.current_measure_parameters.signal_type]:
+                    if self.current_amplitude >= 0:
+                        ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, False)
+                    else:
+                        ready = clb_assists.guaranteed_buffered_variable_set(self.netvars.reverse, True)
 
                 variables_ready.append(ready)
 
