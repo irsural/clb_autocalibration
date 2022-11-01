@@ -37,6 +37,9 @@
            <pointsize>10</pointsize>
           </font>
          </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -77,6 +80,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="copy_table_to_measure_action">
+   <property name="text">
+    <string>Копировать в измерение</string>
    </property>
   </action>
  </widget>

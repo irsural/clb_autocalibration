@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/mainwindow.ui'
+# Form implementation generated from reading ui file 'mainwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -727,8 +727,8 @@ class Ui_MainWindow(object):
         self.verify_diapason_of_cell_action.setText(_translate("MainWindow", "Верифицировать диапазон ячейки"))
         self.read_correction_tables_action.setText(_translate("MainWindow", "read_correction_tables"))
         self.read_correction_tables_action.setToolTip(_translate("MainWindow", "Считать коррекцию в виде таблиц"))
-        self.get_correction_tables_from_file_action.setText(_translate("MainWindow", "Загрузить из файла"))
+        self.get_correction_tables_from_file_action.setText(_translate("MainWindow", "Открыть из файла"))
         self.show_scheme_in_cell_action.setText(_translate("MainWindow", "Схема подключения"))
         self.show_scheme_in_cell_action.setToolTip(_translate("MainWindow", "Отображать схему подключения в ячейках таблицы"))
         self.calculate_divider_coefficients.setText(_translate("MainWindow", "Рассчитать коэффициенты делителя/усилителя"))
-import icons_rc
+from irspy.qt.resources import icons

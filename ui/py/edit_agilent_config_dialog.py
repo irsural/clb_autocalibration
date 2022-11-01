@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/edit_agilent_config_dialog.ui'
+# Form implementation generated from reading ui file 'edit_agilent_config_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -107,4 +107,4 @@ class Ui_edit_agilent_config_dialog(object):
         self.connect_type_combobox.setItemText(3, _translate("edit_agilent_config_dialog", "Prologix Ethernet-GPIB"))
         self.accept_button.setText(_translate("edit_agilent_config_dialog", "Принять"))
         self.cancel_button.setText(_translate("edit_agilent_config_dialog", "Отмена"))
-import icons_rc
+from irspy.qt.resources import icons

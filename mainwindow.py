@@ -1,5 +1,6 @@
 from logging.handlers import RotatingFileHandler
 from os import system as os_system
+from typing import List
 from enum import IntEnum
 import logging
 import json
@@ -275,6 +276,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.flash_diapason_of_cell_action.setDisabled(a_lock)
         self.ui.verify_diapason_of_cell_action.setDisabled(a_lock)
 
+        self.ui.calculate_divider_coefficients.setDisabled(a_lock)
+
         self.ui.progress_bar_widget.setHidden(not a_lock)
 
         self.measure_manager.lock_interface(a_lock)
@@ -510,6 +513,7 @@ class MainWindow(QtWidgets.QMainWindow):
             correction_tables = self.measure_conductor.get_correction_tables()
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.import_table_to_measure.connect(self.measure_manager.import_correction_table)
                 correct_tables_dialog.exec()
 
     @utils.exception_decorator
@@ -522,6 +526,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if correction_tables:
                 correct_tables_dialog = CorrectionTablesDialog(correction_tables, self.settings)
+                correct_tables_dialog.import_table_to_measure.connect(self.measure_manager.import_correction_table)
                 correct_tables_dialog.exec()
 
     def show_data_table_context_menu(self):
@@ -566,10 +571,6 @@ class MainWindow(QtWidgets.QMainWindow):
     @utils.exception_decorator
     def add_measure_button_clicked(self, _):
         self.measure_manager.new_measure()
-        if self.current_configuration_path:
-            self.save_current_configuration()
-        else:
-            self.save_configuration()
 
     @utils.exception_decorator
     def remove_measure_button_clicked(self, _):
@@ -669,7 +670,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_manager.open_shared_measure_parameters()
 
     def calculate_divider_coefficients_button_clicked(self, _):
-        logging.error("Не реализовано ¯\\_(ツ)_/¯")
+        self.measure_manager.auto_calculate_divider_coefficients()
 
     def open_cell_configuration(self):
         self.measure_manager.open_cell_configuration()
@@ -705,7 +706,6 @@ class MainWindow(QtWidgets.QMainWindow):
             config_filename = f"{config_dir}"
             if self.save_configuration_by_name(config_filename):
                 self.open_configuration_by_name(config_filename)
-                pass
             else:
                 result = False
         else:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/edit_measure_parameters_dialog.ui'
+# Form implementation generated from reading ui file 'edit_measure_parameters_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -171,4 +171,4 @@ class Ui_edit_measure_parameters_dialog(object):
 "значение"))
         self.accept_button.setText(_translate("edit_measure_parameters_dialog", "Принять"))
         self.cancel_button.setText(_translate("edit_measure_parameters_dialog", "Отмена"))
-import icons_rc
+from irspy.qt.resources import icons

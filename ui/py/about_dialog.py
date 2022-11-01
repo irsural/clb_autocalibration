@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/about_dialog.ui'
+# Form implementation generated from reading ui file 'about_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_about_dialog(object):
     def setupUi(self, about_dialog):
         about_dialog.setObjectName("about_dialog")
-        about_dialog.resize(493, 347)
+        about_dialog.resize(435, 347)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -33,6 +33,8 @@ class Ui_about_dialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
+        self.label.setAutoFillBackground(False)
+        self.label.setStyleSheet("background-color:#3f8cb6;")
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap(":/images/images/just_for_fun.png"))
         self.label.setObjectName("label")
@@ -93,4 +95,4 @@ class Ui_about_dialog(object):
 ""))
         self.version_label.setText(_translate("about_dialog", "Версия программы: "))
         self.close_button.setText(_translate("about_dialog", "Закрыть"))
-import icons_rc
+from irspy.qt.resources import icons

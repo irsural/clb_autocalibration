@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/edit_cell_config_dialog.ui'
+# Form implementation generated from reading ui file 'edit_cell_config_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -354,4 +354,4 @@ class Ui_edit_cell_config_dialog(object):
         self.accept_button.setText(_translate("edit_cell_config_dialog", "Принять"))
         self.cancel_button.setText(_translate("edit_cell_config_dialog", "Отмена"))
 from irspy.qt.custom_widgets.CustomLineEdit import QEditDoubleClick
-import icons_rc
+from irspy.qt.resources import icons

@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 from ui.py.about_dialog import Ui_about_dialog as AboutForm
-import revisions
+import app_info
 
 
 class AboutDialog(QtWidgets.QDialog):
@@ -13,7 +13,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.show()
 
-        self.ui.version_label.setText(f"Версия программы: {revisions.Revisions.clb_autocalibration}")
+        self.ui.version_label.setText(f"Версия программы: {app_info.VERSION}")
 
         self.ui.close_button.clicked.connect(self.reject)
 

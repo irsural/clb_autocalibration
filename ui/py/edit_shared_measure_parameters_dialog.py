@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/edit_shared_measure_parameters_dialog.ui'
+# Form implementation generated from reading ui file 'edit_shared_measure_parameters_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -127,4 +127,4 @@ class Ui_shared_measure_parameters_dialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("shared_measure_parameters_dialog", "Коэффициенты приборов"))
         self.accept_button.setText(_translate("shared_measure_parameters_dialog", "Принять"))
         self.cancel_button.setText(_translate("shared_measure_parameters_dialog", "Отмена"))
-import icons_rc
+from irspy.qt.resources import icons

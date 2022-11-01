@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/settings_form.ui'
+# Form implementation generated from reading ui file 'settings_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.0
 #
@@ -129,4 +129,4 @@ class Ui_settings_dialog(object):
         self.save_and_exit_button.setText(_translate("settings_dialog", "Ок"))
         self.cancel_button.setText(_translate("settings_dialog", "Отмена"))
         self.save_button.setText(_translate("settings_dialog", "Принять"))
-import icons_rc
+from irspy.qt.resources import icons
