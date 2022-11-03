@@ -196,7 +196,7 @@ class CellConfig:
 
         self.auto_calc_coefficient = True
 
-        self.meter_config_string = "NPLC 100;SETACV SYNC;RES .001;LFILTER ON"
+        self.meter_config_string = "SETACV SYNC;RES .001;LFILTER ON"
 
         self.consider_output_value = True
 
