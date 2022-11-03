@@ -61,7 +61,7 @@ class EditAgilentConfigDialog(QtWidgets.QDialog):
         self.settings.restore_dialog_size(self)
 
         self.ip_address_regex = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
-        self.com_regex = re.compile(r"(?i)com\d")
+        self.com_regex = re.compile(r"(?i)com\d+")
 
         self.agilent_config = None
         self.recover_parameters(a_init_parameters)
