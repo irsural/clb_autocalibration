@@ -32,7 +32,7 @@
    <string>О программе clb_autocalibration</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../irspy/qt/resources/icons.qrc">
+   <iconset resource="../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/graph_2.png</normaloff>:/icons/icons/graph_2.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -54,7 +54,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="../../irspy/qt/resources/icons.qrc">:/images/images/just_for_fun.png</pixmap>
+      <pixmap resource="../irspy/qt/resources/icons.qrc">:/images/images/just_for_fun.png</pixmap>
      </property>
     </widget>
    </item>
@@ -75,6 +75,46 @@
         <enum>QFrame::Plain</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Копирайт© 2000-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="copyright_year_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string> ООО &quot;РЭС&quot;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_2">
           <property name="sizePolicy">
@@ -86,8 +126,6 @@
           <property name="text">
            <string>clb_autocalibration - программа для автоматической калибровки калибратора тока и напряжения N4-25
 
-Копирайт© 2000-2020 ООО &quot;РЭС&quot;
-
 </string>
           </property>
           <property name="alignment">
@@ -98,7 +136,7 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="version_label">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -146,7 +184,8 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../irspy/qt/resources/icons.qrc"/>
+  <include location="../irspy/qt/resources/icons.qrc"/>
+  <include location="../irspy/qt/resources/icons.qrc"/>
   <include location="../../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
