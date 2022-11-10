@@ -55,31 +55,38 @@ class MeasureConductor(QtCore.QObject):
         MEASURE_DONE = auto()
 
     STAGE_IN_MESSAGE = {
-        # Stage.REST: "Измерение не проводится",
-        # Stage.CONNECT_TO_CALIBRATOR: "Подключение к калибратору",
-        # Stage.CONNECT_TO_METER: "Подключение к измерителю",
-        # Stage.CONNECT_TO_SCHEME: "Подключение к схеме",
-        # Stage.GET_CONFIGS: "Получение конфигурации",
-        # Stage.RESET_CALIBRATOR_CONFIG: "Сброс параметров калибратора",
-        Stage.WAIT_CALIBRATOR_RESET: "Ждем сброс калибратора...",
-        # Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
-        # Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
-        Stage.SET_METER_MEASURE_TYPE: "Установка типа измерения измерителя",
-        Stage.WAIT_METER_MEASURE_TYPE: "Ожидание установки типа измерения измерителя",
-        Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",
-        Stage.SET_METER_CONFIG: "Установка параметров измерителя",
-        Stage.WAIT_METER_CONFIG: "Ожидание установки параметров измерителя",
-        # Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
-        # Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
-        Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
-        # Stage.WAIT_CALIBRATOR_READY: "Ожидание выхода калибратора на режим...",
-        # Stage.MEASURE: "Измерение...",
-        # Stage.END_MEASURE: "Конец измерения",
-        # Stage.ERRORS_OUTPUT: "Вывод ошибок",
-        # Stage.START_FLASH: "Начало прошивки",
-        Stage.FLASH_TO_CALIBRATOR: "Прошивка калибратора...",
-        Stage.NEXT_MEASURE: "Следующее измерение",
-        Stage.MEASURE_DONE: "Измерение закончено",
+        Stage.REST: ("Измерение не проводится", logging.DEBUG),
+        Stage.CONNECT_TO_CALIBRATOR: ("Подключение к калибратору", logging.DEBUG),
+        Stage.CONNECT_TO_METER: ("Подключение к измерителю", logging.DEBUG),
+        Stage.CONNECT_TO_SCHEME: ("Подключение к схеме", logging.DEBUG),
+        Stage.GET_CONFIGS: ("Получение конфигурации", logging.DEBUG),
+        Stage.RESET_CALIBRATOR_CONFIG: ("Сброс параметров калибратора", logging.DEBUG),
+
+        Stage.WAIT_CALIBRATOR_RESET: ("Ждем сброс калибратора...", logging.INFO),
+
+        Stage.RESET_METER_CONFIG: ("Сброс параметров измерителя", logging.DEBUG),
+        Stage.RESET_SCHEME_CONFIG: ("Сброс параметров схемы", logging.DEBUG),
+
+        Stage.SET_METER_MEASURE_TYPE: ("Установка типа измерения измерителя", logging.INFO),
+        Stage.WAIT_METER_MEASURE_TYPE: ("Ожидание установки типа измерения измерителя", logging.INFO),
+        Stage.METER_TEST_MEASURE: ("Выполняется тестовое измерение мультиметром...", logging.INFO),
+        Stage.SET_METER_CONFIG: ("Установка параметров измерителя", logging.INFO),
+        Stage.WAIT_METER_CONFIG: ("Ожидание установки параметров измерителя", logging.INFO),
+
+        Stage.SET_SCHEME_CONFIG: ("Установка параметров схемы", logging.DEBUG),
+        Stage.WAIT_SCHEME_SETTLE_DOWN: ("На всякий случай немного ждем схему...", logging.DEBUG),
+
+        Stage.SET_CALIBRATOR_CONFIG: ("Установка параметров калибратора", logging.INFO),
+
+        Stage.WAIT_CALIBRATOR_READY: ("Ожидание выхода калибратора на режим...", logging.DEBUG),
+        Stage.MEASURE: ("Измерение...", logging.DEBUG),
+        Stage.END_MEASURE: ("Конец измерения", logging.DEBUG),
+        Stage.ERRORS_OUTPUT: ("Вывод ошибок", logging.DEBUG),
+        Stage.START_FLASH: ("Начало прошивки", logging.DEBUG),
+
+        Stage.FLASH_TO_CALIBRATOR: ("Прошивка калибратора...", logging.INFO),
+        Stage.NEXT_MEASURE: ("Следующее измерение", logging.INFO),
+        Stage.MEASURE_DONE: ("Измерение закончено", logging.INFO),
     }
 
     NEXT_STAGE = {
@@ -306,7 +313,8 @@ class MeasureConductor(QtCore.QObject):
         if self.__prev_stage != self.__stage:
             self.__prev_stage = self.__stage
             if self.__stage in MeasureConductor.STAGE_IN_MESSAGE:
-                logging.debug(MeasureConductor.STAGE_IN_MESSAGE[self.__stage])
+                msg, log_level = MeasureConductor.STAGE_IN_MESSAGE[self.__stage]
+                logging.log(log_level, msg)
 
         if self.__stage == MeasureConductor.Stage.REST:
             pass
