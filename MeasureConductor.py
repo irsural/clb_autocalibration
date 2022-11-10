@@ -179,6 +179,7 @@ class MeasureConductor(QtCore.QObject):
 
         self.y_out = 0
         self.y_out_network_variable = self.netvars.fast_adc_slow
+        self.y_out_network_variable_name = ""
 
         self.out_filter_take_sample_timer = utils.Timer(0.1)
         self.calibrator_out_filter = metrology.MovingAverage(a_window_size=0)
@@ -378,8 +379,12 @@ class MeasureConductor(QtCore.QObject):
                                                           work_value=extra_parameter.work_value,
                                                           default_value=extra_parameter.default_value))
 
-            self.y_out_network_variable = self.netvars.final_stabilizer_dac_dc_level if \
-                clb.is_dc_signal[self.current_measure_parameters.signal_type] else self.netvars.fast_adc_slow
+            if clb.is_dc_signal[self.current_measure_parameters.signal_type]:
+                self.y_out_network_variable = self.netvars.final_stabilizer_dac_dc_level
+                self.y_out_network_variable_name = "final_stabilizer_dac_dc_level"
+            else:
+                self.y_out_network_variable = self.netvars.fast_adc_slow
+                self.y_out_network_variable_name = "fast_adc_slow"
 
             self.current_cell_is_the_last_in_table = self.measure_iterator.is_the_last_cell_in_table()
 
@@ -437,7 +442,8 @@ class MeasureConductor(QtCore.QObject):
             assert not (self.__started and self.multimeter is None), \
                 "Измерение запущено, но мультиметр не инициализирован!"
 
-            if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
+            if self.multimeter is None or \
+                    self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
@@ -735,6 +741,7 @@ class MeasureConductor(QtCore.QObject):
     def calculate_result(self):
         calibrator_out = self.calibrator_out_filter.get()
         multimeter_out = self.multimeter_out_filter.get()
+        result = multimeter_out
 
         if self.current_config.consider_output_value:
             if calibrator_out == 0:
@@ -742,9 +749,16 @@ class MeasureConductor(QtCore.QObject):
             elif multimeter_out == 0:
                 logging.warning("Ошибка, с мультиметра не было считано ни одного значения")
             else:
-                multimeter_out = multimeter_out / calibrator_out * self.current_amplitude
+                result = multimeter_out / calibrator_out * self.current_amplitude
 
-        return multimeter_out
+                clb_out_variable = "final_stabilizer_dac_dc_level" if \
+                    clb.is_dc_signal[self.current_measure_parameters.signal_type] else "fast_adc_slow"
+
+                logging.info(f"Результат измерения = multimeter_out / calibrator_out * setpoint = "
+                             f"{multimeter_out:.9f} / {calibrator_out:.9f} * {self.current_amplitude:.9f} = "
+                             f"{result:.9f}")
+
+        return result
 
     def start_flash(self, a_measures_to_flash: List[str], amplitude_of_cell_to_flash=None):
         data_to_flash = self.get_data_to_flash_verify(a_measures_to_flash, amplitude_of_cell_to_flash)

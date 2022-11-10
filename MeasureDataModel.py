@@ -51,13 +51,19 @@ class CellData:
         # MEASURE_DATE = 7
         COUNT = 7
 
-    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0., a_calculations=None,
-                 a_have_result=False, a_measure_date="", a_other_text_info="", a_config=None):
+    def __init__(self, a_locked=False, a_init_values=None, a_init_times=None, a_result=0.,
+                 a_clb_variable="", a_init_clb_values=None, a_init_clb_times=None,
+                 a_calculations=None, a_have_result=False, a_measure_date="", a_other_text_info="",
+                 a_config=None):
         self.__locked = a_locked
         self.__marked_as_equal = False
 
         self.__measured_values = a_init_values if a_init_values is not None else array('d')
         self.__measured_times = a_init_times if a_init_times is not None else array('d')
+        # Имя сетевой переменной, на которую корректируется результирующее значение ячейки
+        self.__clb_variable = a_clb_variable
+        self.__clb_values = a_init_clb_values if a_init_clb_values is not None else array('d')
+        self.__clb_times = a_init_clb_times if a_init_clb_times is not None else array('d')
         self.__start_time_point = 0
 
         self.__result = a_result
@@ -77,6 +83,9 @@ class CellData:
             "locked": self.__locked,
             "measured_values": utils.bytes_to_base64(self.__measured_values.tobytes()),
             "measured_times": utils.bytes_to_base64(self.__measured_times.tobytes()),
+            "clb_variable": self.__clb_variable,
+            "clb_values": utils.bytes_to_base64(self.__clb_values.tobytes()),
+            "clb_times": utils.bytes_to_base64(self.__clb_times.tobytes()),
             "result": self.__result,
             "have_result": self.__have_result,
             "measure_date": self.__measure_date,
@@ -93,9 +102,25 @@ class CellData:
         init_times = array('d')
         init_times.frombytes(utils.base64_to_bytes(a_data_dict["measured_times"]))
 
+        try:
+            clb_variable = a_data_dict["clb_variable"]
+
+            clb_values = array('d')
+            clb_values.frombytes(utils.base64_to_bytes(a_data_dict["clb_values"]))
+
+            clb_times = array('d')
+            clb_times.frombytes(utils.base64_to_bytes(a_data_dict["clb_times"]))
+        except KeyError:
+            clb_values = None
+            clb_times = None
+            clb_variable = ""
+
         return cls(a_locked=bool(a_data_dict["locked"]),
                    a_init_values=init_values,
                    a_init_times=init_times,
+                   a_clb_variable=clb_variable,
+                   a_init_clb_values=clb_values,
+                   a_init_clb_times=clb_times,
                    a_result=float(a_data_dict["result"]),
                    a_have_result=bool(a_data_dict["have_result"]),
                    a_measure_date=a_data_dict["measure_date"],
@@ -105,6 +130,8 @@ class CellData:
     def reset(self):
         self.__measured_values = array('d')
         self.__measured_times = array('d')
+        self.__clb_values = array('d')
+        self.__clb_times = array('d')
         self.__start_time_point = 0
         self.__result = 0
         self.__have_result = False
@@ -115,6 +142,9 @@ class CellData:
 
     def get_measured_values(self) -> Tuple[array, array]:
         return self.__measured_times, self.__measured_values
+
+    def get_clb_values(self) -> Tuple[array, array]:
+        return self.__clb_values, self.__clb_times
 
     def has_value(self):
         return self.__have_result
@@ -150,6 +180,13 @@ class CellData:
         # До вызова self.finalize в __result хранится последнее добавленное значение
         self.__result = a_value
         self.__have_result = True
+
+    def set_clb_variable(self, a_variable_name: str):
+        self.__clb_variable = a_variable_name
+
+    def append_clb_value(self, a_value: float, a_time: float):
+        self.__clb_values.append(a_value)
+        self.__clb_times.append(a_time)
 
     def get_measure_date(self) -> str:
         return self.__measure_date
