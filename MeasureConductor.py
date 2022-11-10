@@ -1,7 +1,7 @@
 from typing import Union, List, Tuple, Dict
 from collections import namedtuple
 from time import perf_counter
-from enum import IntEnum
+from enum import IntEnum, auto
 import logging
 
 from PyQt5 import QtCore
@@ -28,29 +28,31 @@ ExtraVariable = namedtuple("ExtraVariable", ["buffered_variable", "work_value", 
 
 class MeasureConductor(QtCore.QObject):
     class Stage(IntEnum):
-        REST = 0
-        CONNECT_TO_CALIBRATOR = 1
-        CONNECT_TO_METER = 2
-        CONNECT_TO_SCHEME = 3
-        GET_CONFIGS = 4
-        RESET_CALIBRATOR_CONFIG = 5
-        WAIT_CALIBRATOR_RESET = 6
-        RESET_METER_CONFIG = 7
-        RESET_SCHEME_CONFIG = 8
-        SET_METER_CONFIG = 9
-        METER_TEST_MEASURE = 10
-        SET_METER_RANGE = 11
-        SET_SCHEME_CONFIG = 12
-        WAIT_SCHEME_SETTLE_DOWN = 13
-        SET_CALIBRATOR_CONFIG = 14
-        WAIT_CALIBRATOR_READY = 15
-        MEASURE = 16
-        END_MEASURE = 17
-        ERRORS_OUTPUT = 18
-        START_FLASH = 19
-        FLASH_TO_CALIBRATOR = 20
-        NEXT_MEASURE = 21
-        MEASURE_DONE = 22
+        REST = auto()
+        CONNECT_TO_CALIBRATOR = auto()
+        CONNECT_TO_METER = auto()
+        CONNECT_TO_SCHEME = auto()
+        GET_CONFIGS = auto()
+        RESET_CALIBRATOR_CONFIG = auto()
+        WAIT_CALIBRATOR_RESET = auto()
+        RESET_METER_CONFIG = auto()
+        RESET_SCHEME_CONFIG = auto()
+        SET_METER_MEASURE_TYPE = auto()
+        WAIT_METER_MEASURE_TYPE = auto()
+        METER_TEST_MEASURE = auto()
+        SET_METER_CONFIG = auto()
+        WAIT_METER_CONFIG = auto()
+        SET_SCHEME_CONFIG = auto()
+        WAIT_SCHEME_SETTLE_DOWN = auto()
+        SET_CALIBRATOR_CONFIG = auto()
+        WAIT_CALIBRATOR_READY = auto()
+        MEASURE = auto()
+        END_MEASURE = auto()
+        ERRORS_OUTPUT = auto()
+        START_FLASH = auto()
+        FLASH_TO_CALIBRATOR = auto()
+        NEXT_MEASURE = auto()
+        MEASURE_DONE = auto()
 
     STAGE_IN_MESSAGE = {
         # Stage.REST: "Измерение не проводится",
@@ -62,9 +64,11 @@ class MeasureConductor(QtCore.QObject):
         Stage.WAIT_CALIBRATOR_RESET: "Ждем сброс калибратора...",
         # Stage.RESET_METER_CONFIG: "Сброс параметров измерителя",
         # Stage.RESET_SCHEME_CONFIG: "Сброс параметров схемы",
-        # Stage.SET_METER_CONFIG: "Установка параметров измерителя",
+        Stage.SET_METER_MEASURE_TYPE: "Установка типа измерения измерителя",
+        Stage.WAIT_METER_MEASURE_TYPE: "Ожидание установки типа измерения измерителя",
         Stage.METER_TEST_MEASURE: "Выполняется тестовое измерение мультиметром...",
-        # Stage.SET_METER_RANGE: "Установка диапазона мультиметра",
+        Stage.SET_METER_CONFIG: "Установка параметров измерителя",
+        Stage.WAIT_METER_CONFIG: "Ожидание установки параметров измерителя",
         # Stage.SET_SCHEME_CONFIG: "Установка параметров схемы",
         # Stage.WAIT_SCHEME_SETTLE_DOWN: "На всякий случай немного ждем схему...",
         Stage.SET_CALIBRATOR_CONFIG: "Установка параметров калибратора",
@@ -87,12 +91,14 @@ class MeasureConductor(QtCore.QObject):
         Stage.RESET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_RESET,
         Stage.WAIT_CALIBRATOR_RESET: Stage.RESET_METER_CONFIG,
         Stage.RESET_METER_CONFIG: Stage.RESET_SCHEME_CONFIG,
-        # Stage.RESET_SCHEME_CONFIG: Stage.SET_METER_CONFIG,
+        # Stage.RESET_SCHEME_CONFIG: Stage.SET_METER_MEASURE_TYPE,
         # Stage.RESET_SCHEME_CONFIG: Stage.MEASURE_DONE,
-        # Stage.SET_METER_CONFIG: Stage.METER_TEST_MEASURE,
-        # Stage.SET_METER_CONFIG: Stage.SET_METER_RANGE,
-        Stage.METER_TEST_MEASURE: Stage.SET_METER_RANGE,
-        Stage.SET_METER_RANGE: Stage.SET_SCHEME_CONFIG,
+        Stage.SET_METER_MEASURE_TYPE: Stage.WAIT_METER_MEASURE_TYPE,
+        # Stage.WAIT_METER_MEASURE_TYPE: Stage.METER_TEST_MEASURE,
+        # Stage.WAIT_METER_MEASURE_TYPE: Stage.SET_METER_CONFIG,
+        Stage.METER_TEST_MEASURE: Stage.SET_METER_CONFIG,
+        Stage.SET_METER_CONFIG: Stage.WAIT_METER_CONFIG,
+        Stage.WAIT_METER_CONFIG: Stage.SET_SCHEME_CONFIG,
         Stage.SET_SCHEME_CONFIG: Stage.WAIT_SCHEME_SETTLE_DOWN,
         Stage.WAIT_SCHEME_SETTLE_DOWN: Stage.SET_CALIBRATOR_CONFIG,
         Stage.SET_CALIBRATOR_CONFIG: Stage.WAIT_CALIBRATOR_READY,
@@ -180,6 +186,7 @@ class MeasureConductor(QtCore.QObject):
         self.correction_flasher_started = False
 
         self.multimeter: Union[None, multimeters.MultimeterBase] = None
+        self.first_multimeter_connect = True
         self.current_measure_type = None
 
         self.__stage = MeasureConductor.Stage.REST
@@ -210,12 +217,12 @@ class MeasureConductor(QtCore.QObject):
         if self.multimeter is not None:
             self.multimeter.disconnect()
         self.multimeter = None
+        self.first_multimeter_connect = True
+        self.current_measure_type = None
 
         self.scheme_control = self.measure_manager.get_scheme()
         self.need_to_reset_scheme = True
         self.need_to_set_scheme = True
-
-        self.current_measure_type = None
 
         self.start_time_point = None
 
@@ -313,10 +320,16 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_METER:
             self.multimeter = self.measure_manager.get_meter()
+
             # Паранойя, чтобы не началось измерение с неправильным типом измерителя
             self.multimeter.disconnect()
 
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            if self.multimeter.connect(multimeters.MeasureType.tm_value):
+                self.first_multimeter_connect = True
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            else:
+                logging.error("Не удалось подключиться к мультиметру. Измерение остановлено")
+                self.stop()
 
         elif self.__stage == MeasureConductor.Stage.CONNECT_TO_SCHEME:
             self.scheme_control = self.measure_manager.get_scheme()
@@ -367,11 +380,8 @@ class MeasureConductor(QtCore.QObject):
                                          self.current_measure_parameters.flash_after_finish
 
             try:
-                if not self.current_config.additional_parameters.dont_set_meter_config:
-                    self.current_measure_type = MeasureConductor.SIGNAL_TO_MEASURE_TYPE[
-                        (self.current_measure_parameters.signal_type, self.current_config.meter)]
-                else:
-                    self.current_measure_type = multimeters.MeasureType.tm_value
+                self.current_measure_type = MeasureConductor.SIGNAL_TO_MEASURE_TYPE[
+                    (self.current_measure_parameters.signal_type, self.current_config.meter)]
             except KeyError:
                 self.current_measure_type = None
 
@@ -416,14 +426,11 @@ class MeasureConductor(QtCore.QObject):
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
-            # self.multimeter is None, когда измерение останавливается до CONNECT_TO_METER
-            if self.multimeter is not None:
-                if self.current_measure_type != self.multimeter.get_measure_type():
-                    self.multimeter.disconnect()
-            else:
-                assert not self.__started, "Мультиметр не инициализирован, но измерение не остановлено!"
+            assert not (self.__started and self.multimeter is None), \
+                "Измерение запущено, но мультиметр не инициализирован!"
 
-            self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+            if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
         elif self.__stage == MeasureConductor.Stage.RESET_SCHEME_CONFIG:
             if self.need_to_reset_scheme:
@@ -440,23 +447,42 @@ class MeasureConductor(QtCore.QObject):
 
                 if self.is_started():
                     logging.info("Установка параметров мультиметра...")
-                    self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
+                    self.__stage = MeasureConductor.Stage.SET_METER_MEASURE_TYPE
                 else:
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
-
-        elif self.__stage == MeasureConductor.Stage.SET_METER_CONFIG:
+####################################################################################################
+        elif self.__stage == MeasureConductor.Stage.SET_METER_MEASURE_TYPE:
             if self.multimeter.is_connected():
-                self.__stage = MeasureConductor.Stage.SET_METER_RANGE
+                assert self.current_config.coefficient != 0, \
+                    "Коэффициент преобразования не может быть равен нулю!"
+
+                if self.current_config.additional_parameters.manual_range_enabled:
+                    range_ = self.current_config.additional_parameters.manual_range_value
+                else:
+                    range_ = abs(self.current_amplitude) / self.current_config.coefficient
+
+                if self.multimeter.set_range(self.current_measure_type, range_):
+                    self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+                else:
+                    logging.error(f"Не удалось установить тип измерения и диапазон мультиметра."
+                                  f"Измерение остановлено")
+                    self.stop()
             else:
-                if self.multimeter.connect(self.current_measure_type):
+                logging.error(f"Мультиметр не подключен на этапе {self.__stage.name}! "
+                              f"Измерение остановлено")
+                self.stop()
+
+        elif self.__stage == MeasureConductor.Stage.WAIT_METER_MEASURE_TYPE:
+            if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
+                if self.first_multimeter_connect:
                     if self.multimeter.start_measure():
+                        self.first_multimeter_connect = False
                         self.__stage = MeasureConductor.Stage.METER_TEST_MEASURE
                     else:
                         logging.error("Не удалось начать тестовое измерение. Измерение остановлено")
                         self.stop()
                 else:
-                    logging.error("Не удалось подключиться к мультиметру. Измерение остановлено")
-                    self.stop()
+                    self.__stage = MeasureConductor.Stage.SET_METER_CONFIG
 
         elif self.__stage == MeasureConductor.Stage.METER_TEST_MEASURE:
             if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
@@ -465,22 +491,18 @@ class MeasureConductor(QtCore.QObject):
 
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
-        elif self.__stage == MeasureConductor.Stage.SET_METER_RANGE:
-            assert self.current_config.coefficient != 0, "Коэффициент преобразования не может быть равен нулю!"
-
-            if not self.current_config.additional_parameters.dont_set_meter_config:
-
-                if self.current_config.additional_parameters.manual_range_enabled:
-                    range_ = self.current_config.additional_parameters.manual_range_value
-                else:
-                    range_ = abs(self.current_amplitude) / self.current_config.coefficient
-
-                self.multimeter.set_range(range_)
-                self.multimeter.set_config(self.current_config.meter_config_string)
-                logging.info(f"Конфигурация мультиметра: {self.current_config.meter_config_string}, диапазон: {range_}")
+        elif self.__stage == MeasureConductor.Stage.SET_METER_CONFIG:
+            self.multimeter.set_config(self.current_config.meter_config_string)
 
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
+        elif self.__stage == MeasureConductor.Stage.WAIT_METER_CONFIG:
+            if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
+                logging.info(f"Конфигурация мультиметра: {self.multimeter.get_range()};"
+                             f"{self.current_config.meter_config_string}")
+
+                self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
+####################################################################################################
         elif self.__stage == MeasureConductor.Stage.SET_SCHEME_CONFIG:
             if self.need_to_set_scheme:
                 if self.scheme_control.set_up(a_coil=self.current_config.coil, a_divider=self.current_config.divider,

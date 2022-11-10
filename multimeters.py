@@ -1,3 +1,4 @@
+import logging
 from enum import IntEnum
 import random
 import ctypes
@@ -70,11 +71,15 @@ class MultimeterBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_range(self, a_range: float):
+    def set_range(self, a_measure_type: MeasureType, a_range: float) -> bool:
         pass
 
     @abc.abstractmethod
-    def set_config(self, a_config_str):
+    def get_range(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def set_config(self, a_config_str) -> bool:
         pass
 
 
@@ -94,6 +99,13 @@ def create_multimeter(a_meter_type: MeterType, a_settings: QtSettings):
 
 class Agilent3485A(MultimeterBase):
 
+    MEASURE_TYPE_TO_SIGNAL_STR = {
+        MeasureType.tm_volt_dc: "DCV",
+        MeasureType.tm_volt_ac: "ACV",
+        MeasureType.tm_current_dc: "DCI",
+        MeasureType.tm_current_ac: "ACI",
+    }
+
     def __init__(self, a_settings: QtSettings):
         assert mxsrlib_dll.mxsrclib_dll is not None, "mxsrclib_dll не инициализирована !!!"
         self.mxsrclib_dll = mxsrlib_dll.mxsrclib_dll
@@ -112,6 +124,8 @@ class Agilent3485A(MultimeterBase):
         self.measure_type = None
         self.connected = False
         self.p_double = (ctypes.c_double * 1)()
+
+        self.range = ""
 
     def edit_settings(self, a_lock_changes: bool, a_parent):
         edit_agilent_config_dialog = EditAgilentConfigDialog(self.agilent_config, self.settings, a_lock_changes,
@@ -172,11 +186,23 @@ class Agilent3485A(MultimeterBase):
     def get_measure_type(self) -> MeasureType:
         return self.measure_type
 
-    def set_range(self, a_range: float):
-        self.mxsrclib_dll.multimeter_set_range(ctypes.c_size_t(self.measure_type), a_range)
+    def set_range(self, a_measure_type: MeasureType, a_range: float) -> bool:
+        try:
+            measure_type_str = Agilent3485A.MEASURE_TYPE_TO_SIGNAL_STR[a_measure_type]
+        except KeyError:
+            return False
+        else:
+            self.range = f"{measure_type_str} {a_range}"
+
+            return bool(self.mxsrclib_dll.multimeter_set_config(
+                ctypes.c_char_p(bytes(self.range, encoding="cp1251")), ctypes.c_double(1.)))
+
+    def get_range(self) -> str:
+        return self.range
 
     def set_config(self, a_config_str: str):
-        self.mxsrclib_dll.multimeter_set_config(ctypes.c_char_p(bytes(a_config_str, encoding="cp1251")))
+        return bool(self.mxsrclib_dll.multimeter_set_config(
+            ctypes.c_char_p(bytes(a_config_str, encoding="cp1251")), ctypes.c_double(2.)))
 
 
 class MultimeterGag(MultimeterBase):
@@ -188,6 +214,7 @@ class MultimeterGag(MultimeterBase):
 
         self.measure_value_timer = utils.Timer(2)
         self.measure_value_timer.start()
+        self.range = ""
 
     def edit_settings(self, a_lock_changes: bool, a_parent):
         pass
@@ -223,9 +250,55 @@ class MultimeterGag(MultimeterBase):
     def get_measure_type(self) -> MeasureType:
         return self.measure_type
 
-    def set_range(self, a_range: float):
-        self.lower_bound = utils.decrease_by_percent(a_range, 0.04)
-        self.upper_bound = utils.increase_by_percent(a_range, 0.04)
+    def set_range(self, a_measure_type: MeasureType, a_range: float) -> bool:
+        deviation = 0.04
+        self.lower_bound = utils.decrease_by_percent(a_range, deviation)
+        self.upper_bound = utils.increase_by_percent(a_range, deviation)
+        self.range = f"{self.lower_bound}-{self.upper_bound}+-{deviation}"
+        return True
 
-    def set_config(self, a_config_str):
-        pass
+    def get_range(self) -> str:
+        return self.range
+
+    def set_config(self, a_config_str) -> bool:
+        return True
+
+
+if __name__ == "__main__":
+    from irspy.qt.qt_settings_ini_parser import QtSettings
+    import time
+    import os
+
+    settings_file = "./tmp_settings.ini"
+    settings = QtSettings(settings_file, [
+        QtSettings.VariableInfo(a_name="agilent_connect_type", a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT, a_default=0),
+        QtSettings.VariableInfo(a_name="agilent_gpib_index", a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT, a_default=0),
+        QtSettings.VariableInfo(a_name="agilent_gpib_address", a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT, a_default=22),
+        QtSettings.VariableInfo(a_name="agilent_com_name", a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.STRING, a_default="com4"),
+        QtSettings.VariableInfo(a_name="agilent_ip_address", a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.STRING, a_default="0.0.0.0"),
+        QtSettings.VariableInfo(a_name="agilent_port", a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT, a_default=0),
+    ])
+
+    m = Agilent3485A(settings)
+    m.connect(MeasureType.tm_value)
+
+    def send_command(command, *args):
+        start = time.time()
+        command(*args)
+        while m.measure_status() != MultimeterBase.MeasureStatus.SUCCESS:
+            m.tick()
+        print(f"'{command.__name__}' executed for {time.time() - start} sec")
+
+    send_command(m.set_range, MeasureType.tm_current_ac, 1)
+    # send_command(m.set_range, MeasureType.tm_volt_ac, 1)
+    send_command(m.set_config, "SETACV SYNC;NPLC 100")
+
+    m.disconnect()
+    os.remove(settings_file)
+
