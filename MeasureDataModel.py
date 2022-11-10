@@ -144,7 +144,7 @@ class CellData:
         return self.__measured_times, self.__measured_values
 
     def get_clb_values(self) -> Tuple[array, array]:
-        return self.__clb_values, self.__clb_times
+        return self.__clb_times, self.__clb_values
 
     def has_value(self):
         return self.__have_result
@@ -183,6 +183,9 @@ class CellData:
 
     def set_clb_variable(self, a_variable_name: str):
         self.__clb_variable = a_variable_name
+
+    def get_clb_variable(self):
+        return self.__clb_variable
 
     def append_clb_value(self, a_value: float, a_time: float):
         self.__clb_values.append(a_value)
@@ -697,6 +700,15 @@ class MeasureDataModel(QAbstractTableModel):
 
         return cell_value
 
+    def get_cell_clb_variable_name(self, a_row: int, a_column: int) -> str:
+        cell = self.__cells[a_row][a_column]
+        return cell.get_clb_variable()
+
+    def get_cell_clb_values(self, a_row: int, a_column: int) -> Tuple[array, array]:
+        cell = self.__cells[a_row][a_column]
+        times, values = cell.get_clb_values()
+        return times, values
+
     def get_cell_measured_values(self, a_row: int, a_column: int) -> Tuple[array, array]:
         cell = self.__cells[a_row][a_column]
         times, values = cell.get_measured_values()
@@ -808,14 +820,26 @@ class MeasureDataModel(QAbstractTableModel):
         self.__reset_status()
         self.dataChanged.emit(self.__first_cell_index(), self.__last_cell_index(), (QtCore.Qt.DisplayRole,))
 
-    def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
-        self.__cells[a_row][a_column].append_value(a_value, a_time)
-        if self.__displayed_data != CellData.GetDataType.MEASURED:
-            self.__cells[a_row][a_column].calculate_parameters(self.get_amplitude(a_row), self.__displayed_data)
+    def update_cell_with_clb_variable_name(self, a_row, a_column, a_variable_name):
+        self.__cells[a_row][a_column].set_clb_variable(a_variable_name)
+
+    def update_cell_with_clb_value(self, a_row, a_column, a_value: float, a_time: float):
+        self.__cells[a_row][a_column].append_clb_value(a_value, a_time)
 
         self.set_save_state(False)
         self.__reset_status()
         self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column), (QtCore.Qt.DisplayRole,))
+
+    def update_cell_with_value(self, a_row, a_column, a_value: float, a_time: float):
+        self.__cells[a_row][a_column].append_value(a_value, a_time)
+        if self.__displayed_data != CellData.GetDataType.MEASURED:
+            self.__cells[a_row][a_column].calculate_parameters(self.get_amplitude(a_row),
+                                                               self.__displayed_data)
+
+        self.set_save_state(False)
+        self.__reset_status()
+        self.dataChanged.emit(self.index(a_row, a_column), self.index(a_row, a_column),
+                              (QtCore.Qt.DisplayRole,))
 
     def finalize_cell(self, a_row, a_column, a_result: float, a_other_info: str = ""):
         self.__cells[a_row][a_column].finalize(a_result, a_other_info)
