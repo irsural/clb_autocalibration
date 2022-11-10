@@ -19,7 +19,7 @@
    <string>Конфигурация ячейки</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../irspy/qt/resources/icons.qrc">
+   <iconset resource="../irspy/qt/resources/icons.qrc">
     <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -439,7 +439,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../../irspy/qt/resources/icons.qrc">
+              <iconset resource="../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
              </property>
             </widget>
@@ -450,7 +450,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../../irspy/qt/resources/icons.qrc">
+              <iconset resource="../irspy/qt/resources/icons.qrc">
                <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
              </property>
             </widget>
@@ -590,7 +590,7 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>add_extra_param_button</tabstop>
  </tabstops>
  <resources>
-  <include location="../../irspy/qt/resources/icons.qrc"/>
+  <include location="../irspy/qt/resources/icons.qrc"/>
  </resources>
  <connections/>
  <buttongroups>

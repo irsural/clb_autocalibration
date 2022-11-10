@@ -67,11 +67,11 @@ class MeasureConductor(QtCore.QObject):
         Stage.RESET_METER_CONFIG: ("Сброс параметров измерителя", logging.DEBUG),
         Stage.RESET_SCHEME_CONFIG: ("Сброс параметров схемы", logging.DEBUG),
 
-        Stage.SET_METER_MEASURE_TYPE: ("Установка типа измерения измерителя", logging.INFO),
-        Stage.WAIT_METER_MEASURE_TYPE: ("Ожидание установки типа измерения измерителя", logging.INFO),
+        Stage.SET_METER_MEASURE_TYPE: ("Установка рода тока и диапазона измерителя", logging.INFO),
+        Stage.WAIT_METER_MEASURE_TYPE: ("Ожидание установки рода тока и диапазона измерителя", logging.DEBUG),
         Stage.METER_TEST_MEASURE: ("Выполняется тестовое измерение мультиметром...", logging.INFO),
         Stage.SET_METER_CONFIG: ("Установка параметров измерителя", logging.INFO),
-        Stage.WAIT_METER_CONFIG: ("Ожидание установки параметров измерителя", logging.INFO),
+        Stage.WAIT_METER_CONFIG: ("Ожидание установки параметров измерителя", logging.DEBUG),
 
         Stage.SET_SCHEME_CONFIG: ("Установка параметров схемы", logging.DEBUG),
         Stage.WAIT_SCHEME_SETTLE_DOWN: ("На всякий случай немного ждем схему...", logging.DEBUG),
@@ -454,7 +454,6 @@ class MeasureConductor(QtCore.QObject):
                 self.need_to_reset_scheme = True
 
                 if self.is_started():
-                    logging.info("Установка параметров мультиметра...")
                     self.__stage = MeasureConductor.Stage.SET_METER_MEASURE_TYPE
                 else:
                     self.__stage = MeasureConductor.Stage.MEASURE_DONE
@@ -588,8 +587,7 @@ class MeasureConductor(QtCore.QObject):
                         self.calibrator_not_ready_message_time.start()
                         logging.warning("Калибратор вышел из режима ГОТОВ!")
             else:
-                measure_duration = self.current_config.measure_time if self.current_config.measure_time != 0 else 999999
-                self.measure_duration_timer.start(measure_duration)
+                self.measure_duration_timer.start(self.current_config.measure_time)
 
                 self.out_filter_take_sample_timer.start(self.current_config.additional_parameters.filter_sampling_time)
                 self.calibrator_out_filter.reset()
@@ -604,8 +602,7 @@ class MeasureConductor(QtCore.QObject):
             if self.calibrator.state == clb.State.STOPPED or self.netvars.error_occurred.get():
                 self.__retry()
 
-            elif not self.measure_duration_timer.check():
-
+            else:
                 if self.out_filter_take_sample_timer.check():
                     self.out_filter_take_sample_timer.start()
 
@@ -623,25 +620,22 @@ class MeasureConductor(QtCore.QObject):
 
                     self.add_new_measured_value(measured, time)
 
-                    self.multimeter.start_measure()
+                    if not self.measure_duration_timer.check():
+                        self.multimeter.start_measure()
+                    else:
+                        measure_result = self.calculate_result()
+                        self.measure_manager.finalize_measure(*self.current_cell_position, measure_result)
 
-                    # Лайфхак(говнокод), так будет сделано ровно одно измерение
-                    if self.current_config.measure_time == 0:
-                        self.measure_duration_timer.start(1e-6)
-            else:
-                measure_result = self.calculate_result()
-                self.measure_manager.finalize_measure(*self.current_cell_position, measure_result)
+                        if self.current_cell_is_the_last_in_table:
+                            self.measure_manager.update_measure_status(self.current_cell_position.measure_name)
 
-                if self.current_cell_is_the_last_in_table:
-                    self.measure_manager.update_measure_status(self.current_cell_position.measure_name)
+                        self.start_time_point = None
+                        # stop() чтобы таймеры возвращали верное значение time_passed()
+                        self.calibrator_hold_ready_timer.stop()
+                        self.measure_duration_timer.stop()
+                        self.single_measure_done.emit()
 
-                self.start_time_point = None
-                # stop() чтобы таймеры возвращали верное значение time_passed()
-                self.calibrator_hold_ready_timer.stop()
-                self.measure_duration_timer.stop()
-                self.single_measure_done.emit()
-
-                self.__stage = MeasureConductor.Stage.END_MEASURE
+                        self.__stage = MeasureConductor.Stage.END_MEASURE
 
         elif self.__stage == MeasureConductor.Stage.ERRORS_OUTPUT:
             if clb_assists.guaranteed_buffered_variable_set(self.netvars.signal_on, False):
