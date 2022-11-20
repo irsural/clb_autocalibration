@@ -443,8 +443,7 @@ class MeasureConductor(QtCore.QObject):
         elif self.__stage == MeasureConductor.Stage.RESET_METER_CONFIG:
             assert not (self.__started and self.multimeter is None), \
                 "Измерение запущено, но мультиметр не инициализирован!"
-
-            if self.multimeter is None or \
+            if self.multimeter is None or not self.multimeter.is_connected() or \
                     self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
                 self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 

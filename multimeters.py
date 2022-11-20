@@ -235,7 +235,6 @@ class MultimeterGag(MultimeterBase):
 
     def measure_status(self) -> MultimeterBase.MeasureStatus:
         if self.measure_value_timer.check():
-            self.measure_value_timer.stop()
             return MultimeterBase.MeasureStatus.SUCCESS
         else:
             return MultimeterBase.MeasureStatus.BUSY
