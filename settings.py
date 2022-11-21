@@ -28,4 +28,6 @@ def get_clb_autocalibration_settings():
         QtSettings.VariableInfo(a_name="scheme_type", a_section="PARAMETERS", a_type=QtSettings.ValueType.INT, a_default=0),
         QtSettings.VariableInfo(a_name="display_data_precision", a_section="PARAMETERS", a_type=QtSettings.ValueType.INT, a_default=6),
         QtSettings.VariableInfo(a_name="edit_data_precision", a_section="PARAMETERS", a_type=QtSettings.ValueType.INT, a_default=20),
+        QtSettings.VariableInfo(a_name="enable_debug_log", a_section="PARAMETERS", a_type=QtSettings.ValueType.INT, a_default=0),
+
     ])

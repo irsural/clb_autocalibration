@@ -2,6 +2,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 
 from ui.py.about_dialog import Ui_about_dialog as AboutForm
 import app_info
+import datetime
 
 
 class AboutDialog(QtWidgets.QDialog):
@@ -14,6 +15,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.show()
 
         self.ui.version_label.setText(f"Версия программы: {app_info.VERSION}")
+        self.ui.copyright_year_label.setText(str(datetime.datetime.now().year))
 
         self.ui.close_button.clicked.connect(self.reject)
 

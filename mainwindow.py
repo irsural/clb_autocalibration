@@ -1,6 +1,5 @@
 from logging.handlers import RotatingFileHandler
 from os import system as os_system
-from typing import List
 from enum import IntEnum
 import logging
 import json
@@ -123,7 +122,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
-            self.tick_timer.start(10)
+            self.tick_timer.start(100)
 
         else:
             self.close()
@@ -217,6 +216,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.calculate_divider_coefficients.triggered.connect(self.calculate_divider_coefficients_button_clicked)
         self.ui.open_about_action.triggered.connect(self.open_about)
 
+        self.ui.enable_debug_log_action.setChecked(self.settings.enable_debug_log)
+        self.ui.enable_debug_log_action.triggered.connect(self.set_log_level)
+
     def set_up_logger(self):
         log = qt_utils.QTextEditLogger(self.ui.log_text_edit)
         log.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%H:%M:%S'))
@@ -227,7 +229,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         logging.getLogger().addHandler(file_log)
         logging.getLogger().addHandler(log)
-        logging.getLogger().setLevel(logging.DEBUG)
+        self.set_log_level(bool(self.settings.enable_debug_log))
+
+    def set_log_level(self, a_enable_log_level: bool):
+        self.settings.enable_debug_log = int(a_enable_log_level)
+        log_level = logging.DEBUG if a_enable_log_level else logging.INFO
+        logging.getLogger().setLevel(log_level)
 
     def lock_interface(self, a_lock: bool):
         self.ui.new_configuration_action.setDisabled(a_lock)
@@ -381,13 +388,21 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.save_current_configuration():
             logging.warning("Не удалось сохранить результат после завершения измерения ячейки")
 
-    def measure_done(self):
+    def measure_done(self, errors_list):
         self.ui.curent_cell_progress_bar.setValue(0)
         self.ui.curent_cell_progress_bar.resetFormat()
         self.ui.measure_progress_bar.setValue(0)
         self.ui.measure_progress_bar.resetFormat()
         self.measure_progress_bar_value = 0
         self.lock_interface(False)
+
+        if errors_list:
+            errors_str = "\n".join(errors_list)
+            QtWidgets.QMessageBox.critical(
+                self, "Ошибка", f"Во время проведения измерений возникли следующие ошибки:\n"
+                                f"{errors_str}.\nПроверьте логи для более подробной информации.",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
 
     def start_all_measures_button_clicked(self, _):
         self.start_measure(MeasureManager.IterationType.START_ALL)

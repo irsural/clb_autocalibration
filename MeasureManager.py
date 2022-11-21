@@ -751,6 +751,14 @@ class MeasureManager(QtCore.QObject):
 
         self.new_measure(measure_name, data_model)
 
+    def set_clb_variable_name(self, a_name: str, a_row, a_column, a_variable_name):
+        self.measures[a_name].update_cell_with_clb_variable_name(a_row, a_column, a_variable_name)
+
+    def add_clb_value(self, a_name: str, a_row, a_column, a_value: float, a_time: float):
+        self.measures[a_name].update_cell_with_clb_value(a_row, a_column, a_value, a_time)
+        # Используется для обновления графиков
+        self.new_value_measured.emit(a_value, a_time)
+
     def add_measured_value(self, a_name: str, a_row, a_column, a_value: float, a_time: float):
         self.measures[a_name].update_cell_with_value(a_row, a_column, a_value, a_time)
         # Используется для обновления графиков
@@ -983,17 +991,22 @@ class MeasureManager(QtCore.QObject):
             cell = self.get_only_selected_cell()
             if cell:
                 measurement_graph = self.current_data_model.get_cell_measured_values(cell.row(), cell.column())
-                times = measurement_graph[0]
-                if times:
+                measure_times = measurement_graph[0]
+                if measure_times:
                     graph_values_name = f"Ячейка {self.current_data_model.get_amplitude_with_units(cell.row())}; " \
                                         f"{self.current_data_model.get_frequency_with_units(cell.column())}"
 
                     measure_result = self.current_data_model.get_cell_value(cell.row(), cell.column(),
                                                                             CellData.GetDataType.MEASURED)
-                    result_graph = ([times[0], times[-1]], [measure_result, measure_result])
+                    result_graph = ([measure_times[0], measure_times[-1]], [measure_result, measure_result])
 
                     graphs[graph_values_name] = measurement_graph
                     graphs["Результат"] = result_graph
+
+                clb_graph = self.current_data_model.get_cell_clb_values(cell.row(), cell.column())
+                if clb_graph[0]:
+                    graphs[self.current_data_model.get_cell_clb_variable_name(
+                        cell.row(), cell.column())] = clb_graph
 
         return graphs
 
