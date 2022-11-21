@@ -388,13 +388,21 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.save_current_configuration():
             logging.warning("Не удалось сохранить результат после завершения измерения ячейки")
 
-    def measure_done(self):
+    def measure_done(self, errors_list):
         self.ui.curent_cell_progress_bar.setValue(0)
         self.ui.curent_cell_progress_bar.resetFormat()
         self.ui.measure_progress_bar.setValue(0)
         self.ui.measure_progress_bar.resetFormat()
         self.measure_progress_bar_value = 0
         self.lock_interface(False)
+
+        if errors_list:
+            errors_str = "\n".join(errors_list)
+            QtWidgets.QMessageBox.critical(
+                self, "Ошибка", f"Во время проведения измерений возникли следующие ошибки:\n"
+                                f"{errors_str}.\nПроверьте логи для более подробной информации.",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
 
     def start_all_measures_button_clicked(self, _):
         self.start_measure(MeasureManager.IterationType.START_ALL)

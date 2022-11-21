@@ -133,7 +133,7 @@ class MeasureConductor(QtCore.QObject):
 
     single_measure_started = QtCore.pyqtSignal()
     single_measure_done = QtCore.pyqtSignal()
-    all_measures_done = QtCore.pyqtSignal()
+    all_measures_done = QtCore.pyqtSignal(list)
 
     verify_flash_done = QtCore.pyqtSignal()
 
@@ -180,6 +180,8 @@ class MeasureConductor(QtCore.QObject):
         self.y_out = 0
         self.y_out_network_variable = self.netvars.fast_adc_slow
         self.y_out_network_variable_name = ""
+
+        self.measure_errors = []
 
         self.out_filter_take_sample_timer = utils.Timer(0.1)
         self.calibrator_out_filter = metrology.MovingAverage(a_window_size=0)
@@ -240,6 +242,9 @@ class MeasureConductor(QtCore.QObject):
     def start(self, a_measure_iterator: MeasureIterator, a_auto_flash_to_calibrator):
         assert a_measure_iterator is not None, "Итератор не инициализирован!"
         self.reset()
+        # Не сбрасывается в self.reset(), потому что в состоянии MEASURE_DONE сначала вызывается
+        # reset(), а потом вызывается сигнал, в котором передаются ошибки
+        self.measure_errors = []
         self.measure_iterator = a_measure_iterator
         self.auto_flash_to_calibrator = a_auto_flash_to_calibrator
         self.__started = True
@@ -620,7 +625,14 @@ class MeasureConductor(QtCore.QObject):
                 if self.out_filter_take_sample_timer.check():
                     self.out_filter_take_sample_timer.start()
 
-                    self.add_new_clb_value(self.y_out_network_variable.get(), time)
+                    clb_value = self.y_out_network_variable.get()
+                    if clb_value == 0:
+                        logging.warning(f"С калибратора было считано значение "
+                                        f"{self.y_out_network_variable_name} = 0. "
+                                        f"Это значение не будет учтено")
+                        self.measure_errors.append("С калибратора считано значение 0")
+                    else:
+                        self.add_new_clb_value(clb_value, time)
 
                 if self.multimeter.measure_status() == multimeters.MultimeterBase.MeasureStatus.SUCCESS:
                     measured = self.multimeter.get_measured_value()
@@ -707,7 +719,7 @@ class MeasureConductor(QtCore.QObject):
 
         elif self.__stage == MeasureConductor.Stage.MEASURE_DONE:
             self.reset()
-            self.all_measures_done.emit()
+            self.all_measures_done.emit(self.measure_errors)
             self.__stage = MeasureConductor.NEXT_STAGE[self.__stage]
 
     def set_extra_variables(self, a_state: CellConfig.ExtraParameterState):
