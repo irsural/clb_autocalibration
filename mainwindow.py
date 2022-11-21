@@ -122,7 +122,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.tick_timer = QtCore.QTimer(self)
             self.tick_timer.timeout.connect(self.tick)
-            self.tick_timer.start(10)
+            self.tick_timer.start(100)
 
         else:
             self.close()
