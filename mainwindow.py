@@ -352,7 +352,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.curent_cell_progress_bar.setFormat("%v с. / %m с. (%p%)")
 
     def start_measure(self, a_iteration_type: MeasureManager.IterationType):
-        measure_iterator = self.measure_manager.get_measure_iterator(a_iteration_type)
+        measure_iterator = self.measure_manager.get_measure_iterator(a_iteration_type, True)
         if measure_iterator is not None:
             # Это происходит, когда нет выделенных ячеек
             if measure_iterator.get() is not None:

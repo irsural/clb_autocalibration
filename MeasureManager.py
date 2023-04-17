@@ -677,27 +677,27 @@ class MeasureManager(QtCore.QObject):
     def get_enabled_measures(self) -> List[str]:
         return [name for name in self.measures.keys() if self.measures[name].is_enabled()]
 
-    def get_measure_iterator(self, a_iteration_type: IterationType):
+    def get_measure_iterator(self, a_iteration_type: IterationType, a_cycle=False):
         pass_through_measures = a_iteration_type in (MeasureManager.IterationType.START_ALL,
                                                      MeasureManager.IterationType.CONTINUE_ALL)
 
         if a_iteration_type in (MeasureManager.IterationType.START_ALL, MeasureManager.IterationType.START_CURRENT):
-            return self.__get_measure_iterator(pass_through_measures)
+            return self.__get_measure_iterator(pass_through_measures, a_cycle)
         else:
-            return self.__get_measure_iterator_from_current(pass_through_measures)
+            return self.__get_measure_iterator_from_current(pass_through_measures, a_cycle)
 
-    def __get_measure_iterator(self, a_pass_through_measures: bool):
+    def __get_measure_iterator(self, a_pass_through_measures: bool, a_cycle):
         iterator = None
         if self.current_data_model:
             measure_models_list = [data_model for data_model in self.measures.values() if data_model.is_enabled()] \
                 if a_pass_through_measures else [self.current_data_model]
 
             if measure_models_list:
-                iterator = MeasureIteratorDirectByRows(measure_models_list)
+                iterator = MeasureIteratorDirectByRows(measure_models_list, a_cycle=a_cycle)
 
         return iterator
 
-    def __get_measure_iterator_from_current(self, a_pass_through_measures: bool):
+    def __get_measure_iterator_from_current(self, a_pass_through_measures: bool, a_cycle):
         iterator = None
         if self.current_data_model:
             selected_cells_idx = self.get_only_selected_cell()
@@ -716,7 +716,8 @@ class MeasureManager(QtCore.QObject):
 
                 if measure_models_list:
                     iterator = MeasureIteratorDirectByRows(measure_models_list,
-                                                           (selected_cells_idx.row(), selected_cells_idx.column()))
+                                                           (selected_cells_idx.row(), selected_cells_idx.column()),
+                                                           a_cycle=a_cycle)
         return iterator
 
     def set_active_cell(self, a_cell_pos: MeasureIterator.CellPosition):

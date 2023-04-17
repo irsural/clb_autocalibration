@@ -30,7 +30,8 @@ class MeasureIteratorDirectByRows(MeasureIterator):
     FIRST_CELL_COLUMN = 0
 
     def __init__(self, a_data_models: List[MeasureDataModel],
-                 a_start_index: Tuple[int, int] = (FIRST_CELL_ROW, FIRST_CELL_COLUMN)):
+                 a_start_index: Tuple[int, int] = (FIRST_CELL_ROW, FIRST_CELL_COLUMN),
+                 a_cycle=False):
 
         assert bool(a_data_models), "Нужна хотя бы одна модель данных"
 
@@ -38,7 +39,9 @@ class MeasureIteratorDirectByRows(MeasureIterator):
         self.current_data_model_idx = 0
         self.current_data_model = self.data_models[self.current_data_model_idx]
 
-        self.current_row, self.current_column = a_start_index
+        self.cycle = a_cycle
+        self.start_index = a_start_index
+        self.current_row, self.current_column = self.start_index
         self.cells_are_over = False
 
         if not self.current_data_model.is_cell_locked(self.current_row, self.current_column):
@@ -57,7 +60,12 @@ class MeasureIteratorDirectByRows(MeasureIterator):
     def next(self):
         if self.__is_current_cell_the_last():
             if self.__is_current_model_the_last():
-                self.cells_are_over = True
+                if not self.cycle:
+                    self.cells_are_over = True
+                else:
+                    self.current_data_model_idx = 0
+                    self.current_data_model = self.data_models[self.current_data_model_idx]
+                    self.current_row, self.current_column = self.start_index
             else:
                 self.current_data_model_idx += 1
                 self.current_data_model = self.data_models[self.current_data_model_idx]
